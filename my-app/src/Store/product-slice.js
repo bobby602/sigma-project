@@ -9,8 +9,17 @@ const productSlice = createSlice({
   },
   reducers: {
     replaceproduct(state, action) {
-      state.data = action.payload;
-      state.filter = action.payload;
+      const type = action.payload.e;
+      const data = action.payload.productData;
+      console.log(type)
+      state.filter = data.filter((e)=>{
+      if (type.includes(e.TyItemDm)){
+          return {...state,e};
+      }else{
+        return;
+      }
+      });
+      // state.filter = action.payload;
     },
     filterProduct(state,action){
       const Item = action.payload;

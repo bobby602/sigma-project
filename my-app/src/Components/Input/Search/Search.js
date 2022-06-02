@@ -5,7 +5,6 @@ import { useSelector,  useDispatch } from 'react-redux';
 const Search = ()=>{
     const dispatch = useDispatch();
     const product = useSelector((state) => state.product);
-    const filter = useSelector((state) => state.filter);
 
     const handleOnChange = (e)=>{
         const search = e.target.value;

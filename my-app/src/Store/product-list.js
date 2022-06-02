@@ -1,5 +1,5 @@
 import { productActions } from './product-slice';
-export const fetchCartData = () => {
+export const fetchCartData = (e) => {
 
     return async (dispatch) => {
       const fetchData = async () => {
@@ -17,7 +17,7 @@ export const fetchCartData = () => {
       try {
         const productData = await fetchData();
         dispatch(
-            productActions.replaceproduct(productData)
+            productActions.replaceproduct({productData,e})
         );
       } catch (error) {
         console.log(error);

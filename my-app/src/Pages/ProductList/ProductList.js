@@ -58,10 +58,10 @@ const ProductList = ()=>{
                 <p className= "text-3xl text-gray-700 font-mono hover:text-blue-600">ทะเบียนผลิตภัณฑ์</p>
                 <div className ={`${Styles.search} `}>
                     <div class="flex flex-row ">
-                        <div class="basis-1/4 pr-2">
+                        <div class="basis-1/4 pr-4">
                             <Search onChange ={handleOnChange} />
                         </div> 
-                        <div class="basis-2/4">  
+                        <div class="basis-2/4 pt-1">  
                             <Selectbox/>
                         </div> 
                     </div>    
