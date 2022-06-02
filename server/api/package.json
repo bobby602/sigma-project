@@ -1,0 +1,24 @@
+{
+  "name": "api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "~1.4.4",
+    "cors": "^2.8.5",
+    "debug": "~2.6.9",
+    "express": "^4.16.4",
+    "express-session": "^1.17.2",
+    "http-errors": "~1.6.3",
+    "install": "^0.13.0",
+    "jade": "~1.11.0",
+    "morgan": "~1.9.1",
+    "mssql": "^8.1.0",
+    "mysql": "^2.18.1",
+    "tedious": "^14.4.0"
+  },
+  "proxy": "http://192.168.1.40:3000/"
+}

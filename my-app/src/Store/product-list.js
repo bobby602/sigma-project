@@ -1,0 +1,26 @@
+import { productActions } from './product-slice';
+export const fetchCartData = () => {
+
+    return async (dispatch) => {
+      const fetchData = async () => {
+        const res = await fetch('http://192.168.1.40:9001/table');
+  
+        if (!res.ok) {
+          throw new Error('Could not fetch cart data!');
+        }
+  
+        const actualData = await res.json();
+  
+        return actualData.result.recordset;
+      };
+  
+      try {
+        const productData = await fetchData();
+        dispatch(
+            productActions.replaceproduct(productData)
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  };
