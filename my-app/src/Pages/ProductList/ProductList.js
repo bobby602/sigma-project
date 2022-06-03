@@ -6,6 +6,7 @@ import Search from '../../Components/Input/Search/Search'
 import Selectbox from '../../Components/Input/SelectBox/Selectbox'
 import { useSelector, useDispatch } from 'react-redux';
 import { productActions } from '../../Store/product-slice';
+import Spreadsheet from '../../Components/Input/SpreadSheet/Spreadsheet'
 
 import { fetchCartData } from '../../Store/product-list';
 
@@ -57,16 +58,17 @@ const ProductList = ()=>{
             <div class={`${Styles.borderTable}  `}>
                 <p className= "text-3xl text-gray-700 font-mono hover:text-blue-600">ทะเบียนผลิตภัณฑ์</p>
                 <div className ={`${Styles.search} `}>
-                    <div class="flex flex-row ">
-                        <div class="basis-1/4 pr-4">
+                    <div className="flex justify-center">
+                        {/* <div class="basis-1/4 pr-4">
                             <Search onChange ={handleOnChange} />
-                        </div> 
-                        <div class="basis-2/4 pt-1">  
+                        </div>  */}
+                        {/* <div class="flex justify-center">   */}
                             <Selectbox/>
-                        </div> 
+                        {/* </div>  */}
                     </div>    
                 </div>    
-                <ProductTable data ={product.filter}/>     
+                <Spreadsheet/>
+                {/* <ProductTable data ={product.filter}/>      */}
             </div> 
         </Fragment>
     )

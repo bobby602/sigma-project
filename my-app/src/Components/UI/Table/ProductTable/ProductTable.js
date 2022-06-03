@@ -36,40 +36,40 @@ const ProductTable = (data)=>{
                     {e.TyItemDm}
                 </td>
                 <td class="px-6 py-4 text-right">
-                    <a href="#" onClick={handleOnClick} class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
+                    <a href="#" onClick={handleOnClick} className ="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
                 </td>
             </tr>
       })
          
     return (
         <Fragment>
-            <div class={`${Styles.font} relative overflow-x-auto shadow-md sm:rounded-lg`}>
-            <table id="dtHorizontalExample" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                <thead class={`${Styles.textCustom} text-base bg-[#10b981]  uppercase  `}>
+            <div className={`${Styles.font} relative overflow-x-auto shadow-md sm:rounded-lg`}>
+            <table id="dtHorizontalExample" className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead className={`${Styles.textCustom} text-base bg-[#10b981]  uppercase  `}>
                     <tr>
-                        <th scope="col" class="px-6 py-3">
+                        <th scope="col" className="px-6 py-3">
                             Barcode
                         </th>
-                        <th scope="col" class="px-6 py-3">
+                        <th scope="col" className="px-6 py-3">
                             ชื่อผลิตภัณฑ์
                         </th>
-                        <th scope="col" class="px-6 py-3">
+                        <th scope="col" className="px-6 py-3">
                             คงเหลือ
                         </th>
-                        <th scope="col" class="px-6 py-3">
+                        <th scope="col" className="px-6 py-3">
                             หักสถานะค้างต่างๆ
                         </th>
-                        <th scope="col" class="px-6 py-3">
+                        <th scope="col" className="px-6 py-3">
                             ทุน MIN
                         </th>
-                        <th scope="col" class="px-6 py-3">
+                        <th scope="col" className="px-6 py-3">
                             ทุน Max
                         </th>
-                        <th scope="col" class="px-6 py-3">
+                        <th scope="col" className="px-6 py-3">
                             Type
                         </th>
-                        <th scope="col" class="px-6 py-3">
-                            <span class="sr-only">Edit</span>
+                        <th scope="col" className="px-6 py-3">
+                            <span className="sr-only">Edit</span>
                         </th>
                     </tr>
                 </thead>
