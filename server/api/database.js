@@ -29,10 +29,5 @@ let result;
   
   var conn = mssql.connect(conn1, function (err) {
     if (err) console.log(err);
-     conn.query("select * from [DATASIGMA].[dbo].[Users]", function (err, result, fields) {
-          if (err) throw err;
-          // console.log(result);
-      
-        });
   });
 module.exports = conn;

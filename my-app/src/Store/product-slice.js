@@ -6,6 +6,7 @@ const productSlice = createSlice({
     data: [],
     changed: false,
     filter:[],
+    subTable:[],
   },
   reducers: {
     replaceproduct(state, action) {
@@ -27,6 +28,12 @@ const productSlice = createSlice({
        if (e.Name.toLowerCase().includes(Item.toLowerCase())){
                 return {...state ,e};
         }
+      })  
+    },
+    subTable(state,action){
+      const Item = action.payload.productData;
+      state.subTable = Item.filter((e)=>{
+           return e;
       })  
     },
   },
