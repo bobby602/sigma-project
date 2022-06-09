@@ -78,7 +78,7 @@ const Navbar = ()=>{
               <div className ={`${styles.content} sticky top-0 z-100  `}>   
                 <nav   className={`  bg-[#3F83F8] border-gray-100 px-1 sm:px-3 py-1 pr-4 pl-3  `}>
                   <div className=" flex flex-wrap justify-between items-start mx-auto ">
-                    <a href="#" className="flex items-start items-center">
+                    <a href="/MainPage" className="flex items-start items-center">
                       <img src={process.env.PUBLIC_URL + "/icons/a-icon-chemical.png"} className="mr-3 h-6 sm:h-9" alt="Flowbite Logo" />
                       <span className={`${styles.textCustom} text-xl font-semibold whitespace-nowrap text-white`}>Sigma</span>
                     </a>

@@ -1,11 +1,12 @@
-import Multiselect from 'multiselect-react-dropdown';
+import { MultiSelect } from 'primereact/multiselect';
 import { Fragment } from 'react';
 import {useRef ,useEffect,useState } from 'react'
-import MultiSelect from  'react-multiple-select-dropdown-lite'
+
 import  'react-multiple-select-dropdown-lite/dist/index.css'
 import  './Selectbox.css'
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchCartData } from '../../../Store/product-list';
+import { Skeleton } from 'primereact/skeleton';
 
 const Selectbox = ()=>{
     const dispatch = useDispatch();
@@ -35,11 +36,12 @@ const Selectbox = ()=>{
                     >
                 </Multiselect>  */}
 
-                <label  className="flex items-center pr-2  block font-semibold text-base font-medium text-gray-900 dark:text-gray-400 ">เลือก Type </label> 
-                    <MultiSelect
+                <label  className="flex items-center pr-2  block font-semibold text-base font-medium text-gray-900 dark:text-gray-400 ">เลือก Material Type </label> 
+                <MultiSelect value={value} options={options} onChange={(e) =>setvalue(e.value)}  optionLabel="label" placeholder="Select Type" display="chip" />
+                    {/* <MultiSelect
                         onChange= {(e) => setvalue(e)}
                         options={options}
-                    />
+                    /> */}
                 {/* </div>    */}
             {/* </div>         */}
         </Fragment>         

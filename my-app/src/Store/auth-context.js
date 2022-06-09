@@ -14,7 +14,6 @@ const retrieveStoredToken = () => {
     };
   };
 
-
 export const AuthContextProvider = (props)=>{
     const tokenData = retrieveStoredToken();
     let initialToken;
@@ -24,7 +23,8 @@ export const AuthContextProvider = (props)=>{
     const loginHandler = (token) =>{
         console.log(token.username)
         setToken(token);
-        localStorage.setItem('token', JSON.stringify(token));
+        // localStorage.setItem('token', JSON.stringify(token));
+        sessionStorage.setItem('token', JSON.stringify(token));
         setIsLoggin(true);
         console.log(isLoggedIn);
     }
@@ -39,7 +39,7 @@ export const AuthContextProvider = (props)=>{
     }
     const logOutHandler = () =>{
         setToken(null);
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         // console.log(token)
         // setToken(token);
         // localStorage.setItem('token', token);

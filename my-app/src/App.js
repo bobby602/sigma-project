@@ -6,60 +6,39 @@ import UserPage  from './Pages/User/UserPage';
 import ProductList  from './Pages/ProductList/ProductList';
 import react,{Fragment} from 'react';
 import AuthContext from './Store/auth-context';
-import { useMediaQuery } from 'react-responsive'
-
+import { useMediaQuery } from 'react-responsive';
+import Auth from './Authenticate/Auth'
 
 function App() {
-  
-
 
   const isDesktopOrLaptop = useMediaQuery({
     query: '(min-width: 1140px)'
   })
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 849px)' })
-  const authCtx = useContext(AuthContext);
-  let token = localStorage.getItem('token');
-  console.log(authCtx.isLoggedIn);
-  let checkpage;
-    if( token ||authCtx.isLoggedIn ===true){
-      checkpage= <Route path='/MainPage' element={<MainPage />}/>;
-      console.log('test');
-    }else{
-      checkpage = <Route path='/MainPage' element={<LoginPage />}/>;
-    }
-  
-  
+
   return (
     <Fragment>
         {isDesktopOrLaptop && 
           <BrowserRouter>
               <Routes>
-                  <Route path="/" element={<LoginPage />} />
-              </Routes>
-              <Routes >
-              {checkpage}
-              </Routes>
-              <Routes>
+                <Route path="/" element={<Auth />} >
+                  <Route path='/MainPage' element={<MainPage />}/>
                   <Route path="/ProductList" element={<ProductList />} />
-              </Routes>
-              <Routes>
                   <Route path="/UserPage" element={<UserPage />} />
+                </Route>  
+                <Route path="/Login" element={<LoginPage />} />
               </Routes>
           </BrowserRouter> 
         }
         {isTabletOrMobile && 
           <BrowserRouter>
               <Routes>
-                  <Route path="/" element={<LoginPage />} />
-              </Routes>
-              <Routes >
-                {checkpage}
-              </Routes>
-              <Routes>
+                <Route path="/" element={<Auth />} >
+                  <Route path='/MainPage' element={<MainPage />}/>
                   <Route path="/ProductList" element={<ProductList />} />
-              </Routes>
-              <Routes>
                   <Route path="/UserPage" element={<UserPage />} />
+                </Route>  
+                <Route path="/Login" element={<LoginPage />} />
               </Routes>
           </BrowserRouter> 
         }
