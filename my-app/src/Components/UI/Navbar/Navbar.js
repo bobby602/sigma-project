@@ -1,9 +1,17 @@
-import { Fragment ,useRef,useEffect,useState,useCallback} from 'react'
+import { Fragment ,useRef,useEffect,useState,useCallback,useContext} from 'react'
 import styles from './Navbar.module.css'
 import { menuItems } from "./MenuItem/MenuItems";
+import { Link , useNavigate  } from 'react-router-dom'
 // import MenuItems from "./MenuItem/MenuItems";
+import AuthContext from '../../../Store/auth-context';
 
 const Navbar = ()=>{
+  const navigate = useNavigate();
+  const authCtx = useContext(AuthContext); 
+  const handelOnClick = ()=>{
+    authCtx.onLogOut();
+    navigate("/Login");
+  }
   // const ref = useRef(null);
   // const [y, setY] = useState(window.scrollY);
   // const [height, setHeight] = useState(0);
@@ -76,12 +84,14 @@ const Navbar = ()=>{
             </nav> */}
                
               <div className ={`${styles.content} sticky top-0 z-100  `}>   
-                <nav   className={`  bg-[#3F83F8] border-gray-100 px-1 sm:px-3 py-1 pr-4 pl-3  `}>
-                  <div className=" flex flex-wrap justify-between items-start mx-auto ">
-                    <a href="/MainPage" className="flex items-start items-center">
-                      <img src={process.env.PUBLIC_URL + "/icons/a-icon-chemical.png"} className="mr-3 h-6 sm:h-9" alt="Flowbite Logo" />
+                <nav className={` bg-[#3F83F8] border-gray-100 px-1 sm:px-3 py-2 pr-4 pl-3  `}>
+                  <div className=" flex flex-wrap  flex justify-between content-center  mx-auto ">
+                    <a href="/MainPage" className="flex content-center items-center">
+                      <img src={process.env.PUBLIC_URL + "/icons/a-icon-chemical.png"} className="mr-3 h-6 sm:h-9 "  />
                       <span className={`${styles.textCustom} text-xl font-semibold whitespace-nowrap text-white`}>Sigma</span>
                     </a>
+                    
+                    <button type="button"  onClick = {handelOnClick} className="text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg shadow-purple-500/50 dark:shadow-lg dark:shadow-purple-800/80 font-medium rounded-lg  mr-10 px-5 py-2.5 text-center ">Log Out</button>
                       {/* <ul class="navbar-nav mr-auto flex flex-row">
                         <li class="nav-item">
                           <a class="nav-link block pr-2 lg:px-2 py-2 text-gray-600 hover:text-gray-700 focus:text-gray-700 transition duration-150 ease-in-out" href="#!" data-mdb-ripple="true" data-mdb-ripple-color="light">Regular link</a>

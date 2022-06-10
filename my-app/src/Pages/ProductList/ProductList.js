@@ -55,7 +55,7 @@ const ProductList = ()=>{
     return(
         <Fragment>
             <Navbar/>
-            <div class={`${Styles.borderTable}  `}>
+            <div className={`${Styles.borderTable}  `}>
                 <p className= "text-3xl text-gray-700 font-mono hover:text-blue-600">ทะเบียนผลิตภัณฑ์</p>
                 <div className ={`${Styles.search} `}>
                     <div className="flex justify-center">

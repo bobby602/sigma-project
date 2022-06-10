@@ -4,15 +4,25 @@ const productSlice = createSlice({
   name: 'product',
   initialState: {
     data: [],
-    changed: false,
+    isLoading: false,
     filter:[],
     subTable:[],
+    type:[],
   },
   reducers: {
     replaceproduct(state, action) {
       const type = action.payload.e;
       const data = action.payload.productData;
-      console.log(type)
+      let Str ='';
+      let i =0;
+      if(type){
+          const typeStr = type.map((e)=>{
+            Str=  Str +e+',';
+            i++;
+          })
+        Str =Str.substring(0, Str.length - 1)
+        state.type = Str;
+        }  
       state.filter = data.filter((e)=>{
       if (type.includes(e.TyItemDm)){
           return {...state,e};

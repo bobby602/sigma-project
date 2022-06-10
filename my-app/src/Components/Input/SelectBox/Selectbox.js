@@ -22,7 +22,6 @@ const Selectbox = ()=>{
         //     // dispatch(fetchCartData(value));
         // }  
     useEffect (()=>{
-        console.log(value)
             dispatch(fetchCartData(value));
     },[value])
 

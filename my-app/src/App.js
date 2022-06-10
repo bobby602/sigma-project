@@ -12,9 +12,9 @@ import Auth from './Authenticate/Auth'
 function App() {
 
   const isDesktopOrLaptop = useMediaQuery({
-    query: '(min-width: 1140px)'
+    query: '(min-width: 1180px)'
   })
-  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 849px)' })
+  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 820px)' })
 
   return (
     <Fragment>

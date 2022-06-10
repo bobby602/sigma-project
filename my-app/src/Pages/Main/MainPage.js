@@ -11,17 +11,15 @@ const MainPage = ()=>{
     return (
             <Fragment>
                 <div className={`${Styles.font} `} >
-                        <img
+                    <img
                         className={Styles.demo}
                         src={process.env.PUBLIC_URL + "/icons/S__9453600.jpg"}
                         alt=""
-                        />  
-                        <div className="relative ">
-                            <Navbar />
-                            <CardList  /> 
-                        </div>    
-                             
-
+                    />  
+                    <div className="relative ">
+                        <Navbar />
+                        <CardList /> 
+                    </div>    
                 </div>    
             </Fragment>    
     )

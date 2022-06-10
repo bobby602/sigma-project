@@ -10,8 +10,6 @@ export const fetchCartData = (e) => {
         }
   
         const actualData = await res.json();
-        console.log(actualData.result)
-  
         return actualData.result;
       };
   
@@ -28,7 +26,6 @@ export const fetchCartData = (e) => {
   };
 
   export const fetchSubData = (e) => {
-    console.log(e)
     return async (dispatch) => {
       const fetchData = async () => {
 
