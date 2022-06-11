@@ -11,10 +11,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchSubData } from '../../../Store/product-list';
 import { Link , useNavigate  } from 'react-router-dom';
 import { productActions } from '../../../Store/product-slice';
+import 'antd/dist/antd.css';
 import { Badge,  Menu, Space, Table } from 'antd';
-
 // import { ProductService } from '../../UI/Table/Service/Service';
-import './Spreadsheet.css';
+import Styles from './Spreadsheet.module.css';
 
 const Spreadsheet = () => {
     const [products1, setProducts1] = useState(null);
@@ -35,7 +35,7 @@ const Spreadsheet = () => {
     //     { field: 'maxPrice', header: 'ทุน Max' },
     //     { field: 'Cost' , header:'ทุนปัจุบัน'},
     // ];
-
+  
     const columns = [
       {
         title: 'Itemcode',
@@ -88,7 +88,6 @@ const Spreadsheet = () => {
         setLoading(false);
       }
     }, []);
-    
     // const onCellEditComplete = (e) => {
     //     let { rowData, newValue, field, originalEvent: event } = e;
         //   if (newValue.trim().length > 0)
@@ -123,14 +122,14 @@ const Spreadsheet = () => {
 
     return (
             <Fragment>
-              <Table columns={columns} dataSource={product.filter} pagination={false} />
+              <Table className = {`${Styles.datatable} w-full text-sm text-left text-gray-500 dark:text-gray-400 `} columns={columns} dataSource={product.filter}  scroll={{
+      x: 1300,
+    }} pagination={false} />
             </Fragment>
     );
 }
+
 export default Spreadsheet;
-
-
-
 
  // <div className="datatable-rowexpansion-demo">
       //       <Toast ref={toast} />

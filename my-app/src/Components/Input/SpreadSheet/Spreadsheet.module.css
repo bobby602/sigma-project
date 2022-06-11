@@ -33,13 +33,13 @@
          0px 10px 23px rgba(0,0,0,0.4);    
 }
 .p-datatable-table{
-    overflow-x: scroll;
+    /* overflow-x: scroll; */
     width:100% !important;
     /* table-layout: fixed !important; */
 }
-.p-datatable-wrapper{
+.datatable{
     border-radius: 15px !important;
-    font-family: 'Kanit', sans-serif ; 
+    font-family: 'Kanit', sans-serif; 
 }
 .p-datatable .p-datatable-tbody > tr > td.QBal {
     font-weight: 700;
