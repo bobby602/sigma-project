@@ -11,19 +11,32 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchSubData } from '../../../Store/product-list';
 import { Link , useNavigate  } from 'react-router-dom';
 import { productActions } from '../../../Store/product-slice';
-import 'antd/dist/antd.css';
-import { Badge,  Menu, Space, Table } from 'antd';
+import 'antd/dist/antd.min.css';
+import { Badge,  Menu, Space ,Form, Input, Popconfirm} from 'antd';
+import { makeStyles } from '@material-ui/core/styles';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+import IconButton from '@material-ui/core/IconButton';
+import MaterialTable, { MTableToolbar } from 'material-table';
 // import { ProductService } from '../../UI/Table/Service/Service';
-import Styles from './Spreadsheet.module.css';
+import  './Spreadsheet.css';
+
+
 
 const Spreadsheet = () => {
     const [products1, setProducts1] = useState(null);
     const toast = useRef(null);
     const dispatch = useDispatch();
+    const [subTable,setSubTable] = useState('');
     const [item,setItem] = useState();
     const [expandedRows, setExpandedRows] = useState(null);
     const product = useSelector((state) => state.product);
     const [loading, setLoading] = useState(false);
+    const [expandedRow, setExpandedRow] = useState('');
 
     // const columns = [
     //     { field: 'expan'},
@@ -36,6 +49,40 @@ const Spreadsheet = () => {
     //     { field: 'Cost' , header:'ทุนปัจุบัน'},
     // ];
   
+    const expandedRowRender = (record) => {
+      console.log(record.NewArr)
+      const subColumns = [
+        {
+          title: 'รหัส',
+          dataIndex: 'ItemCode',
+          key: 'ItemCode',
+        },
+        {
+          title: 'ชื่อ',
+          dataIndex: 'Name',
+          key: 'Name',
+        },
+        {
+          title: 'Qty',
+          dataIndex: 'Qty',
+          key: 'Qty',
+        },
+        {
+          title: 'หน่วย',
+          dataIndex: 'Pack',
+          key: 'Pack',
+        },
+        {
+          title: 'ทุนหน่วย',
+          key: 'CostUnit',
+        },
+        {
+          title: 'มูลค่า',
+          key: 'Value',
+        }
+      ];
+      return <Table columns={subColumns} dataSource={record.NewArr} pagination={false} />;
+    } 
     const columns = [
       {
         title: 'Itemcode',
@@ -66,9 +113,16 @@ const Spreadsheet = () => {
         title: 'ทุน Max',
         dataIndex: 'maxPrice',
         key: 'maxPrice',
+      },
+      {
+        title:'ทุนปัจจุบัน',
+        dataIndex: ''
       }
     ];
 
+    const onExpand = (e,record)=>{
+      setSubTable(record);
+    }
     const navigate = useNavigate();
     // const goToPosts = (e) =>
     //   navigate({
@@ -87,7 +141,18 @@ const Spreadsheet = () => {
       if(product.filter !== null){
         setLoading(false);
       }
-    }, []);
+    }, [product]);
+
+    const dataSource = [];
+    for (let i = 0; i < product.filter.length; i++) {
+      dataSource.push({
+        ...product.filter[i],
+        key: i
+      });
+}
+
+
+
     // const onCellEditComplete = (e) => {
     //     let { rowData, newValue, field, originalEvent: event } = e;
         //   if (newValue.trim().length > 0)
@@ -121,11 +186,29 @@ const Spreadsheet = () => {
     // }
 
     return (
-            <Fragment>
-              <Table className = {`${Styles.datatable} w-full text-sm text-left text-gray-500 dark:text-gray-400 `} columns={columns} dataSource={product.filter}  scroll={{
+          <Fragment>
+              {/* <Table className = {`.datatable w-full text-sm text-left text-gray-500 dark:text-gray-400 rounded-lg `} columns={columns} dataSource={dataSource}  scroll={{
       x: 1300,
-    }} pagination={false} />
-            </Fragment>
+    }} pagination={false} expandedRowRender={expandedRowRender}  expandedRowKeys={[expandedRow]}  onExpand={(isExpanded, record) =>
+            // console.log(record.itemcode)
+            setExpandedRow(isExpanded ? record.key : undefined)
+          } /> */}
+          <div className={`datatable relative overflow-x-auto shadow-md sm:rounded-lg`}>
+          <MaterialTable
+              title="Cell Editable Preview"
+              columns={columns}
+              data={product.filter}
+              cellEditable={{
+                onCellEditApproved: (newValue, oldValue, rowData, columnDef) => {
+                  return new Promise((resolve, reject) => {
+                    console.log('newValue: ' + newValue);
+                    setTimeout(resolve, 1000);
+                  });
+                }
+              }}
+            />
+            </div>  
+          </Fragment>
     );
 }
 
