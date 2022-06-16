@@ -29,7 +29,7 @@ router.get('/', function(req,res){
   });
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
-router.post('/callback', line.middleware(config), (req, res) => {
+router.post('/callback', (req, res) => {
   console.log('test')
   Promise
     .all(req.body.events.map(handleEvent))
