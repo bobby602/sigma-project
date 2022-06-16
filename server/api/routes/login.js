@@ -10,7 +10,7 @@ const { resourceLimits } = require('worker_threads');
 const { request } = require('http');
 const { response } = require('../app');
 const dotenv = require('dotenv')
-const line = require('@line/bot-sdk').middleware
+const line = require('@line/bot-sdk')
 
   var app = express();
   const router = express.Router();
