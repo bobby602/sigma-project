@@ -23,6 +23,13 @@ const client = new line.Client(config);
 
 router.use(express.urlencoded({extended:true}));
 router.use(bodyParser.json());
+
+
+router.get('/', function(req,res){
+        res.json({data:'test'});
+        
+
+  });
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
 router.post('/callback', line.middleware(config), (req, res) => {
