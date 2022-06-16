@@ -5,9 +5,7 @@ var bodyParser = require('body-parser');
 const db = require('../database');
 var path = require('path');
 const app = express();
-const router = express.Router();
-const middleware = require('@line/bot-sdk').middleware
-
+// const router = express.Router();
 // create LINE SDK config from env variables
 const config = {
     channelAccessToken:'4UJs23LOXx3uDm/0mLDdn4AQ3mNKsDOLBp8ETcT1os+n99ILmcTKlAy4fIxcF+9WdmaZuePnGtTszUlWRzmq/2yn9Ot6ffLZ4d7cEqYx09ayNZGYkIe3RjUqVXz6La4Nqge8bLKhY8/OUt/uTNYCqAdB04t89/1O/w1cDnyilFU=',
@@ -17,20 +15,18 @@ const config = {
 // create LINE SDK client
 const client = new line.Client(config);
 
-router.use(middleware(config));
-router.use(bodyParser.json());
 
 // create Express app
 // about Express itself: https://expressjs.com/
 
-router.get('/', function(req,res){
+app.get('/', function(req,res){
         res.json({data:'test'});
         
 
   });
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
-router.post('/callback', (req, res) => {
+app.post('/callback', (req, res) => {
   console.log('test')
   Promise
     .all(req.body.events.map(handleEvent))
@@ -58,5 +54,3 @@ function handleEvent(event) {
   return client.replyMessage(event.replyToken, echo);
 }
 
-
-module.exports = router;
