@@ -10,7 +10,7 @@ const { resourceLimits } = require('worker_threads');
 const { request } = require('http');
 const { response } = require('../app');
 const dotenv = require('dotenv')
-const line = require('@line/bot-sdk')
+const line = require('@line/bot-sdk').middleware
 
   var app = express();
   const router = express.Router();
@@ -137,13 +137,8 @@ console.log(env)
  
     const client = new line.Client(lineConfig)
     router.post('/callback', line.middleware(lineConfig), (req, res) => {
-        Promise
-          .all(req.body.events.map(handleEvent))
-          .then((result) => res.json(result))
-          .catch((err) => {
-            console.error(err);
-            res.status(500).end();
-          });
+        console.log('test')
+        res.status(200).send("ok")
       });
       // event handler
 function handleEvent(event) {
