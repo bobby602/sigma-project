@@ -16,7 +16,7 @@ const config = {
 // create LINE SDK client
 const client = new line.Client(config);
 
-app.use(middleware(config))
+router.use(middleware(config))
 
 // create Express app
 // about Express itself: https://expressjs.com/
