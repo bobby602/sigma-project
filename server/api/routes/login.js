@@ -3,7 +3,7 @@ var mssql = require("mssql");
 var express = require('express');
 var session = require('express-session');
 var bodyParser = require('body-parser');
-var path = require('path');
+
 const db = require('../database');
 const res = require('express/lib/response');
 const { resourceLimits } = require('worker_threads');
