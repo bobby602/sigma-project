@@ -6,6 +6,7 @@ const db = require('../database');
 var path = require('path');
 const app = express();
 const router = express.Router();
+const middleware = require('@line/bot-sdk').middleware
 
 // create LINE SDK config from env variables
 const config = {
