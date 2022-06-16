@@ -1,5 +1,11 @@
 const line = require('@line/bot-sdk');
 const express = require('express');
+var session = require('express-session');
+var bodyParser = require('body-parser');
+const db = require('../database');
+var path = require('path');
+const app = express();
+const router = express.Router();
 
 // create LINE SDK config from env variables
 const config = {
@@ -12,8 +18,11 @@ const client = new line.Client(config);
 
 // create Express app
 // about Express itself: https://expressjs.com/
-const app = express();
-const router = express.Router();
+
+
+
+router.use(express.urlencoded({extended:true}));
+router.use(bodyParser.json());
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
 router.post('/callback', line.middleware(config), (req, res) => {
@@ -45,3 +54,4 @@ function handleEvent(event) {
 }
 
 
+module.exports = router;
