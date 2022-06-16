@@ -19,13 +19,6 @@ const line = require('@line/bot-sdk')
       resave:true,
       saveUninitialized:true
   }));
-
-const env = dotenv.config().parsed;
-const config = {
-    channelAccessToken:'sKmTfYYSIufVU3FOYub3YUPZPsjO3ZCrhCKdFLSlXpIxJqkNmPyJK5RqZkmaEuUmeiIi1N85zxe9k68M8BcJCs6TL9TP5vsxMd/6+uMxeVdiHYvWixH2GAhRTe9WcOcvofbSGes4oWcXuvnKKFtuqAdB04t89/1O/w1cDnyilFU=',
-    channelSecret: '51164bd5fb56ba7b22ac72d46efb13eb'
-}
-console.log(env)
  
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
@@ -135,28 +128,4 @@ console.log(env)
       res.status(status).send('ERORR')
   })
  
-  const client = new line.Client(config);
-  router.post('/callback', line.middleware(config), (req, res) => {
-    console.log('test')
-    Promise
-      .all(req.body.events.map(handleEvent))
-      .then((result) => res.json(result))
-      .catch((err) => {
-        console.error(err);
-        res.status(500).end();
-      });
-  });
-      // event handler
-function handleEvent(event) {
-    if (event.type !== 'message' || event.message.type !== 'text') {
-      // ignore non-text-message event
-      return Promise.resolve(null);
-    }
-  
-    // create a echoing text message
-    const echo = { type: 'text', text: event.message.text };
-  
-    // use reply API
-    return client.replyMessage(event.replyToken, echo);
-  }
   module.exports = router;

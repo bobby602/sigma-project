@@ -6,12 +6,14 @@ const dotenv = require('dotenv')
 
 var cors = require("cors");
 var loginRouter = require('./routes/login');
+var lineRouter = require('./routes/line');
 
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'build')));
 
 
 app.use('/', loginRouter);
+app.use('/line', lineRouter);
 // app.use('/users', usersRouter);
 
 
