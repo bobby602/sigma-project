@@ -12,19 +12,8 @@ import { fetchSubData } from '../../../Store/product-list';
 import { Link , useNavigate  } from 'react-router-dom';
 import { productActions } from '../../../Store/product-slice';
 import 'antd/dist/antd.min.css';
-import { Badge,  Menu, Space ,Form, Input, Popconfirm} from 'antd';
-import { makeStyles } from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-import IconButton from '@material-ui/core/IconButton';
-import MaterialTable, { MTableToolbar } from 'material-table';
 // import { ProductService } from '../../UI/Table/Service/Service';
 import  './Spreadsheet.css';
-
 
 
 const Spreadsheet = () => {
@@ -81,7 +70,6 @@ const Spreadsheet = () => {
           key: 'Value',
         }
       ];
-      return <Table columns={subColumns} dataSource={record.NewArr} pagination={false} />;
     } 
     const columns = [
       {
@@ -148,7 +136,7 @@ const Spreadsheet = () => {
       dataSource.push({
         ...product.filter[i],
         key: i
-      });
+    });
 }
 
 
@@ -193,21 +181,6 @@ const Spreadsheet = () => {
             // console.log(record.itemcode)
             setExpandedRow(isExpanded ? record.key : undefined)
           } /> */}
-          <div className={`datatable relative overflow-x-auto shadow-md sm:rounded-lg`}>
-          <MaterialTable
-              title="Cell Editable Preview"
-              columns={columns}
-              data={product.filter}
-              cellEditable={{
-                onCellEditApproved: (newValue, oldValue, rowData, columnDef) => {
-                  return new Promise((resolve, reject) => {
-                    console.log('newValue: ' + newValue);
-                    setTimeout(resolve, 1000);
-                  });
-                }
-              }}
-            />
-            </div>  
           </Fragment>
     );
 }

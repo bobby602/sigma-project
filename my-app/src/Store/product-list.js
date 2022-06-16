@@ -15,7 +15,6 @@ export const fetchCartData = (e) => {
   
       try {
         const productData = await fetchData();
-        console.log(productData);
         dispatch(
             productActions.replaceproduct({productData,e})
         );
@@ -42,6 +41,7 @@ export const fetchCartData = (e) => {
   
       try {
         const productData = await fetchData();
+        console.log('a')
         
         dispatch(
             productActions.subTable({productData})

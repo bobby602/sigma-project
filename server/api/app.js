@@ -1,8 +1,8 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-
 var app = express();
+const dotenv = require('dotenv')
 
 var cors = require("cors");
 var loginRouter = require('./routes/login');
@@ -24,6 +24,5 @@ app.use(function(req, res, next) {
 //   app.listen(9001, () => {
 //     console.log('Application listening on port 9000!');
 // });  
-
 
   module.exports = app;

@@ -17,6 +17,7 @@ const ProductList = ()=>{
     const dispatch = useDispatch();
     const product = useSelector((state) => state.product);
 
+
 //   useEffect(() => {
 
 //     dispatch(fetchCartData());
@@ -68,7 +69,7 @@ const ProductList = ()=>{
                     </div>    
                 </div>    
                 <Spreadsheet/>
-                {/* <ProductTable data ={product.filter}/>      */}
+                <ProductTable data ={product.filter}/>     
             </div> 
         </Fragment>
     )

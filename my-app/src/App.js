@@ -15,7 +15,7 @@ function App() {
     query: '(min-width: 1180px)'
   })
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 820px)' })
-
+  localStorage.setItem('a', 'test');
   return (
     <Fragment>
         {isDesktopOrLaptop && 

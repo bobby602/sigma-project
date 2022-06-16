@@ -9,6 +9,8 @@ const res = require('express/lib/response');
 const { resourceLimits } = require('worker_threads');
 const { request } = require('http');
 const { response } = require('../app');
+const dotenv = require('dotenv')
+const line = require('@line/bot-sdk')
 
   var app = express();
   const router = express.Router();
@@ -17,6 +19,13 @@ const { response } = require('../app');
       resave:true,
       saveUninitialized:true
   }));
+
+const env = dotenv.config().parsed;
+const lineConfig = {
+    channelAccessToken:'sKmTfYYSIufVU3FOYub3YUPZPsjO3ZCrhCKdFLSlXpIxJqkNmPyJK5RqZkmaEuUmeiIi1N85zxe9k68M8BcJCs6TL9TP5vsxMd/6+uMxeVdiHYvWixH2GAhRTe9WcOcvofbSGes4oWcXuvnKKFtuqAdB04t89/1O/w1cDnyilFU=',
+    channelSecret: '51164bd5fb56ba7b22ac72d46efb13eb'
+}
+console.log(env)
  
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
@@ -92,12 +101,12 @@ const { response } = require('../app');
     });
   });
   router.get('/subTable',function(req,res){
-
-    const sql = "Select *  from DATASIGMA.dbo.QitemBom where Code = @itemCode";
+    // const sql = "Select *  from DATASIGMA.dbo.QitemBom where Code = @itemCode";
+    const sql = "Select *  from DATASIGMA.dbo.QitemBom";
     const itemCode = req.query.itemCode;
     // console.log(itemCode)
     var db = new mssql.Request();
-    db.input('itemCode',mssql.VarChar(50),itemCode);
+    // db.input('itemCode',mssql.VarChar(50),itemCode);
     db.query(sql,function(err,data,fields){
         try {
             let Data = data.recordset;
@@ -125,4 +134,28 @@ const { response } = require('../app');
       const {status = 500} =err
       res.status(status).send('ERORR')
   })
+ 
+    const client = new line.Client(lineConfig)
+    router.post('/callback', line.middleware(lineConfig), (req, res) => {
+        Promise
+          .all(req.body.events.map(handleEvent))
+          .then((result) => res.json(result))
+          .catch((err) => {
+            console.error(err);
+            res.status(500).end();
+          });
+      });
+      // event handler
+function handleEvent(event) {
+    if (event.type !== 'message' || event.message.type !== 'text') {
+      // ignore non-text-message event
+      return Promise.resolve(null);
+    }
+  
+    // create a echoing text message
+    const echo = { type: 'text', text: event.message.text };
+  
+    // use reply API
+    return client.replyMessage(event.replyToken, echo);
+  }
   module.exports = router;
