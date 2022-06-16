@@ -19,12 +19,6 @@ const client = new line.Client(config);
 // create Express app
 // about Express itself: https://expressjs.com/
 
-
-
-router.use(express.urlencoded({extended:true}));
-router.use(bodyParser.json());
-
-
 router.get('/', function(req,res){
         res.json({data:'test'});
         
