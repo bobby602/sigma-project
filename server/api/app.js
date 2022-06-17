@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, 'build')));
 
 
 app.use('/', loginRouter);
-app.use('/line', lineRouter);
+// app.use('/line', lineRouter);
 // app.use('/users', usersRouter);
 
 

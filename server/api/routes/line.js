@@ -14,10 +14,7 @@ const config = {
 // create LINE SDK client
 const client = new line.Client(config);
 const router = express.Router();
-router.use(express.json())
-router.use(express.urlencoded({
-  extended: true
-}))
+
 
 // create Express app
 // about Express itself: https://expressjs.com/
