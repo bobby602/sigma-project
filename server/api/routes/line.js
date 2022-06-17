@@ -42,19 +42,6 @@ router.post('/callback', (req, res) => {
 
 // event handler
 function handleEvent(event) {
-  if (event.type !== 'message' || event.message.type !== 'text') {
-    // ignore non-text-message event
-    return Promise.resolve(null);
-  }else if (event.message.type == "text" && event.message.text == "Dow"){
-    const payload = {type:"text" , text :"beautiful"};
-    return client.replyMessage(event.replyToken,payload);
+  console.log(evnet)
   }
-
-  // create a echoing text message
-  const echo = { type: 'text', text: event.message.text };
-
-  // use reply API
-  return client.replyMessage(event.replyToken, echo);
-}
-
 module.exports = router;
