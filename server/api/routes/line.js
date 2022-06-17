@@ -45,7 +45,7 @@ function handleEvent(event) {
   if (event.type !== 'message' || event.message.type !== 'text') {
     // ignore non-text-message event
     return Promise.resolve(null);
-  }else if (event.message.type == "text" || event.message.text == "Dow"){
+  }else if (event.message.type == "text" && event.message.text == "Dow"){
     const payload = {type:"text" , text :"beautiful"};
     return client.replyMessage(event.replyToken,payload);
   }
