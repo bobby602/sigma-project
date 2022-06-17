@@ -42,6 +42,6 @@ router.post('/callback', (req, res) => {
 
 // event handler
 function handleEvent(event) {
-  console.log(evnet)
+  console.log(event)
   }
 module.exports = router;
