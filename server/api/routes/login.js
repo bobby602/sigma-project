@@ -124,7 +124,7 @@ const line = require('@line/bot-sdk')
     });
   });
   router.post('/callback', (req, res) => {
-    console.log('test')
+    console.log(req.body)
     res.send("hi")
   });
   router.use((err,req,res,next)=>{
