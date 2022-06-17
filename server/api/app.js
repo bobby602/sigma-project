@@ -35,14 +35,14 @@ const router = express.Router();
 // create Express app
 // about Express itself: https://expressjs.com/
 
-router.get('/', function(req,res){
+app.get('/', function(req,res){
       res.json({data:'test'});
       
 
 });
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
-router.post('/callback', (req, res) => {
+app.post('/callback', (req, res) => {
 console.log('test')
 Promise
   .all(req.body.events.map(handleEvent))
