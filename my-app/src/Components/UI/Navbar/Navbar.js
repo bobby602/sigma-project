@@ -83,7 +83,7 @@ const Navbar = ()=>{
               </div>
             </nav> */}
                
-              <div className ={`${styles.content} sticky top-0 z-100  `}>   
+              <div className ={`${styles.content} sticky top-0 z-[200] bg-[#3F83F8] `}>   
                 <nav className={` bg-[#3F83F8] border-gray-100 px-1 sm:px-3 py-2 pr-4 pl-3  `}>
                   <div className=" flex flex-wrap  flex justify-between content-center  mx-auto ">
                     <a href="/MainPage" className="flex content-center items-center">

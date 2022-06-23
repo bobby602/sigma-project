@@ -24,13 +24,11 @@ router.use(express.urlencoded({
 
 router.get('/', function(req,res){
         res.json({data:'test'});
-        
-
   });
+  
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
 router.post('/callback', (req, res) => {
-  console.log('test')
   Promise
     .all(req.body.events.map(handleEvent))
     .then((result) => res.json(result))
@@ -42,6 +40,9 @@ router.post('/callback', (req, res) => {
 
 // event handler
 function handleEvent(event) {
-  console.log(event)
+  if(event.type !== 'message' || event.message !== 'text'){ 
+
+
+  }
   }
 module.exports = router;

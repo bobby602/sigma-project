@@ -48,13 +48,9 @@ const ProductList = ()=>{
         
     //   }, []);
 
-    const handleOnChange = (e)=>{
-        console.log(e.target.value);
-        return e.target.value;
-    }
-    
+
     return(
-        <Fragment>
+        <Fragment >
             <Navbar/>
             <div className={`${Styles.borderTable}  `}>
                 <p className= "text-3xl text-gray-700 font-mono hover:text-blue-600">ทะเบียนผลิตภัณฑ์</p>

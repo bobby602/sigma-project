@@ -13,7 +13,7 @@ const Selectbox = ()=>{
     const product = useSelector((state) => state.product);
     const [value, setvalue] = useState('');
 
-    const options =  [{label:'EM' , value: '1'},{label: 'TE', value: '2'},{label: 'PO', value: '3'},{label: 'PF', value: '4'}];
+    const options =  [{label:'RM' , value: '1'},{label: 'TE', value: '2'},{label: 'SI', value: '3'},{label: 'SF', value: '4'}];
     
         // const handleOnchange = (e)=>{
         //     let test = e;

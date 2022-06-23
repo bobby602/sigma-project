@@ -25,7 +25,7 @@ const line = require('@line/bot-sdk')
   
   router.get('/', function(req,res){
     var request = new mssql.Request();
-    request.query('select * from [DATASIGMA].[dbo].[Users] ',function(err,data,fields){
+    request.query('select * from [DATASIGMA2].[dbo].[Users] ',function(err,data,fields){
         console.log(data);
         res.json({data});
         
@@ -42,7 +42,7 @@ const line = require('@line/bot-sdk')
         var request = new mssql.Request();
         request.input('Login',mssql.VarChar(50),Login);
         request.input('Password',mssql.VarChar(50),password);
-        request.query('select * from [DATASIGMA].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
+        request.query('select * from [DATASIGMA2].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
             console.log(data);
             if(data.rowsAffected > 0){
                 console.log('IN');
@@ -59,9 +59,13 @@ const line = require('@line/bot-sdk')
     }
 });
   router.get('/table',function(req,res){
-    const sql = "Select itemdm.codem,itemDm.itemcode,itemdm.Name,itemDm.Barcode, a.p1 as minPrice, a.p2 as maxPrice,TyItemDm,b.QBal,b.BAL " +
-                " from DATASIGMA.dbo.ItemDm " + 
-                " inner join DATASIGMA.dbo.qitemdmbal " +
+    const sql = "Select itemdm.codem,itemDm.itemcode,itemdm.Name,itemDm.Barcode, itemdm.Pack,cast(CONVERT(VARCHAR, CAST(a.p1 AS MONEY), 1) AS VARCHAR) as minPrice , cast(CONVERT(VARCHAR, CAST(a.p2 AS MONEY), 1) AS VARCHAR) as  maxPrice,TyItemDm,cast(CONVERT(VARCHAR, CAST(b.Qbal AS MONEY), 1) AS VARCHAR) as QBal ,cast(CONVERT(VARCHAR, CAST(b.BAL AS MONEY), 1) AS VARCHAR)  as BAL, " +
+                " cast(CONVERT(VARCHAR, CAST(COSTN AS MONEY), 1) AS VARCHAR)  as CostN , FORMAT(DateCN ,'dd/MM/yyyy') as DateCn , case when (CAST(DateAddI AS DATETIME)>CAST(DateAddE AS DATETIME) OR  DateAddE is null ) and DateAddI is not null then cast(CONVERT(VARCHAR, CAST(CostI AS MONEY), 1) AS VARCHAR) " +
+                " when (CAST(DateAddE AS DATETIME)>CAST(DateAddI AS DATETIME) or DateAddI is null) and DateAddE  is not null  then cast(CONVERT(VARCHAR, CAST(CostE AS MONEY), 1) AS VARCHAR) " +
+                " else '0.00' " +
+                " end as costNew " +
+                " from DATASIGMA2.dbo.ItemDm " + 
+                " inner join DATASIGMA2.dbo.qitemdmbal " +
                 " on itemdm.itemcode=qitemdmbal.itemcode " +
                 " inner join ( " +
                 " Select min(price) as p1, max(price) as p2 ,ItemCode  from DATASIGMA.dbo.IteminSub group by ItemCode " +
@@ -69,7 +73,7 @@ const line = require('@line/bot-sdk')
                 " on a.ItemCode = itemDm.itemcode "+
                 "inner join ( " +
                     " Select  itemcode,name,sum(qbal +QS2) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs) + Sum(Qs2) as BAL,Note "+
-                    " From rptstock2  "+
+                    " From DATASIGMA2.dbo.rptstock2  "+
                     " Group by itemcode,name,pack ,Note  " +
                     " )b on b.itemcode = a.itemcode ; Select *  from DATASIGMA.dbo.QitemBom ";
     var db = new mssql.Request();
@@ -85,17 +89,17 @@ const line = require('@line/bot-sdk')
                     }
                 })
                 const NewArr = NewData[i];
-                Data[i] = {...Data[i], NewArr};
+                Data[i] = {...Data[i], NewArr,i};
                 
             }
-            console.log(Data[1]);
+            console.log(Data[2]);
 
         res.json({result:Data});
     });
   });
   router.get('/subTable',function(req,res){
     // const sql = "Select *  from DATASIGMA.dbo.QitemBom where Code = @itemCode";
-    const sql = "Select *  from DATASIGMA.dbo.QitemBom";
+    const sql = "Select *  from DATASIGMA2.dbo.QitemBom";
     const itemCode = req.query.itemCode;
     // console.log(itemCode)
     var db = new mssql.Request();
