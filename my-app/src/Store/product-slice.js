@@ -52,23 +52,9 @@ const productSlice = createSlice({
       console.log(value)
       state.filter = state.filter.map((e)=>{
           if(e.itemcode == item.itemcode){
-            console.log('a')
-            return {
-              codem: e.codem,
-              itemcode: e.itemcode,
-              Name: e.Name,
-              Barcode: e.Barcode,
-              Pack: e.Pack,
-              minPrice: e.minPrice,
-              maxPrice: e.maxPrice,
-              TyItemDm: e.TyItemDm,
-              QBal: e.QBal,
-              BAL: e.BAL,
-              CostN: value,
-              DateCn: e.DateCn,
-              costNew: e.costNew,
-              NewArr: e.NewArr
-            };
+            let returnValue = {...e};
+            returnValue.CostN = value;
+            return returnValue;
           }else{
             return e;
           }

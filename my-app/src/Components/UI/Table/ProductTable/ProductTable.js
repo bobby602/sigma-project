@@ -10,8 +10,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faCheck, faTimes}from '@fortawesome/free-solid-svg-icons'
 import useOutsideClick from '../../../../CustomHook/useOutsideClick'
 
-
-
 const ProductTable = (data)=>{
     const [modalOn,setModalOn] = useState(false);
     const [item,setItem] = useState();
@@ -44,14 +42,10 @@ const ProductTable = (data)=>{
             setItemRowAll(e)
         }
     }
-    const goToPosts = (e) =>
-      navigate({
-        pathname: `/ProductList/`,
-        search:`?test =${e}`
-      });
       const confirmHandle = (e)=>{
         if(window.confirm("Press a ok button to confirm for update!")){
             dispatch(updateData(e))
+            setOpenInput(false)
         }
       }
       const cancelHandle = ()=>{
@@ -61,13 +55,6 @@ const ProductTable = (data)=>{
         setInputValue(e.target.value);
       }
       
-    // const onRowExpand = (e)=>{
-    //   const item = e.data.itemcode;
-    //   const Name = e.data.Name;
-    //   goToPosts(item);
-    //   dispatch(fetchSubData(item));
-    //   setItem(product.subTable);
-    // }
       const dataTable = data.data.map((e)=>{
             return <tr key={e.i} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 ">  
                 <td   className="px-6 py-4">
@@ -105,7 +92,7 @@ const ProductTable = (data)=>{
                 <td className={`px-6 py-4`}>
                 {
                         (openInput ===true && itemRow == e.itemcode)?<div ref = {ref} className = {`${Styles.costInput} flex `}>
-                            <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company"    value={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" required />
+                            <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
                             <div className = "flex flex-col pl-2">
                                 <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
                                 <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />

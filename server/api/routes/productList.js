@@ -31,22 +31,24 @@ const { response } = require('../app');
     });
 
   router.put('/',function(req,res){
-    const item = req.body;
-    console.log(item)
+    const value = req.body.inputValue;
+    const item  = req.body.itemRowAll.itemcode;
     const sql = " update DATASIGMA2.dbo.BomSub " +
-                " set Cost  = '200' , " + 
+                " set Cost  = @value , " + 
                 " CostN = cast(CAST(1000 as float) *qty/1000 as varchar), " +
                 " DateN = GETDATE() " +
-                " where ItemCode = 'RMACETO01' ; " + 
+                " where ItemCode = @item ; " + 
                 " update a " +
                 " set  AmtDM = (select CostN from DATASIGMA2.dbo.QSumBom a where Code = b.Code  )," +
                      " AmtCost  = (select CostN from DATASIGMA2.dbo.QSumBom a where Code = b.Code  ) + AmtEXP " +
                 " from DATASIGMA2.dbo.bom as  a inner join DATASIGMA2.dbo.BomSub as  b on b.Code = a.Code " +
                 " where b.ItemCode  = 'RMACETO01' ; update DATASIGMA2.dbo.ItemDm " +
-                " set CostN = '51.0', " +
+                " set CostN = @value, " +
                     " DateCN  = GETDATE()" +
-                " where ItemCode = 'RMAGRIL01'";
+                " where ItemCode = @item";              
     var db = new mssql.Request();
+    db.input('value',mssql.VarChar(50),value);
+    db.input('item',mssql.VarChar(50),item); 
     db.query(sql,function(err,data,fields){
         if (err) throw err;
             console.log(data)
