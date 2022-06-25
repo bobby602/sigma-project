@@ -5,17 +5,20 @@ import Styles from './ProductTable.module.css'
 import { Link , useNavigate  } from 'react-router-dom';
 import { productActions } from '../../../../Store/product-slice';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchSubData } from '../../../../Store/product-list';
+import { updateData } from '../../../../Store/product-list';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faCheck, faTimes}from '@fortawesome/free-solid-svg-icons'
 import useOutsideClick from '../../../../CustomHook/useOutsideClick'
+
 
 
 const ProductTable = (data)=>{
     const [modalOn,setModalOn] = useState(false);
     const [item,setItem] = useState();
     const [itemRow,setItemRow] = useState('');
+    const [itemRowAll,setItemRowAll] = useState();
     const [openInput,setOpenInput] = useState(false);
+    const [inputValue,setInputValue] = useState();
     const dispatch = useDispatch();
     const product = useSelector((state) => state.product);
     const navigate = useNavigate();
@@ -34,11 +37,37 @@ const ProductTable = (data)=>{
         setModalOn(true);
     }
     const inputChangeHandel = (e)=>{
+        console.log(e)
         if(e.TyItemDm =='1' || e.TyItemDm =='2' ){
             setOpenInput(true);
             setItemRow(e.itemcode)
+            setItemRowAll(e)
         }
     }
+    const goToPosts = (e) =>
+      navigate({
+        pathname: `/ProductList/`,
+        search:`?test =${e}`
+      });
+      const confirmHandle = (e)=>{
+        if(window.confirm("Press a ok button to confirm for update!")){
+            dispatch(updateData(e))
+        }
+      }
+      const cancelHandle = ()=>{
+        setOpenInput(false)
+      }
+      const onChangeHandle = (e) =>{
+        setInputValue(e.target.value);
+      }
+      
+    // const onRowExpand = (e)=>{
+    //   const item = e.data.itemcode;
+    //   const Name = e.data.Name;
+    //   goToPosts(item);
+    //   dispatch(fetchSubData(item));
+    //   setItem(product.subTable);
+    // }
       const dataTable = data.data.map((e)=>{
             return <tr key={e.i} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 ">  
                 <td   className="px-6 py-4">
@@ -76,10 +105,10 @@ const ProductTable = (data)=>{
                 <td className={`px-6 py-4`}>
                 {
                         (openInput ===true && itemRow == e.itemcode)?<div ref = {ref} className = {`${Styles.costInput} flex `}>
-                            <input  type="number" name="floating_company" id="floating_company" className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" required />
+                            <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company"    value={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder="" required />
                             <div className = "flex flex-col pl-2">
-                                <FontAwesomeIcon className = "pb-2 " icon={faCheck} size="xl" color="green"/>
-                                <FontAwesomeIcon   icon={faTimes} size="xl"  color="red" />
+                                <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
                             </div>    
                         </div>
                         :

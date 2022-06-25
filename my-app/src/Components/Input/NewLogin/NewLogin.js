@@ -94,7 +94,7 @@ const NewLoginPage =  (props)=>{
             ...input,
             password:e.target.value
         })
-        
+
     }
     return (       
         <form  onSubmit={submitHandler}>

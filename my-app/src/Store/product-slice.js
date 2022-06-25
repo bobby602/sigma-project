@@ -46,6 +46,34 @@ const productSlice = createSlice({
            return e;
       })  
     },
+    updateTable(state,action){
+      const value = action.payload.e.inputValue;
+      const item = action.payload.e.itemRowAll;
+      console.log(value)
+      state.filter = state.filter.map((e)=>{
+          if(e.itemcode == item.itemcode){
+            console.log('a')
+            return {
+              codem: e.codem,
+              itemcode: e.itemcode,
+              Name: e.Name,
+              Barcode: e.Barcode,
+              Pack: e.Pack,
+              minPrice: e.minPrice,
+              maxPrice: e.maxPrice,
+              TyItemDm: e.TyItemDm,
+              QBal: e.QBal,
+              BAL: e.BAL,
+              CostN: value,
+              DateCn: e.DateCn,
+              costNew: e.costNew,
+              NewArr: e.NewArr
+            };
+          }else{
+            return e;
+          }
+      })
+    },
   },
 });
 

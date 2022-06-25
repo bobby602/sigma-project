@@ -1,4 +1,5 @@
 import { productActions } from './product-slice';
+import axios from 'axios';
 export const fetchCartData = (e) => {
 
     return async (dispatch) => {
@@ -41,10 +42,32 @@ export const fetchCartData = (e) => {
   
       try {
         const productData = await fetchData();
-        console.log('a')
         
         dispatch(
             productActions.subTable({productData})
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  };
+
+  export const updateData = (e) => {
+    console.log(e);
+    return async (dispatch) => {
+      const fetchData = async () => {
+        const res = axios.put(`http://192.168.1.40:9001/productList`,e);
+        console.log('test')
+      
+  
+  
+        // return actualData.result.recordset;
+      };
+  
+      try {
+        const productData = await fetchData();
+        dispatch(
+            productActions.updateTable({e})
         );
       } catch (error) {
         console.log(error);
