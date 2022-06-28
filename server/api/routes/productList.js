@@ -42,7 +42,7 @@ const { response } = require('../app');
                 " set  AmtDM = (select CostN from DATASIGMA2.dbo.QSumBom a where Code = b.Code  )," +
                      " AmtCost  = (select CostN from DATASIGMA2.dbo.QSumBom a where Code = b.Code  ) + AmtEXP " +
                 " from DATASIGMA2.dbo.bom as  a inner join DATASIGMA2.dbo.BomSub as  b on b.Code = a.Code " +
-                " where b.ItemCode  = 'RMACETO01' ; update DATASIGMA2.dbo.ItemDm " +
+                " where b.ItemCode  = @item ; update DATASIGMA2.dbo.ItemDm " +
                 " set CostN = @value, " +
                     " DateCN  = GETDATE()" +
                 " where ItemCode = @item";              
@@ -55,7 +55,6 @@ const { response } = require('../app');
         res.json({result:data});
     });
   });
- 
 
   router.use((err,req,res,next)=>{
       const {status = 500} =err

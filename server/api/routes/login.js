@@ -75,25 +75,30 @@ const line = require('@line/bot-sdk')
                     " Select  itemcode,name,sum(qbal +QS2) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs) + Sum(Qs2) as BAL,Note "+
                     " From DATASIGMA2.dbo.rptstock2  "+
                     " Group by itemcode,name,pack ,Note  " +
-                    " )b on b.itemcode = a.itemcode ; Select *  from DATASIGMA.dbo.QitemBom ";
+                    " )b on b.itemcode = a.itemcode ; Select *  from DATASIGMA.dbo.QitemBom ; select Code ,AmtDM,AmtEXP ,AmtCost,DateCN from DATASIGMA2.dbo.bom ";
     var db = new mssql.Request();
     db.query(sql,function(err,data,fields){
         if (err) throw err;
             let Data = data.recordset;
             let Data2 = data.recordsets[1];
+            let Data3 = data.recordsets[2];
             let NewData = new Array(Data.length);
+            let sumData = new Array(Data.length);
             for(let i=0;i<Data.length;i++){
                 NewData[i] = Data2.filter((e)=>{
                     if(Data[i].itemcode==e.Code){
                         return e;
                     }
                 })
+                sumData[i] = Data3.filter((e)=>{
+                    if(Data[i].itemcode==e.Code){
+                        return e;
+                    }
+                })
                 const NewArr = NewData[i];
-                Data[i] = {...Data[i], NewArr,i};
-                
+                const SumArr = sumData[i];
+                Data[i] = {...Data[i], NewArr,i,SumArr};  
             }
-            console.log(Data[2]);
-
         res.json({result:Data});
     });
   });
