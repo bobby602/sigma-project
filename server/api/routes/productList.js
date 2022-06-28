@@ -35,7 +35,7 @@ const { response } = require('../app');
     const item  = req.body.itemRowAll.itemcode;
     const sql = " update DATASIGMA2.dbo.BomSub " +
                 " set Cost  = @value , " + 
-                " CostN = cast(CAST(1000 as float) *qty/1000 as varchar), " +
+                " CostN = cast(CAST(@value as float) *qty/1000 as varchar), " +
                 " DateN = GETDATE() " +
                 " where ItemCode = @item ; " + 
                 " update a " +
