@@ -237,22 +237,35 @@ const ProductTable = (data)=>{
                                 </tbody>
                             </table>
                         </div>
-                        <div className="p-6  w-full bg-[#FF9E0A] rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
-                            <div className="grid grid-cols-6 gap-4">
-                                <div className = "p-4 max-w-sm w-32 h-3  col-start-1 col-end-3 flex items-center bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
-                                    <span className="font-bold items-center">{item.itemcode}</span>
-                                </div>
-                                <div className = "p-4 max-w-sm w-64 h-3 col-end-7 col-span-2 grid place-content-center  bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
-                                    <span className=" font-bold pl-20 ">{item.SumArr[0].AmtDM}</span>
-                                </div>
-                                <div className = "p-4 max-w-sm w-64 h-3 col-end-7 col-span-2 grid place-content-center  bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
-                                    <span className=" font-bold pl-20 ">{item.SumArr[0].AmtDM}</span>
-                                </div>
-                                <div className = "p-4 max-w-sm w-64 h-3 col-end-7 col-span-2 grid place-content-center  bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
-                                    <span className=" font-bold pl-20 ">{item.SumArr[0].AmtDM}</span>
-                                </div>
+                        {item.SumArr?
+                            <div className="p-6  w-full bg-[#FFCE77] rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                <div className="grid grid-cols-6 gap-3">
+                                    <div className = "p-4 h-3 col-span-1 grid place-content-center bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                        <span className={`font-bold ${Styles.text} `}>{item.itemcode}</span>
+                                    </div>
+                                    <div className = {`col-span-2 col-start-3 content-center grid place-content-end `}>
+                                        <span className={` ${Styles.textCustom} text-white text-base  font-bold `}>รวมมูลค่าวัตถุดิบ</span>
+                                    </div> 
+                                    <div className = "p-4 h-3 col-span-2 col-end-7 content-center  grid place-content-end  bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                        <span className=" font-bold   grid place-content-center ">{item.SumArr[0].AmtDM}</span>
+                                    </div>   
+                                    <div className = {` col-start-4 col-span-2 content-center grid place-content-end `}>
+                                        <span className={` ${Styles.textCustom} text-white text-base font-bold `}>ค่าใช้จ่ายต่อหน่วย รวม</span>
+                                    </div>   
+                                    <div className = "p-4 h-3 col-end-7 col-span-1  content-center  grid place-content-end  bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                        <span className=" font-bold  ">{item.SumArr[0].AmtEXP}</span>
+                                    </div>
+                                    <div className = {` col-start-3 col-span-2 content-center grid place-content-end `}>
+                                        <span className={` ${Styles.textCustomAll} text-base font-bold `}>ต้นทุนต่อหน่วย</span>
+                                    </div> 
+                                    <div className = "p-4 h-3 col-span-2 col-end-7 content-center  grid place-content-end  bg-[#FF5D22] rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                        <span className=" font-bold  text-white">{item.SumArr[0].AmtCost}</span>
+                                    </div>
+                                </div>    
                             </div>    
-                        </div>
+                            :
+                            ""
+                        }
                     </Modal>
             }
         </Fragment>
