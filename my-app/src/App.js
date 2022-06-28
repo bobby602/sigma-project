@@ -12,9 +12,9 @@ import Auth from './Authenticate/Auth'
 function App() {
 
   const isDesktopOrLaptop = useMediaQuery({
-    query: '(min-width: 1180px)'
+    query: '(min-width: 1100px)'
   })
-  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 820px)' })
+  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 989px) and (min-width: 440px) ' })
   localStorage.setItem('a', 'test');
  
   return (

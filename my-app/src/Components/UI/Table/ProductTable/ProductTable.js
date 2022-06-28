@@ -184,25 +184,28 @@ const ProductTable = (data)=>{
             {
                 modalOn&&
                     <Modal item = {item} setModalOn={setModalOn}>
-                        <h3 className="mb-4 text-2xl font-medium text-gray-900 dark:text-white">{item.Name}</h3>
-                        <div className={`${Styles.font} relative overflow-x-auto shadow-md sm:rounded-lg`}>
+                    <h3 className="mb-4 text-2xl font-medium text-gray-900 dark:text-white">{item.Name}</h3>
+                        <div className={`${Styles.font2} relative overflow-x-auto shadow-md sm:rounded-lg`}>
                             <table id="dtHorizontalExample" className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                                <thead className={`${Styles.textCustom} text-base bg-[#FF9E0A]  uppercase  `}>
+                                <thead className={`${Styles.textCustom} text-base bg-[#FF9E0A]  uppercase `}>
                                     <tr>
                                         <th scope="col" className="px-6 py-3">
-                                            ItemCode
+                                            รหัส
                                         </th>
                                         <th scope="col" className="px-6 py-3">
-                                            ชื่อผลิตภัณฑ์
+                                            ชื่อ
                                         </th>
                                         <th scope="col" className="px-6 py-3">
-                                            คงเหลือ
+                                            Qty
                                         </th>
                                         <th scope="col" className="px-6 py-3">
-                                            หักสถานะค้างต่างๆ
+                                            หน่วย
                                         </th>
                                         <th scope="col" className="px-6 py-3">
-                                            ทุน MIN
+                                            ทุน:หน่วย
+                                        </th>
+                                        <th scope="col" className="px-6 py-3">
+                                            มูลค่า
                                         </th>
                                     </tr>
                                 </thead>
@@ -223,13 +226,32 @@ const ProductTable = (data)=>{
                                                         {e.Pack}
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        0.00
+                                                        {e.Cost}
                                                     </td>
-                                                </tr>;
+                                                    <td className="px-6 py-4">
+                                                        {e.CostN}
+                                                    </td>
+                                            </tr>;     
                                     })
                                 }            
                                 </tbody>
                             </table>
+                        </div>
+                        <div className="p-6  w-full bg-[#FF9E0A] rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+                            <div className="grid grid-cols-6 gap-4">
+                                <div className = "p-4 max-w-sm w-32 h-3  col-start-1 col-end-3 flex items-center bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                    <span className="font-bold items-center">{item.itemcode}</span>
+                                </div>
+                                <div className = "p-4 max-w-sm w-64 h-3 col-end-7 col-span-2 grid place-content-center  bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                    <span className=" font-bold pl-20 ">{item.SumArr[0].AmtDM}</span>
+                                </div>
+                                <div className = "p-4 max-w-sm w-64 h-3 col-end-7 col-span-2 grid place-content-center  bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                    <span className=" font-bold pl-20 ">{item.SumArr[0].AmtDM}</span>
+                                </div>
+                                <div className = "p-4 max-w-sm w-64 h-3 col-end-7 col-span-2 grid place-content-center  bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                    <span className=" font-bold pl-20 ">{item.SumArr[0].AmtDM}</span>
+                                </div>
+                            </div>    
                         </div>
                     </Modal>
             }
