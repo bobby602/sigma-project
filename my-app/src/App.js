@@ -14,7 +14,7 @@ function App() {
   const isDesktopOrLaptop = useMediaQuery({
     query: '(min-width: 1100px)'
   })
-  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 989px) and (min-width: 400px) ' })
+  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 989px) and (min-width: 300px) ' })
   localStorage.setItem('a', 'test');
  
   return (

@@ -97,7 +97,11 @@ const line = require('@line/bot-sdk')
                 })
                 const NewArr = NewData[i];
                 const SumArr = sumData[i];
-                Data[i] = {...Data[i], NewArr,i,SumArr};  
+                if(SumArr.length == 0){
+                    Data[i] = {...Data[i], NewArr,i,SumArr:""};  
+                }else{
+                    Data[i] = {...Data[i], NewArr,i,SumArr};  
+                }
             }
         res.json({result:Data});
     });
