@@ -55,16 +55,17 @@ const ProductList = ()=>{
             <div className={`${Styles.borderTable}  `}>
                 <p className= "text-3xl text-gray-700 font-mono hover:text-blue-600">ทะเบียนผลิตภัณฑ์</p>
                 <div className ={`${Styles.search} `}>
-                    <div className="flex justify-center">
-                         {/* <div class="basis-1/4 pr-4">
-                            <Search onChange ={handleOnChange} />
-                        </div>   */}
-                        {/* <div class="flex justify-center">   */}
-                            <Selectbox/>
-                        {/* </div>  */}
+                    <div className ="flex flex-wrap">
+                        <div className ="basis-1/4">
+                        <Search />
+                        </div>
+                        <div className="basis-2/4 grid grid-cols-4 gap-3">
+                            <div className ="col-start-2 col-span-2 pl-20 ">
+                                    <Selectbox/>
+                            </div>    
+                        </div> 
                     </div>    
                 </div>    
-                <Spreadsheet/>
                 <ProductTable data ={product.filter}/>     
             </div> 
         </Fragment>

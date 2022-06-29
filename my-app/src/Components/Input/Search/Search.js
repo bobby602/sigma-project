@@ -8,6 +8,7 @@ const Search = ()=>{
 
     const handleOnChange = (e)=>{
         const search = e.target.value;
+        console.log(search)
         dispatch(productActions.filterProduct(search));
     }
     return (

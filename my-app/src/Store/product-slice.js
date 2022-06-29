@@ -25,11 +25,12 @@ const productSlice = createSlice({
         }  
       state.filter = data.filter((e)=>{
       if (type.includes(e.TyItemDm)){
-          return {...state,e};
+          return e;
       }else{
         return;
       }
       });
+      state.data = state.filter;
       // state.filter = action.payload;
     },
     filterProduct(state,action){
@@ -47,13 +48,27 @@ const productSlice = createSlice({
       })  
     },
     updateTable(state,action){
-      const value = action.payload.e.inputValue;
+      let value = action.payload.e.inputValue;
       const item = action.payload.e.itemRowAll;
-      console.log(value)
+      let today = new Date();
+      let yyyy = today.getFullYear();
+      let mm = today.getMonth() + 1; // Months start at 0!
+      let dd = today.getDate();
+      if (dd < 10) dd = '0' + dd;
+      if (mm < 10) mm = '0' + mm;
+      today = dd + '/' + mm + '/' + yyyy;
+      console.log(today)
+      if(value !=null){  
+        value = Number(value);      
+        value = value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }else{ 
+        value = '0.00';
+      }
       state.filter = state.filter.map((e)=>{
           if(e.itemcode == item.itemcode){
             let returnValue = {...e};
             returnValue.CostN = value;
+            returnValue.DateCn = today;
             return returnValue;
           }else{
             return e;

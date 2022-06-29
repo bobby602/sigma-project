@@ -27,22 +27,10 @@ const Selectbox = ()=>{
 
     return (  
         <Fragment>
-            {/* <div class="flex flex-col "> */}
-                {/* <label for="countries" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400 text-left">เลือก Type </label>    
-                <Multiselect  className = "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    options={options} // Options to display in the dropdown // Preselected value to persist in dropdown
-                    onChange = {handleOnChange}
-                    >
-                </Multiselect>  */}
-
+            <div className = {`w-100`}>
                 <label  className="flex items-center pr-2  block font-semibold text-base font-medium text-gray-900 dark:text-gray-400 ">เลือก Material Type </label> 
-                <MultiSelect value={value} options={options} onChange={(e) =>setvalue(e.value)}  optionLabel="label" placeholder="Select Type" display="chip" />
-                    {/* <MultiSelect
-                        onChange= {(e) => setvalue(e)}
-                        options={options}
-                    /> */}
-                {/* </div>    */}
-            {/* </div>         */}
+                <MultiSelect className = {`test`} value={value} options={options} onChange={(e) =>setvalue(e.value)}  optionLabel="label" placeholder="Select Type" display="chip" />
+            </div>
         </Fragment>         
             );
 }
