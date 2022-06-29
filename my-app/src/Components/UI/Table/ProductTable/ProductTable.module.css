@@ -39,3 +39,21 @@
 .costInput{
   width:200px;
 }
+.text{
+  justify-content: center;
+}
+.textCustomAll{
+  color:red;
+  text-shadow: 0px 2px 3px rgba(0,0,0,0.4),
+       0px 4px 10px rgba(0,0,0,0.7),
+       0px 10px 20px rgba(0,0,0,0.4);
+      
+}
+@media (max-width:390px){
+  .textCustom th:nth-of-type(2){
+    left:auto;
+  }
+  .font td:nth-of-type(2){
+    left:auto;
+  }
+}
