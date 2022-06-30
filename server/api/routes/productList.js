@@ -45,7 +45,13 @@ const { response } = require('../app');
                 " where b.ItemCode  = @item ; update DATASIGMA2.dbo.ItemDm " +
                 " set CostN = @value, " +
                     " DateCN  = GETDATE()" +
-                " where ItemCode = @item";              
+                " where ItemCode = @item ; update a "+
+                " set  CostN = b.CostN ," +
+                     " DateCN  =  GETDATE() " +
+               " from DATASIGMA2.dbo.ItemDm a " +
+               " inner join DATASIGMA2.dbo.QSumBom b on b.code = a.itemcode " +
+               " inner join DATASIGMA2.dbo.bomsub c on c.code = b.code " + 
+               " where c.itemcode = @item ";              
     var db = new mssql.Request();
     db.input('value',mssql.VarChar(50),value);
     db.input('item',mssql.VarChar(50),item); 
