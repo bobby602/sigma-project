@@ -7,7 +7,7 @@ import { productActions } from '../../../../Store/product-slice';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateData } from '../../../../Store/product-list';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {faCheck, faTimes}from '@fortawesome/free-solid-svg-icons'
+import {faCheck, faTimes,faBox}from '@fortawesome/free-solid-svg-icons'
 import useOutsideClick from '../../../../CustomHook/useOutsideClick'
 
 const ProductTable = (data)=>{
@@ -136,50 +136,72 @@ const ProductTable = (data)=>{
                 <div className= "overflow-scroll  max-h-[1000px]">
                     <table id="dtHorizontalExample" className=" w-full text-base text-left text-gray-500 dark:text-gray-400">
                         <thead className={`${Styles.textCustom} text-base bg-[#10b981]  uppercase whitespace-nowrap sticky top-0 z-[100] `}>
-                            <tr>
-                                <th scope="col" className="px-6 py-3">
-                                    ItemCode
-                                </th>
-                                <th scope="col" className={`sticky left-0 bg-[#10b981] px-6 py-3 z-[100]`}>
-                                    ชื่อผลิตภัณฑ์
-                                </th>
-                                <th scope="col" className={`px-6 py-3`}>
-                                    หน่วย
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    คงเหลือ
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    หักสถานะค้างต่างๆ
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    ทุน MIN
-                                </th>
-                                <th scope="col" className="px-6 py-3 ">
-                                    ทุน Max
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                    Type
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                ทุนล่าสุด
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                ราคา PO
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                ทุนปรับแต่ง
-                                </th>
-                                <th scope="col" className="px-6 py-3">
-                                วันที่ปรับแต่ง
-                                </th>
-                            </tr>
+                            {
+                            data.data.length==0?
+                                <tr>
+                                    <th scope="col" className="px-6 py-3">
+                                    ตารางทะเบียนผลิตภัณฑ์
+                                    </th>
+                                    <th scope="col" className="text-center px-6 py-3">
+                                    ตารางทะเบียนผลิตภัณฑ์
+                                    </th>
+                                </tr>
+                                :
+                                <tr>
+                                    <th scope="col" className="px-6 py-3">
+                                        ItemCode
+                                    </th>
+                                    <th scope="col" className={`sticky left-0 bg-[#10b981] px-6 py-3 z-[100]`}>
+                                        ชื่อผลิตภัณฑ์
+                                    </th>
+                                    <th scope="col" className={`px-6 py-3`}>
+                                        หน่วย
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
+                                        คงเหลือ
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
+                                        หักสถานะค้างต่างๆ
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
+                                        ทุน MIN
+                                    </th>
+                                    <th scope="col" className="px-6 py-3 ">
+                                        ทุน Max
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
+                                        Type
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
+                                    ทุนล่าสุด
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
+                                    ราคา PO
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
+                                    ทุนปรับแต่ง
+                                    </th>
+                                    <th scope="col" className="px-6 py-3">
+                                    วันที่ปรับแต่ง
+                                    </th>
+                                </tr>    
+                            }
                         </thead>
+                        {
+                            data.data.length==0?
+                                <tr>
+                                    <div className="p-6 w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                        <img className = {`${Styles.img}`}src = {process.env.PUBLIC_URL + "/icons/folder.png"} alt="My Happy SVG"  width="200" height="300" />
+                                        <p className = "text-xl">No Data </p>
+                                    </div>  
+                                </tr>  
+                            :
                         <tbody>
                             {dataTable}
                         </tbody>
+                        }
                     </table>
-                </div>    
+                </div>  
             </div>
             {
                 modalOn&&
@@ -264,7 +286,10 @@ const ProductTable = (data)=>{
                                 </div>    
                             </div>    
                             :
-                            ""
+                            <div className="p-6 w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                <img className = {`${Styles.img}`}src = {process.env.PUBLIC_URL + "/icons/folder.png"} alt="My Happy SVG"  width="200" height="300" />
+                                <p className = "text-xl">No Data </p>
+                            </div>
                         }
                     </Modal>
             }

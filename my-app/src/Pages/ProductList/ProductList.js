@@ -59,8 +59,8 @@ const ProductList = ()=>{
                         <div className ="basis-1/4">
                         <Search />
                         </div>
-                        <div className="basis-2/4 grid grid-cols-4 gap-3">
-                            <div className ="col-start-2 col-span-2 pl-20 ">
+                        <div className="basis-3/4 grid grid-cols-4 gap-3">
+                            <div className ="col-start-2 col-span-2  ">
                                     <Selectbox/>
                             </div>    
                         </div> 
