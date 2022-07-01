@@ -33,6 +33,7 @@ const { response } = require('../app');
   router.put('/',function(req,res){
     const value = req.body.inputValue;
     const item  = req.body.itemRowAll.itemcode;
+    console.log(item)
     const sql = " update DATASIGMA2.dbo.BomSub " +
                 " set Cost  = @value , " + 
                 " CostN = cast(CAST(@value as float) *qty/1000 as varchar), " +
