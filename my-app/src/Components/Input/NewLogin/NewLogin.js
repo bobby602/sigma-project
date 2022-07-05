@@ -21,7 +21,7 @@ const NewLoginPage =  (props)=>{
     const navigate = useNavigate();
     const submitHandler = (e) => {  
         e.preventDefault();
-       let url ='http://192.168.1.40:9001/';
+       let url ='http://1.0.169.153:9001/';
         fetch(url, {
             method: 'POST',
             body: JSON.stringify(input),
@@ -51,6 +51,36 @@ const NewLoginPage =  (props)=>{
             .catch((err) => {
               alert(err.message);
             });
+        //  fetch('http://192.168.1.40:9001/',{
+        //     method: 'POST',
+        //     body: JSON.stringify(input),
+        //     headers:{
+        //         'Content-Type': 'application/json',
+        //         'Accept': 'application/json'
+        //     },
+        // }).then((res)=>{
+        //     if (res.ok) {
+        //         return res.json();
+        //     }else{
+                 
+        //         return res.json().then((data) => {
+        //             authCtx.isLoggedIn = false;
+        //             authCtx.failLogin();
+        //             // console.log(authCtx.token + '1');
+        //             let errorMessage = 'Authentication failed!';
+        //             console.log('Authentication failed!');
+        //             throw new Error(errorMessage);   
+        //         });
+        //     }    
+        // }) 
+        // .then((data)=>{
+        //     console.log(data);
+        //     authCtx.onLogin(input);
+        //     // setLogin(data.result);
+        //         // props.onLogin(Login); 
+        //         navigate("/MainPage");
+        // })
+        // .catch(error => console.error('Error: ', error));
         
     }
     const userInput = (e)=>{

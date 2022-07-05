@@ -7,8 +7,6 @@ import Selectbox from '../../Components/Input/SelectBox/Selectbox'
 import { useSelector, useDispatch } from 'react-redux';
 import { productActions } from '../../Store/product-slice';
 import Spreadsheet from '../../Components/Input/SpreadSheet/Spreadsheet'
-import jsPDF from "jspdf";
-import autoTable from 'jspdf-autotable';
 
 import { fetchSubData } from '../../Store/product-list';
 
@@ -18,24 +16,7 @@ const ProductList = ()=>{
     const [error, setError] = useState(null);
     const dispatch = useDispatch();
     const product = useSelector((state) => state.product);
-const generatePdf = ()=>{
 
-    const doc = new jsPDF()
-
-    autoTable(doc, { html: '#my-table' })
-
-    // Or use javascript directly:
-    autoTable(doc, {
-    head: [['Name', 'Email', 'Country']],
-    body: [
-        ['David', 'david@example.com', 'Sweden'],
-        ['Castille', 'castille@example.com', 'Spain'],
-        // ...
-    ],
-    })
-
-    doc.save('table.pdf')
-}
 
 //   useEffect(() => {
 
@@ -87,7 +68,6 @@ const generatePdf = ()=>{
                 </div>    
                 <ProductTable data ={product.filter}/>     
             </div> 
-            <button type="button" onClick={generatePdf} className="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Default</button>
         </Fragment>
     )
 }
