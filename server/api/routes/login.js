@@ -189,10 +189,6 @@ router.get('/table',async function(req,res){
     console.log(req.body)
     res.send("hi")
   });
-  router.post('/callback', (req, res) => {
-    console.log(req.body)
-    res.send("hi")
-  });
   router.use((err,req,res,next)=>{
       const {status = 500} =err
       res.status(status).send('ERORR')
