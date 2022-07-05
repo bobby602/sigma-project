@@ -33,6 +33,7 @@ const { get } = require('../data-access/pool-manager')
   router.put('/',async function(req,res){
     const value = req.body.inputValue;
     const item  = req.body.itemRowAll.itemcode;
+
     const sql = " update DATASIGMA2.dbo.BomSub " +
                 " set Cost  = @value , " + 
                 " CostN = cast(CAST(@value as float) *qty/1000 as varchar), " +
@@ -48,11 +49,26 @@ const { get } = require('../data-access/pool-manager')
                 " where ItemCode = @item ; update a "+
                 " set  CostN = b.CostN ," +
                      " DateCN  =  GETDATE() " +
-               " from DATASIGMA2.dbo.ItemDm a " +
-               " inner join DATASIGMA2.dbo.QSumBom b on b.code = a.itemcode " +
+                " from DATASIGMA2.dbo.ItemDm a " +
+                " inner join DATASIGMA2.dbo.QSumBom b on b.code = a.itemcode " +
                " inner join DATASIGMA2.dbo.bomsub c on c.code = b.code " + 
-               " where c.itemcode = @item ";              
-    const pool = await get(db.Unogroup);
+               " where c.itemcode = @item ;"+
+               "update b " +
+               " set Cost = c.AmtDM, " +
+                    " CostN = cast(CAST(c.AmtDM as float) *b.qty/1000 as varchar) " +
+               " from " + 
+                 " ( " +
+                  " select " +
+                        " * " +
+                   " from	" +		
+                        " DATASIGMA2.dbo.bomsub a " +
+                   " where a.ItemCode = @item " +
+                   " )a  " +
+                   " inner join DATASIGMA2.dbo.BomSub b " +
+                   " on b.ItemCode = a.code " +
+                   " inner join DATASIGMA2.dbo.QItemBom c " +
+                   " on c.Code = a.Code and c.ItemCode = a.itemCode ";             
+    const pool = await get(db.Sigma);
     await pool.connect()
     const request = pool.request();
     const data = await request

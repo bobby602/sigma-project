@@ -132,7 +132,7 @@ const ProductTable = (data)=>{
   
     return (
         <Fragment>
-            <div className={`${Styles.font} relative z-50 overflow-auto shadow-md sm:rounded-lg`}>
+            <div className={`${Styles.font} relative z-50 overflow-auto shadow-md rounded-lg`}>
                 <div className= "overflow-scroll  max-h-[1000px]">
                     <table id="dtHorizontalExample" className=" w-full text-base text-left text-gray-500 dark:text-gray-400">
                         <thead className={`${Styles.textCustom} text-base bg-[#10b981]  uppercase whitespace-nowrap sticky top-0 z-[100] `}>
@@ -212,7 +212,7 @@ const ProductTable = (data)=>{
                 modalOn&&
                     <Modal item = {item} setModalOn={setModalOn}>
                     <h3 className="mb-4 text-2xl font-medium text-gray-900 dark:text-white">{item.Name}</h3>
-                        <div className={`${Styles.font2} relative overflow-x-auto shadow-md sm:rounded-lg`}>
+                        <div className={`${Styles.font2} relative overflow-x-auto shadow-md rounded-lg`}>
                             <div className= "overflow-scroll  max-h-[1000px]">
                                 <table id="dtHorizontalExample" className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                                     <thead className={`${Styles.textCustom} text-base bg-[#FF9E0A]  uppercase `}>
