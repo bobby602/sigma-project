@@ -8,7 +8,7 @@ const res = require('express/lib/response');
 const { resourceLimits } = require('worker_threads');
 const { request } = require('http');
 const { response } = require('../app');
-
+const { get } = require('../data-access/pool-manager')
   var app = express();
   const router = express.Router();
   router.use(session({
@@ -16,9 +16,10 @@ const { response } = require('../app');
       resave:true,
       saveUninitialized:true
   }));
- 
+
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
+<<<<<<< HEAD
 
   router.get('/',function(req,res){
     const sql = " select * from DATASIGMA.dbo.BomSub bs where ItemCode = 'RMACETO01' ";
@@ -28,9 +29,20 @@ const { response } = require('../app');
             console.log(data)
             res.json({result:data});
         });
+=======
+  router.get('/',async function(req,res){
+    let data1;
+    const sql = " select * from UNoGroup.dbo.Users ";
+    const pool = await get(db.Unogroup);
+    console.log(pool)
+    await pool.connect()
+    const request = pool.request();
+    const result = await request.query(sql);
+    res.json({result})
+>>>>>>> d4d27ea060d6c685b02de1ff4ea7ef5faafa6ab6
     });
 
-  router.put('/',function(req,res){
+  router.put('/',async function(req,res){
     const value = req.body.inputValue;
     const item  = req.body.itemRowAll.itemcode;
     console.log(item)
@@ -53,10 +65,11 @@ const { response } = require('../app');
                " inner join DATASIGMA.dbo.QSumBom b on b.code = a.itemcode " +
                " inner join DATASIGMA.dbo.bomsub c on c.code = b.code " + 
                " where c.itemcode = @item ";              
-    var db = new mssql.Request();
-    db.input('value',mssql.VarChar(50),value);
-    db.input('item',mssql.VarChar(50),item); 
-    db.query(sql,function(err,data,fields){
+    let pool = await mssql.connect(Sigma)
+    let result1 = await pool.request()
+    .input('value',mssql.VarChar(50),value)
+    .input('item',mssql.VarChar(50),item) 
+    .query(sql,function(err,data,fields){
         if (err) throw err;
             console.log(data)
         res.json({result:data});

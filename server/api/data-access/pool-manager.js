@@ -1,0 +1,28 @@
+const mssql = require('mssql')
+const pools = new Map()
+
+const set = ({ name, config }) => {
+    if (!name || !config) {
+        throw new Error(`Missing configuration details`)
+    }
+
+    const pool = new mssql.ConnectionPool(config)
+    // const close = pool.close.bind(pool)
+    // pool.close = (...args) => {
+    //     pools.delete(name)
+    //     return close(...args)
+    // }
+    pools.set(name, pool)
+}
+
+const get = (options) => {
+    if (!pools.has(options.name)) {
+        set(options)
+    }
+    console.log( pools.get(options.name))
+    return pools.get(options.name)
+}
+
+module.exports = {
+    get
+};

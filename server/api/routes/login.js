@@ -3,6 +3,7 @@ var mssql = require("mssql");
 var express = require('express');
 var session = require('express-session');
 var bodyParser = require('body-parser');
+const { get } = require('../data-access/pool-manager')
 
 const db = require('../database');
 const res = require('express/lib/response');
@@ -19,10 +20,11 @@ const line = require('@line/bot-sdk')
       resave:true,
       saveUninitialized:true
   }));
- 
+ console.log(db)
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
   
+<<<<<<< HEAD
   router.get('/', function(req,res){
     var request = new mssql.Request();
     request.query('select * from [DATASIGMA].[dbo].[Users] ',function(err,data,fields){
@@ -31,18 +33,37 @@ const line = require('@line/bot-sdk')
         
     });
 
+=======
+  router.get('/', async function(req,res){
+    const command = 'select * from [DATASIGMA2].[dbo].[Users] ';
+    const pool = await get(db.Sigma);
+    await pool.connect()
+    const request = pool.request();
+    const result = await request.query(command);
+    res.json({result})
+>>>>>>> d4d27ea060d6c685b02de1ff4ea7ef5faafa6ab6
   });
 
-  router.post('/',function(req,res){
+  router.post('/',async function(req,res){
     var Login = req.body.username;
     console.log(Login);
     var password = req.body.password;
     console.log(password);
     if(Login){
+<<<<<<< HEAD
         var request = new mssql.Request();
         request.input('Login',mssql.VarChar(50),Login);
         request.input('Password',mssql.VarChar(50),password);
         request.query('select * from [DATASIGMA].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
+=======
+        const pool = await get(db.Sigma);
+        await pool.connect()
+        const request = pool.request();
+        request
+        .input('Login',mssql.VarChar(50),Login)
+        .input('Password',mssql.VarChar(50),password)
+        .query('select * from [DATASIGMA2].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
+>>>>>>> d4d27ea060d6c685b02de1ff4ea7ef5faafa6ab6
             console.log(data);
             if(data.rowsAffected > 0){
                 console.log('IN');
@@ -58,7 +79,7 @@ const line = require('@line/bot-sdk')
         res.json('Please Fill Username and Password');
     }
 });
-  router.get('/table',function(req,res){
+router.get('/table',async function(req,res){
     const sql = "Select itemdm.codem,itemDm.itemcode,itemdm.Name,itemDm.Barcode, itemdm.Pack,cast(CONVERT(VARCHAR, CAST(a.p1 AS MONEY), 1) AS VARCHAR) as minPrice , cast(CONVERT(VARCHAR, CAST(a.p2 AS MONEY), 1) AS VARCHAR) as  maxPrice,TyItemDm,cast(CONVERT(VARCHAR, CAST(b.Qbal AS MONEY), 1) AS VARCHAR) as QBal ,cast(CONVERT(VARCHAR, CAST(b.BAL AS MONEY), 1) AS VARCHAR)  as BAL, " +
                 " cast(CONVERT(VARCHAR, CAST(COSTN AS MONEY), 1) AS VARCHAR)  as CostN , FORMAT(DateCN ,'dd/MM/yyyy') as DateCn , case when (CAST(DateAddI AS DATETIME)>CAST(DateAddE AS DATETIME) OR  DateAddE is null ) and DateAddI is not null then cast(CONVERT(VARCHAR, CAST(CostI AS MONEY), 1) AS VARCHAR) " +
                 " when (CAST(DateAddE AS DATETIME)>CAST(DateAddI AS DATETIME) or DateAddI is null) and DateAddE  is not null  then cast(CONVERT(VARCHAR, CAST(CostE AS MONEY), 1) AS VARCHAR) " +
@@ -75,6 +96,7 @@ const line = require('@line/bot-sdk')
                     " Select  itemcode,name,sum(qbal +QS2) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs) + Sum(Qs2) as BAL,Note "+
                     " From DATASIGMA.dbo.rptstock2  "+
                     " Group by itemcode,name,pack ,Note  " +
+<<<<<<< HEAD
                     " )b on b.itemcode = a.itemcode ;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(b.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(b.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA.dbo.QitemBom a inner join DATASIGMA.dbo.BomSub b on b.code  = a.code and b.itemcode = a.ItemCode    ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA.dbo.bom ";
     var db = new mssql.Request();
     db.query(sql,function(err,data,fields){
@@ -102,35 +124,61 @@ const line = require('@line/bot-sdk')
                     Data[i] = {...Data[i], NewArr,i,SumArr:""};  
                 }else{
                     Data[i] = {...Data[i], NewArr,i,SumArr};  
+=======
+                    " )b on b.itemcode = a.itemcode ;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(b.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(b.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA2.dbo.QitemBom a inner join DATASIGMA2.dbo.BomSub b on b.code  = a.code and b.itemcode = a.ItemCode    ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA2.dbo.bom; "+
+                "";
+    const pool = await get(db.Sigma);
+    await pool.connect()
+    const request = pool.request();
+    try{
+        const data = await request.query(sql);
+        let Data = data.recordset;
+        let Data2 = data.recordsets[1];
+        let Data3 = data.recordsets[2];
+        console.log(Data2)
+        let NewData = new Array(Data.length);
+        let sumData = new Array(Data.length);
+        for(let i=0;i<Data.length;i++){
+            NewData[i] = Data2.filter((e)=>{
+                if(Data[i].itemcode==e.Code){
+                    return e;
+>>>>>>> d4d27ea060d6c685b02de1ff4ea7ef5faafa6ab6
                 }
+            })
+            sumData[i] = Data3.filter((e)=>{
+                if(Data[i].itemcode==e.Code){
+                    return e;
+                }
+            })
+            const NewArr = NewData[i];
+            const SumArr = sumData[i];
+            if(SumArr.length == 0){
+                Data[i] = {...Data[i], NewArr,i,SumArr:""};  
+            }else{
+                Data[i] = {...Data[i], NewArr,i,SumArr};  
             }
+        }
         res.json({result:Data});
-    });
-  });
+    }
+    catch (error) {
+        console.log(error);
+    }
+});
   router.get('/subTable',function(req,res){
     // const sql = "Select *  from DATASIGMA.dbo.QitemBom where Code = @itemCode";
     const sql = "Select *  from DATASIGMA.dbo.QitemBom";
     const itemCode = req.query.itemCode;
     // console.log(itemCode)
-    var db = new mssql.Request();
+    var Sig = new mssql.Request();
     // db.input('itemCode',mssql.VarChar(50),itemCode);
-    db.query(sql,function(err,data,fields){
+    Sig.query(sql,function(err,data,fields){
         try {
             let Data = data.recordset;
             let Data2 = data.recordsets[1];
             let NewData = new Array(Data.length);
             for(let i=0;i>1;i++){
-                console.log(Data[i])
-                // NewData[i] = Data2.map((e)=>{
-                //         console.log(e);
-                // })
-                
+                console.log(Data[i])             
             }
-            // res.json({result:data});
-
-                // res.status(400).send({
-                //     result: "There was an issue signing up."
-                // });
         }
         catch(err) {
           console.log(err);
