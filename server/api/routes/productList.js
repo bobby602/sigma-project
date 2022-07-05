@@ -27,7 +27,7 @@ const { get } = require('../data-access/pool-manager')
     await pool.connect()
     const request = pool.request();
     const result = await request.query(sql);
-    res.json({result})
+    res.json({result});
     });
 
   router.put('/',async function(req,res){
