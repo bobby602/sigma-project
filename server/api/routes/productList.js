@@ -19,7 +19,6 @@ const { get } = require('../data-access/pool-manager')
 
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
-<<<<<<< HEAD
 
   router.get('/',function(req,res){
     const sql = " select * from DATASIGMA.dbo.BomSub bs where ItemCode = 'RMACETO01' ";
@@ -29,17 +28,6 @@ const { get } = require('../data-access/pool-manager')
             console.log(data)
             res.json({result:data});
         });
-=======
-  router.get('/',async function(req,res){
-    let data1;
-    const sql = " select * from UNoGroup.dbo.Users ";
-    const pool = await get(db.Unogroup);
-    console.log(pool)
-    await pool.connect()
-    const request = pool.request();
-    const result = await request.query(sql);
-    res.json({result})
->>>>>>> d4d27ea060d6c685b02de1ff4ea7ef5faafa6ab6
     });
 
   router.put('/',async function(req,res){
