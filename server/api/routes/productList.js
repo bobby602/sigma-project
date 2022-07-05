@@ -21,7 +21,7 @@ const { response } = require('../app');
   router.use(bodyParser.json());
 
   router.get('/',function(req,res){
-    const sql = " select * from DATASIGMA2.dbo.BomSub bs where ItemCode = 'RMACETO01' ";
+    const sql = " select * from DATASIGMA.dbo.BomSub bs where ItemCode = 'RMACETO01' ";
     var db = new mssql.Request();
     db.query(sql,function(err,data,fields){
         if (err) throw err;
@@ -34,24 +34,24 @@ const { response } = require('../app');
     const value = req.body.inputValue;
     const item  = req.body.itemRowAll.itemcode;
     console.log(item)
-    const sql = " update DATASIGMA2.dbo.BomSub " +
+    const sql = " update DATASIGMA.dbo.BomSub " +
                 " set Cost  = @value , " + 
                 " CostN = cast(CAST(@value as float) *qty/1000 as varchar), " +
                 " DateN = GETDATE() " +
                 " where ItemCode = @item ; " + 
                 " update a " +
-                " set  AmtDM = (select CostN from DATASIGMA2.dbo.QSumBom a where Code = b.Code  )," +
-                     " AmtCost  = (select CostN from DATASIGMA2.dbo.QSumBom a where Code = b.Code  ) + AmtEXP " +
-                " from DATASIGMA2.dbo.bom as  a inner join DATASIGMA2.dbo.BomSub as  b on b.Code = a.Code " +
-                " where b.ItemCode  = @item ; update DATASIGMA2.dbo.ItemDm " +
+                " set  AmtDM = (select CostN from DATASIGMA.dbo.QSumBom a where Code = b.Code  )," +
+                     " AmtCost  = (select CostN from DATASIGMA.dbo.QSumBom a where Code = b.Code  ) + AmtEXP " +
+                " from DATASIGMA.dbo.bom as  a inner join DATASIGMA.dbo.BomSub as  b on b.Code = a.Code " +
+                " where b.ItemCode  = @item ; update DATASIGMA.dbo.ItemDm " +
                 " set CostN = @value, " +
                     " DateCN  = GETDATE()" +
                 " where ItemCode = @item ; update a "+
                 " set  CostN = b.CostN ," +
                      " DateCN  =  GETDATE() " +
-               " from DATASIGMA2.dbo.ItemDm a " +
-               " inner join DATASIGMA2.dbo.QSumBom b on b.code = a.itemcode " +
-               " inner join DATASIGMA2.dbo.bomsub c on c.code = b.code " + 
+               " from DATASIGMA.dbo.ItemDm a " +
+               " inner join DATASIGMA.dbo.QSumBom b on b.code = a.itemcode " +
+               " inner join DATASIGMA.dbo.bomsub c on c.code = b.code " + 
                " where c.itemcode = @item ";              
     var db = new mssql.Request();
     db.input('value',mssql.VarChar(50),value);
