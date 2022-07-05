@@ -189,12 +189,17 @@ const ProductTable = (data)=>{
                         </thead>
                         {
                             data.data.length==0?
+                            <tbody>
                                 <tr>
-                                    <div className="p-6 w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
-                                        <img className = {`${Styles.img}`}src = {process.env.PUBLIC_URL + "/icons/folder.png"} alt="My Happy SVG"  width="200" height="300" />
-                                        <p className = "text-xl">No Data </p>
-                                    </div>  
-                                </tr>  
+                                    <td></td>
+                                    <td>
+                                        <div className="p-6 w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                            <img className = {`${Styles.img}`}src = {process.env.PUBLIC_URL + "/icons/folder.png"} alt="My Happy SVG"  width="200" height="300" />
+                                            <p className = "text-xl">No Data </p>
+                                        </div> 
+                                    </td> 
+                                </tr> 
+                            </tbody>     
                             :
                         <tbody>
                             {dataTable}

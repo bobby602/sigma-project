@@ -7,27 +7,52 @@ const app = express();
 
 let result;
    var conn1 = {
-    server:'1.0.169.153',
-    database:'dataSIGMA',
-    user: 'sa',
-      port:1433,      // Replace with your database username
-    password: 'GoodMan@Pm.Com'  ,
-    driver: "msnodesqlv8",
-    connectionTimeout: 300000,
-    idleTimeoutMillis: 300000,
-    requestTimeout: 300000,
-    trustServerCertificate: true,
-    options: {
-      trustedConnection: true,
-      enableArithAbort: true,
-      encrypt:false,
-      cryptoCredentialsDetails: {
-        minVersion: 'TLSv1'
+    Sigma:{
+      name:"Sigma",
+      config:{
+        server:'1.0.169.153',
+        database:'dataSIGMA',
+        user: 'sa',
+          port:1433,      // Replace with your database username
+        password: 'GoodMan@Pm.Com'  ,
+        driver: "msnodesqlv8",
+        connectionTimeout: 300000,
+        idleTimeoutMillis: 300000,
+        requestTimeout: 300000,
+        trustServerCertificate: true,
+        options: {
+          trustedConnection: true,
+          enableArithAbort: true,
+          encrypt:false,
+          cryptoCredentialsDetails: {
+            minVersion: 'TLSv1'
+          }
+        }
+      }  
+    },
+    Unogroup:{
+      name:'Unogroup',
+      config:{
+        server:'25.32.222.7',
+        database:'UNOGROUP',
+        user: 'sa',
+          port:1433,      // Replace with your database username
+        password: 'GoodMan@Pm.Com'  ,
+        driver: "msnodesqlv8",
+        connectionTimeout: 300000,
+        idleTimeoutMillis: 300000,
+        requestTimeout: 300000,
+        trustServerCertificate: true,
+        options: {
+          trustedConnection: true,
+          enableArithAbort: true,
+          encrypt:false,
+          cryptoCredentialsDetails: {
+            minVersion: 'TLSv1'
+          }
+        }     // Replace wit
       }
-    }     // Replace with your database password // // Replace with your database Name
+    }       // Replace with your database password // // Replace with your database Name
   }; 
-  
-  var conn = mssql.connect(conn1, function (err) {
-    if (err) console.log(err);
-  });
-module.exports = conn;
+
+module.exports = conn1;

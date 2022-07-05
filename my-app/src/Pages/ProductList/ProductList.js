@@ -17,38 +17,6 @@ const ProductList = ()=>{
     const dispatch = useDispatch();
     const product = useSelector((state) => state.product);
 
-
-//   useEffect(() => {
-
-//     dispatch(fetchCartData());
-//   }, [dispatch]);
-
-    // useEffect(() => {
-    //     const getData = async () => {
-    //         const res = await fetch('http://192.168.1.40:9001/table');
-    //         const actualData = await res.json();
-    //         const loadedData = [];
-    //         const result = actualData.result.recordsets[0];
-    //         for (const key in result){
-
-    //             loadedData.push({
-    //                 Name: result[key].Name,
-    //                 QBal: result[key].QBal,
-    //                 minPrice: result[key].minPrice,
-    //                 maxPrice: result[key].maxPrice,
-    //                 Barcode:result[key].Barcode,
-    //                 TyItemDm:result[key].TyItemDm,
-    //                 Bal:result[key].BAL 
-    //             })
-    //         }
-    //         setData(loadedData);
-    //         setError(null);
-    //     }    
-    //     getData()
-        
-    //   }, []);
-
-
     return(
         <Fragment >
             <Navbar/>
