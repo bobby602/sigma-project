@@ -60,7 +60,7 @@ const ProductTable = (data)=>{
                 <td   className="px-6 py-4">
                     {e.itemcode}
                 </td>       
-                <td  className=" sticky left-0  z-50 bg-white px-6 py-4">
+                <td  className="sticky left-0 z-50 bg-white px-6 py-4">
                     <div className = "flex">
                         <a onClick={()=>handleOnClick(e)} className ={`${Styles.col1} grow font-medium  text-blue-600 dark:text-blue-500 hover:underline`}>{e.Name}</a>
                     </div>    
@@ -208,56 +208,58 @@ const ProductTable = (data)=>{
                     <Modal item = {item} setModalOn={setModalOn}>
                     <h3 className="mb-4 text-2xl font-medium text-gray-900 dark:text-white">{item.Name}</h3>
                         <div className={`${Styles.font2} relative overflow-x-auto shadow-md sm:rounded-lg`}>
-                            <table id="dtHorizontalExample" className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                                <thead className={`${Styles.textCustom} text-base bg-[#FF9E0A]  uppercase `}>
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3">
-                                            รหัส
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            ชื่อ
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            Qty
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            หน่วย
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            ทุน:หน่วย
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            มูลค่า
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                {
-                                    dataTable2 = item.NewArr.map((e)=>{    
-                                        return <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">  
-                                                    <td className="px-6 py-4">
-                                                        {e.ItemCode}
-                                                    </td>       
-                                                    <td className="px-6 py-4">
-                                                        {e.ItemName}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {e.Qty}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {e.Pack}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {e.Cost}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {e.CostN}
-                                                    </td>
-                                            </tr>;     
-                                    })
-                                }            
-                                </tbody>
-                            </table>
+                            <div className= "overflow-scroll  max-h-[1000px]">
+                                <table id="dtHorizontalExample" className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                    <thead className={`${Styles.textCustom} text-base bg-[#FF9E0A]  uppercase `}>
+                                        <tr>
+                                            <th scope="col" className="px-6 py-3">
+                                                รหัส
+                                            </th>
+                                            <th scope="col" className="px-6 py-3">
+                                                ชื่อ
+                                            </th>
+                                            <th scope="col" className="px-6 py-3">
+                                                Qty
+                                            </th>
+                                            <th scope="col" className="px-6 py-3">
+                                                หน่วย
+                                            </th>
+                                            <th scope="col" className="px-6 py-3">
+                                                ทุน:หน่วย
+                                            </th>
+                                            <th scope="col" className="px-6 py-3">
+                                                มูลค่า
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {
+                                        dataTable2 = item.NewArr.map((e)=>{    
+                                            return <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">  
+                                                        <td className="px-6 py-4">
+                                                            {e.ItemCode}
+                                                        </td>       
+                                                        <td className="px-6 py-4">
+                                                            {e.ItemName}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            {e.Qty}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            {e.Pack}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            {e.Cost}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            {e.CostN}
+                                                        </td>
+                                                </tr>;     
+                                        })
+                                    }            
+                                    </tbody>
+                                </table>
+                            </div>    
                         </div>
                         {item.SumArr?
                             <div className="p-6  w-full bg-[#FFCE77] rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
