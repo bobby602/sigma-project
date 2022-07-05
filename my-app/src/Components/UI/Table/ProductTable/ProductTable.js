@@ -262,7 +262,7 @@ const ProductTable = (data)=>{
                         {item.SumArr?
                             <div className="p-6  w-full bg-[#FFCE77] rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
                                 <div className="grid grid-cols-6 gap-3">
-                                    <div className = "p-4 h-3 col-span-1 grid place-content-center bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
+                                    <div className = "p-4 h-3 col-span-2 grid place-content-center bg-white rounded-lg border border-gray-200  shadow-md dark:bg-gray-800 dark:border-gray-700">
                                         <span className={`font-bold ${Styles.text} `}>{item.itemcode}</span>
                                     </div>
                                     <div className = {`col-span-2 col-start-3 content-center grid place-content-end `}>
