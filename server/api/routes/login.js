@@ -24,16 +24,6 @@ const line = require('@line/bot-sdk')
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
   
-<<<<<<< HEAD
-  router.get('/', function(req,res){
-    var request = new mssql.Request();
-    request.query('select * from [DATASIGMA].[dbo].[Users] ',function(err,data,fields){
-        console.log(data);
-        res.json({data});
-        
-    });
-
-=======
   router.get('/', async function(req,res){
     const command = 'select * from [DATASIGMA2].[dbo].[Users] ';
     const pool = await get(db.Sigma);
@@ -41,7 +31,6 @@ const line = require('@line/bot-sdk')
     const request = pool.request();
     const result = await request.query(command);
     res.json({result})
->>>>>>> d4d27ea060d6c685b02de1ff4ea7ef5faafa6ab6
   });
 
   router.post('/',async function(req,res){
@@ -50,12 +39,6 @@ const line = require('@line/bot-sdk')
     var password = req.body.password;
     console.log(password);
     if(Login){
-<<<<<<< HEAD
-        var request = new mssql.Request();
-        request.input('Login',mssql.VarChar(50),Login);
-        request.input('Password',mssql.VarChar(50),password);
-        request.query('select * from [DATASIGMA].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
-=======
         const pool = await get(db.Sigma);
         await pool.connect()
         const request = pool.request();
@@ -63,7 +46,6 @@ const line = require('@line/bot-sdk')
         .input('Login',mssql.VarChar(50),Login)
         .input('Password',mssql.VarChar(50),password)
         .query('select * from [DATASIGMA2].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
->>>>>>> d4d27ea060d6c685b02de1ff4ea7ef5faafa6ab6
             console.log(data);
             if(data.rowsAffected > 0){
                 console.log('IN');
@@ -96,35 +78,6 @@ router.get('/table',async function(req,res){
                     " Select  itemcode,name,sum(qbal +QS2) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs) + Sum(Qs2) as BAL,Note "+
                     " From DATASIGMA.dbo.rptstock2  "+
                     " Group by itemcode,name,pack ,Note  " +
-<<<<<<< HEAD
-                    " )b on b.itemcode = a.itemcode ;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(b.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(b.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA.dbo.QitemBom a inner join DATASIGMA.dbo.BomSub b on b.code  = a.code and b.itemcode = a.ItemCode    ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA.dbo.bom ";
-    var db = new mssql.Request();
-    db.query(sql,function(err,data,fields){
-        if (err) throw err;
-            let Data = data.recordset;
-            let Data2 = data.recordsets[1];
-            let Data3 = data.recordsets[2];
-            console.log(Data2)
-            let NewData = new Array(Data.length);
-            let sumData = new Array(Data.length);
-            for(let i=0;i<Data.length;i++){
-                NewData[i] = Data2.filter((e)=>{
-                    if(Data[i].itemcode==e.Code){
-                        return e;
-                    }
-                })
-                sumData[i] = Data3.filter((e)=>{
-                    if(Data[i].itemcode==e.Code){
-                        return e;
-                    }
-                })
-                const NewArr = NewData[i];
-                const SumArr = sumData[i];
-                if(SumArr.length == 0){
-                    Data[i] = {...Data[i], NewArr,i,SumArr:""};  
-                }else{
-                    Data[i] = {...Data[i], NewArr,i,SumArr};  
-=======
                     " )b on b.itemcode = a.itemcode ;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(b.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(b.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA2.dbo.QitemBom a inner join DATASIGMA2.dbo.BomSub b on b.code  = a.code and b.itemcode = a.ItemCode    ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA2.dbo.bom; "+
                 "";
     const pool = await get(db.Sigma);
@@ -142,7 +95,6 @@ router.get('/table',async function(req,res){
             NewData[i] = Data2.filter((e)=>{
                 if(Data[i].itemcode==e.Code){
                     return e;
->>>>>>> d4d27ea060d6c685b02de1ff4ea7ef5faafa6ab6
                 }
             })
             sumData[i] = Data3.filter((e)=>{
