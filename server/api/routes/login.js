@@ -66,7 +66,7 @@ router.get('/table',async function(req,res){
                 " cast(CONVERT(VARCHAR, CAST(COSTN AS MONEY), 1) AS VARCHAR)  as CostN , FORMAT(DateCN ,'dd/MM/yyyy') as DateCn , case when (CAST(DateAddI AS DATETIME)>CAST(DateAddE AS DATETIME) OR  DateAddE is null ) and DateAddI is not null then cast(CONVERT(VARCHAR, CAST(CostI AS MONEY), 1) AS VARCHAR) " +
                 " when (CAST(DateAddE AS DATETIME)>CAST(DateAddI AS DATETIME) or DateAddI is null) and DateAddE  is not null  then cast(CONVERT(VARCHAR, CAST(CostE AS MONEY), 1) AS VARCHAR) " +
                 " else '0.00' " +
-                " end as costNew " +
+                " end as costNew ,cast(CONVERT(VARCHAR, CAST( itemdm.price AS MONEY), 1) AS VARCHAR) as price,cast(CONVERT(VARCHAR, CAST( itemdm.PriceRE AS MONEY), 1) AS VARCHAR) as PriceRE ,FORMAT(itemdm.datePrice ,'dd/MM/yyyy') as datePrice,FORMAT(itemdm.datepriceRe ,'dd/MM/yyyy') as datePriceRe " +
                 " from DATASIGMA.dbo.ItemDm " + 
                 " inner join DATASIGMA.dbo.qitemdmbal " +
                 " on itemdm.itemcode=qitemdmbal.itemcode " +

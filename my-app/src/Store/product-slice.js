@@ -50,6 +50,8 @@ const productSlice = createSlice({
     updateTable(state,action){
       let value = action.payload.e.inputValue;
       const item = action.payload.e.itemRowAll;
+      const type = action.payload.e.columnInput;
+      console.log(type)
       let today = new Date();
       let yyyy = today.getFullYear();
       let mm = today.getMonth() + 1; // Months start at 0!
@@ -65,10 +67,20 @@ const productSlice = createSlice({
         value = '0.00';
       }
       state.filter = state.filter.map((e)=>{
-          if(e.itemcode == item.itemcode){
+          if(e.itemcode == item.itemcode && type =='cost'){
             let returnValue = {...e};
             returnValue.CostN = value;
             returnValue.DateCn = today;
+            return returnValue;
+          }else if(e.itemcode == item.itemcode && type =='price'){
+            let returnValue = {...e};
+            returnValue.Price = value;
+            returnValue.datePrice = today;
+            return returnValue;
+          }else if(e.itemcode == item.itemcode && type =='priceRe'){
+            let returnValue = {...e};
+            returnValue.PriceRE = value;
+            returnValue.datePriceRe = today;
             return returnValue;
           }else{
             return e;
