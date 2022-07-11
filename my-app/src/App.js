@@ -4,6 +4,7 @@ import LoginPage from './Pages/Login/LoginPage';
 import MainPage  from './Pages/Main/MainPage';
 import UserPage  from './Pages/User/UserPage';
 import ProductList  from './Pages/ProductList/ProductList';
+import PriceList  from './Pages/PriceList/PriceList';
 import react,{Fragment} from 'react';
 import AuthContext from './Store/auth-context';
 import { useMediaQuery } from 'react-responsive';
@@ -25,6 +26,7 @@ function App() {
                 <Route path="/" element={<Auth />} >
                   <Route path='/MainPage' element={<MainPage />}/>
                   <Route path="/ProductList/" element={<ProductList />} />
+                  <Route path="/PriceList" element={<PriceList />} />
                   <Route path="/UserPage" element={<UserPage />} />
                 </Route>  
                 <Route path="/Login" element={<LoginPage />} />
@@ -37,6 +39,7 @@ function App() {
                 <Route path="/" element={<Auth />} >
                   <Route path='/MainPage' element={<MainPage />}/>
                   <Route path="/ProductList" element={<ProductList />} />
+                  <Route path="/PriceList" element={<PriceList />} />
                   <Route path="/UserPage" element={<UserPage />} />
                 </Route>  
                 <Route path="/Login" element={<LoginPage />} />
