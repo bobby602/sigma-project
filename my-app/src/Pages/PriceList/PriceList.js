@@ -1,7 +1,7 @@
 import Navbar from "../../Components/UI/Navbar/Navbar";
 import react,{Fragment,useRef, useEffect,useCallback,useState} from 'react'
 import Styles from './PriceList.module.css'
-// import PriceTable from '../../Components/UI/Table/ProductTable/ProductTable'
+import PriceTable from "../../Components/UI/Table/PriceTable/PriceTable";
 import Search from '../../Components/Input/Search/Search'
 import Selectbox from '../../Components/Input/SelectBox/Selectbox'
 import { useSelector, useDispatch } from 'react-redux';
@@ -28,7 +28,7 @@ const ProductList = ()=>{
                         </div>
                     </div>    
                 </div>    
-                {/* <ProductTable data ={product.filter}/>      */}
+                <PriceTable data ={product.filter}/>     
             </div> 
         </Fragment>
     )

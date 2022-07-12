@@ -41,11 +41,8 @@ const productSlice = createSlice({
         }
       })  
     },
-    subTable(state,action){
-      const Item = action.payload.productData;
-      state.subTable = Item.filter((e)=>{
-           return e;
-      })  
+    PriceTable(state,action){
+      const Item = action.payload.productData; 
     },
     updateTable(state,action){
       let value = action.payload.e.inputValue;
