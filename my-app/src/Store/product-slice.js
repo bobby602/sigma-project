@@ -74,7 +74,7 @@ const productSlice = createSlice({
             return returnValue;
           }else if(e.itemcode == item.itemcode && type =='price'){
             let returnValue = {...e};
-            returnValue.Price = value;
+            returnValue.price = value;
             returnValue.datePrice = today;
             return returnValue;
           }else if(e.itemcode == item.itemcode && type =='priceRe'){
