@@ -81,18 +81,23 @@ const { get } = require('../data-access/pool-manager')
           const sql = "update DATASIGMA.dbo.ItemDm " +
           " set Price = @value,  " +
                " DatePrice  = GETDATE() " +
-          " where ItemCode = @item";
+          " where ItemCode = @item; ";
           const data = await request
           .input('value',mssql.VarChar(50),value)
           .input('item',mssql.VarChar(50),item) 
           .query(sql)  
           res.json({result:data});
     }else if (type =='priceRe'){
-     console.log('afed')
      const sql = "update DATASIGMA.dbo.ItemDm " +
                  " set PriceRE = @value,  " +
                  " DatePriceRE  = GETDATE() " +
-                 " where ItemCode = @item";
+                 " where ItemCode = @item ; " +
+                 " Update ItemF " + 
+                 " Set  CU = @value  , " +
+                 " DateADD = GETDATE(), " +
+                 " CP = Rpack * CAST(@value as float) / RpackRPT ,TOT = COP + (Rpack *CAST(@value as float) / RpackRPT ), " +
+                 " PriceSale = Round((COP + (Rpack * CAST(@value as float)/ RpackRPT )),0) + Depart.RateCOP * (COP + (Rpack * CAST(@value as float) / RpackRPT ))/100   From ItemF ,Depart " +
+                 " Where ItemF.Departcode = Depart.code and  ItemF.ItemCode = @item ";
      const data = await request
      .input('value',mssql.VarChar(50),value)
      .input('item',mssql.VarChar(50),item) 
