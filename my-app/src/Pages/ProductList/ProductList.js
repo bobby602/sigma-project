@@ -19,14 +19,17 @@ const ProductList = ()=>{
     const product = useSelector((state) => state.product);
     const [value, setvalue] = useState('');
     const getValue = (e)=>{
-        console.log(e)
         setvalue(e)
     }
 
     const options =  [{label:'RM' , value: '1'},{label: 'TE', value: '2'},{label: 'SI', value: '3'},{label: 'SF', value: '4'}];
     useEffect (()=>{
         dispatch(fetchCartData(value));
-    },[value])
+    },[value]);
+    const handleOnChange = (e)=>{
+        const search = e;
+        dispatch(productActions.filterProduct(search));
+    }
 
     return(
         <Fragment >
@@ -36,11 +39,11 @@ const ProductList = ()=>{
                 <div className ={`${Styles.search} `}>
                     <div className ="flex flex-wrap">
                         <div className ="basis-1/4">
-                        <Search />
+                        <Search handleOnChange ={handleOnChange} />
                         </div>
                         <div className="basis-3/4 grid grid-cols-4 gap-3">
                             <div className ="col-start-2 col-span-2  ">
-                                <Selectbox options = {options} value = {value} getValue = {getValue}/>
+                                <Selectbox options = {options} value = {value} name = 'เลือก Material Type' getValue = {getValue}/>
                             </div>    
                         </div> 
                     </div>    

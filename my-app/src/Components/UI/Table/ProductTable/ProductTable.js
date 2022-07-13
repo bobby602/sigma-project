@@ -22,7 +22,6 @@ const ProductTable = (data)=>{
     const product = useSelector((state) => state.product);
     const navigate = useNavigate();
     let i = 0 ;
-
     const ref = useOutsideClick(() => {
         setOpenInput(false)
       });

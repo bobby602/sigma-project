@@ -4,9 +4,11 @@ import Styles from './PriceTable.module.css'
 
 const PriceTable = (data)=>{  
   let dataTable = "";
-  if(data.data.priceData){
-    dataTable = data.data.priceData.map((e)=>{
-      return <tr key={e.i} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap">        
+  console.log(data)
+  if(data.data){
+    dataTable = data.data.map((e)=>{
+      return (
+        <tr key={e.number} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap">        
           <td  className="sticky left-0 z-50 bg-white px-6 py-4">  
             {e.code}  
           </td>
@@ -38,6 +40,7 @@ const PriceTable = (data)=>{
             0.00
           </td>  
       </tr>
+      )
   })
   }
    
@@ -79,9 +82,7 @@ const PriceTable = (data)=>{
                 </th>
               </tr> 
             </thead>
-            <tbody>
-              {dataTable}
-            </tbody>  
+            <tbody>{dataTable}</tbody>  
           </Table>
         </Fragment>
         )

@@ -8,6 +8,7 @@ const productSlice = createSlice({
     filter:[],
     subTable:[],
     priceList:[],
+    departNameList:[],
     type:[],
   },
   reducers: {
@@ -36,16 +37,41 @@ const productSlice = createSlice({
     },
     filterProduct(state,action){
       const Item = action.payload;
-      state.filter = state.data.filter((e)=>{
-       if (e.Name.toLowerCase().includes(Item.toLowerCase())){
-                return {...state ,e};
+      if(Array.isArray(Item)){
+        console.log('tesssss')
+      }else{
+        state.filter = state.data.filter((e)=>{
+          if (e.Name.toLowerCase().includes(Item.toLowerCase())){
+                   return {...state ,e};
+           }
+         }) 
+      } 
+    },
+    filterPriceList(state,action){
+      const Item = action.payload;
+      state.priceList = state.data.filter((e)=>{
+        if (e.NameFGS.toLowerCase().includes(Item.toLowerCase())){
+            return {...e};
         }
-      })  
+       })  
+    },
+    filterPriceType(state,action){
+      const Item = action.payload;
+      console.log(Item)
     },
     PriceTable(state,action){
+      const distinct = (value,index,self) =>{
+        return self.indexOf(value) === index;
+      }
       const Item = action.payload; 
-      console.log(Item)
-      state.priceList = Item;
+
+      state.priceList = Item.priceData;
+      let departName = Item.priceData.map((e)=>{
+            return e.DepartName;
+        })
+      state.departNameList = departName.filter(distinct);
+      state.data = state.priceList;
+
     },
     updateTable(state,action){
       let value = action.payload.e.inputValue;
