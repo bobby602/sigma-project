@@ -7,14 +7,20 @@ import Selectbox from '../../Components/Input/SelectBox/Selectbox'
 import { useSelector, useDispatch } from 'react-redux';
 import { productActions } from '../../Store/product-slice';
 import Spreadsheet from '../../Components/Input/SpreadSheet/Spreadsheet'
-import { fetchSubData } from '../../Store/product-list';
+import { fetchPriceList } from '../../Store/product-list';
 
-const ProductList = ()=>{
-    const [filterValue,setFilterValue] = useState('');
+const PriceList = ()=>{
     const [data,setData] = useState([]);
     const [error, setError] = useState(null);
     const dispatch = useDispatch();
-    const product = useSelector((state) => state.product);
+    const isLoading = useSelector((state)=>state.product.isLoading)
+    const priceData  = useSelector((state)=>state.product.priceList)
+    console.log(priceData)
+
+    useEffect (()=>{
+        dispatch(fetchPriceList());
+    },[])
+
 
     return(
         <Fragment >
@@ -27,10 +33,18 @@ const ProductList = ()=>{
                         <Search />
                         </div>
                     </div>    
-                </div>    
-                <PriceTable data ={product.filter}/>     
+                </div>   
+                {
+                    isLoading === true
+                    ?
+                        <section classsName = {`${Styles.priceLoading} `}>
+                            <p>Loading...</p> 
+                        </section>
+                    : 
+                    <PriceTable data ={priceData} />
+                }     
             </div> 
         </Fragment>
     )
 }
-export default ProductList;
+export default PriceList;

@@ -7,8 +7,9 @@ import Selectbox from '../../Components/Input/SelectBox/Selectbox'
 import { useSelector, useDispatch } from 'react-redux';
 import { productActions } from '../../Store/product-slice';
 import Spreadsheet from '../../Components/Input/SpreadSheet/Spreadsheet'
+import { MultiSelect } from 'primereact/multiselect';
+import { fetchCartData } from '../../Store/product-list'
 
-import { fetchSubData } from '../../Store/product-list';
 
 const ProductList = ()=>{
     const [filterValue,setFilterValue] = useState('');
@@ -16,6 +17,16 @@ const ProductList = ()=>{
     const [error, setError] = useState(null);
     const dispatch = useDispatch();
     const product = useSelector((state) => state.product);
+    const [value, setvalue] = useState('');
+    const getValue = (e)=>{
+        console.log(e)
+        setvalue(e)
+    }
+
+    const options =  [{label:'RM' , value: '1'},{label: 'TE', value: '2'},{label: 'SI', value: '3'},{label: 'SF', value: '4'}];
+    useEffect (()=>{
+        dispatch(fetchCartData(value));
+    },[value])
 
     return(
         <Fragment >
@@ -29,7 +40,7 @@ const ProductList = ()=>{
                         </div>
                         <div className="basis-3/4 grid grid-cols-4 gap-3">
                             <div className ="col-start-2 col-span-2  ">
-                                    <Selectbox/>
+                                <Selectbox options = {options} value = {value} getValue = {getValue}/>
                             </div>    
                         </div> 
                     </div>    

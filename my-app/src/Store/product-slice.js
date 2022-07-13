@@ -7,6 +7,7 @@ const productSlice = createSlice({
     isLoading: false,
     filter:[],
     subTable:[],
+    priceList:[],
     type:[],
   },
   reducers: {
@@ -42,7 +43,9 @@ const productSlice = createSlice({
       })  
     },
     PriceTable(state,action){
-      const Item = action.payload.productData; 
+      const Item = action.payload; 
+      console.log(Item)
+      state.priceList = Item;
     },
     updateTable(state,action){
       let value = action.payload.e.inputValue;

@@ -70,3 +70,27 @@ export const fetchCartData = (e) => {
       }
     };
   };
+  export const fetchPriceList = (e) => {
+
+    return async (dispatch) => {
+      const fetchData = async () => {
+        const res = await fetch('http://192.168.1.40:9001/priceList');
+  
+        if (!res.ok) {
+          throw new Error('Could not fetch cart data!');
+        }
+  
+        const actualData = await res.json();
+        return actualData.result.recordset;
+      };
+  
+      try {
+        const priceData = await fetchData();
+        dispatch(
+            productActions.PriceTable({priceData})
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  };

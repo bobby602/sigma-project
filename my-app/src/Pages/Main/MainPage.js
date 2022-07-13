@@ -5,8 +5,6 @@ import CardList from "../../Components/UI/CardList/CardList";
 import Styles from "./MainPage.module.css"
 
 const MainPage = ()=>{
-   let token = localStorage.getItem('a');
-   console.log(token);
     
     return (
             <Fragment>
