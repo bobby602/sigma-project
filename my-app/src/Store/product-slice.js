@@ -56,8 +56,26 @@ const productSlice = createSlice({
        })  
     },
     filterPriceType(state,action){
-      const Item = action.payload;
-      console.log(Item)
+      const type = action.payload;
+      let Str ='';
+      let i =0;
+      if(type){
+        const typeStr = type.map((e)=>{
+          Str=  Str +e+',';
+          i++;
+        })
+      Str =Str.substring(0, Str.length - 1)
+      state.type = Str;
+      }  
+      if(type.length !=0){
+        state.priceList = state.data.filter((e)=>{
+          if (type.includes(e.DepartName)){
+              return {...e};
+          }
+        });
+      }else{
+        state.priceList = state.data;
+      }
     },
     PriceTable(state,action){
       const distinct = (value,index,self) =>{
@@ -77,7 +95,6 @@ const productSlice = createSlice({
       let value = action.payload.e.inputValue;
       const item = action.payload.e.itemRowAll;
       const type = action.payload.e.columnInput;
-      console.log(type)
       let today = new Date();
       let yyyy = today.getFullYear();
       let mm = today.getMonth() + 1; // Months start at 0!
