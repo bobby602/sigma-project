@@ -162,7 +162,7 @@ const ProductTable = (data)=>{
                         </td>       
                         <td  className="sticky left-0 z-50 bg-white px-6 py-4">
                             <div className = "flex">
-                                <a onClick={()=>handleOnClick(e)} className ={`${Styles.col1} grow font-medium  text-blue-600 dark:text-blue-500 hover:underline`}>{e.Name}</a>
+                                {e.Name}
                             </div>    
                         </td>
                         <td  className="px-6 py-4">
@@ -170,6 +170,9 @@ const ProductTable = (data)=>{
                         </td>
                         <td  className="px-6 py-4">
                             {e.BAL}
+                        </td>
+                        <td  className="px-6 py-4">
+                            {e.price}
                         </td>
                         <td  className="px-6 py-4">
                             {e.datePrice}
@@ -318,6 +321,9 @@ const ProductTable = (data)=>{
                                         </th>
                                         <th scope="col" className="px-6 py-3">
                                             หักสถานะค้างต่างๆ
+                                        </th>
+                                        <th scope="col" className="px-6 py-3">
+                                            ราคาขาย
                                         </th>
                                         <th scope="col" className="px-6 py-3">
                                             วันที่ปรับราคา

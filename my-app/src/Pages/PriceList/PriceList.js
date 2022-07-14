@@ -45,7 +45,7 @@ const PriceList = ()=>{
         <Fragment >
             <Navbar/>
             <div className={`${Styles.borderTable}  `}>
-                <p className= "text-3xl text-gray-700 font-mono hover:text-blue-600">บันทึกต้นทุน ต่างประเทศ</p>
+                <p className= "text-3xl text-gray-700 font-mono hover:text-blue-600">ทะเบียนราคาแพ็คกิ้ง</p>
                 <div className ={`${Styles.search} `}>
                     <div className ="flex flex-wrap">
                         <div className ="basis-1/4">

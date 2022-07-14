@@ -44,19 +44,13 @@ const CardList = (prop)=>{
                                             </li>
                                             <li>
                                                 <a href="/PriceList" className={`${styles.reportlist} `}>
-                                                    <span className="flex-1 ml-3 whitespace-nowrap">บันทึกต้นทุน ต่างประเทศ</span>
+                                                    <span className="flex-1 ml-3 whitespace-nowrap">บันทึกรายการสินค้าตามแพ็คกิ้ง</span>
                                                     <button type="button" className=" ml-4 text-white bg-gradient-to-br from-green-400 to-blue-600 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 ">Next</button>
                                                 </a>
                                             </li>
                                             <li>
                                                 <a href="#" className={`${styles.reportlist} `}>
-                                                    <span className="flex-1 ml-3 whitespace-nowrap">คำนวณราคา/กำไร</span>
-                                                    <button type="button" className=" ml-4 text-white bg-gradient-to-br from-green-400 to-blue-600 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 ">Next</button>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#" className={`${styles.reportlist} `}>
-                                                    <span className="flex-1 ml-3 whitespace-nowrap">บันทึกต้นทุน Packing</span>
+                                                    <span className="flex-1 ml-3 whitespace-nowrap">ทะเบียนสินค้า</span>
                                                     <button type="button" className=" ml-4 text-white bg-gradient-to-br from-green-400 to-blue-600 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 ">Next</button>
                                                 </a>
                                             </li>
