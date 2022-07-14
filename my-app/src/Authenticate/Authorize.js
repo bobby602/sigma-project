@@ -3,16 +3,16 @@ import { BrowserRouter,Route ,Routes,Navigate ,Outlet} from 'react-router-dom'
 import AuthContext from '../Store/auth-context';
 import LoginPage from '../Pages/Login/LoginPage';
 
-const Auth = (props)=>{
+const Authorize= (props)=>{
     const authCtx = useContext(AuthContext);
     let token = sessionStorage.getItem('token');
     let jsonToken = JSON.parse(token);
     let checkpage;
-    if(token ||authCtx.isLoggedIn ===true){
+    if(jsonToken.StAdmin =='1'){
       checkpage= <Outlet/>;
     }
    else{
-      checkpage = <Navigate to ="/Login"/>;
+      checkpage = <Navigate to ="/ProductList"/>;
     }
     return (
             <Fragment>
@@ -20,4 +20,4 @@ const Auth = (props)=>{
             </Fragment>
     )
 }
-export default Auth;
+export default Authorize;

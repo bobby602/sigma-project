@@ -45,12 +45,10 @@ const line = require('@line/bot-sdk')
         request
         .input('Login',mssql.VarChar(50),Login)
         .input('Password',mssql.VarChar(50),password)
-        .query('select * from [DATASIGMA].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
-            console.log(data);
+        .query('select Login,Name,StAdmin from [DATASIGMA].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
             if(data.rowsAffected > 0){
-                console.log('IN');
                 req.session.Login = Login;
-                res.json({result:"Login Successful"});
+                res.json({result:data.recordsets});
             }else{
                 res.status(400).send({
                     result: "There was an issue signing up."

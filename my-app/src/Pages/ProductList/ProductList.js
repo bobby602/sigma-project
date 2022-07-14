@@ -23,9 +23,11 @@ const ProductList = ()=>{
     }
 
     const options =  [{label:'RM' , value: '1'},{label: 'TE', value: '2'},{label: 'SI', value: '3'},{label: 'SF', value: '4'}];
+    
     useEffect (()=>{
         dispatch(fetchCartData(value));
     },[value]);
+
     const handleOnChange = (e)=>{
         const search = e;
         dispatch(productActions.filterProduct(search));

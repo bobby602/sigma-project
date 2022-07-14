@@ -11,9 +11,6 @@ const Selectbox = (props)=>{
     const dispatch = useDispatch();
     const product = useSelector((state) => state.product);
 
-
-
-
     return (  
         <Fragment>
             <div className = {`w-100`}>

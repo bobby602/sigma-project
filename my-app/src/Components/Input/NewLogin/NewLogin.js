@@ -10,9 +10,8 @@ const NewLoginPage =  (props)=>{
         password:''
     })
     const [isLogin, setIsLogin] = useState(true);
-    // const switchAuthModeHandler = () => {
-    //     setIsLogin((prevState) => !prevState);
-    //   };
+    let token = sessionStorage.getItem('token');
+    let jsonToken = JSON.parse(token);
     const [Login,setLogin] = useState({
             isLogin:'',
             username:''    
@@ -36,51 +35,21 @@ const NewLoginPage =  (props)=>{
                 return res.json().then((data) => {
                   let errorMessage = 'Authentication failed!';
                   authCtx.failLogin();
-                  // if (data && data.error && data.error.message) {
-                  //   errorMessage = data.error.message;
-                  // }
-      
                   throw new Error(errorMessage);
                 });
               }
             })
             .then((data) => {
-                authCtx.onLogin(input);
+              authCtx.onLogin(data.result[0]);
+              if(data.result[0][0].StAdmin == '1'){
                 navigate("/MainPage");
+              }else if(data.result[0][0].StAdmin == '2'){
+                navigate("/ProductList");
+              }
             })
             .catch((err) => {
               alert(err.message);
             });
-        //  fetch('http://192.168.1.40:9001/',{
-        //     method: 'POST',
-        //     body: JSON.stringify(input),
-        //     headers:{
-        //         'Content-Type': 'application/json',
-        //         'Accept': 'application/json'
-        //     },
-        // }).then((res)=>{
-        //     if (res.ok) {
-        //         return res.json();
-        //     }else{
-                 
-        //         return res.json().then((data) => {
-        //             authCtx.isLoggedIn = false;
-        //             authCtx.failLogin();
-        //             // console.log(authCtx.token + '1');
-        //             let errorMessage = 'Authentication failed!';
-        //             console.log('Authentication failed!');
-        //             throw new Error(errorMessage);   
-        //         });
-        //     }    
-        // }) 
-        // .then((data)=>{
-        //     console.log(data);
-        //     authCtx.onLogin(input);
-        //     // setLogin(data.result);
-        //         // props.onLogin(Login); 
-        //         navigate("/MainPage");
-        // })
-        // .catch(error => console.error('Error: ', error));
         
     }
     const userInput = (e)=>{

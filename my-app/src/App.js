@@ -9,6 +9,7 @@ import react,{Fragment} from 'react';
 import AuthContext from './Store/auth-context';
 import { useMediaQuery } from 'react-responsive';
 import Auth from './Authenticate/Auth'
+import Authorize from './Authenticate/Authorize'
 
 function App() {
 
@@ -16,7 +17,6 @@ function App() {
     query: '(min-width: 1100px)'
   })
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1099px) and (min-width: 200px) ' })
-  localStorage.setItem('a', 'test');
  
   return (
     <Fragment>
@@ -24,10 +24,17 @@ function App() {
           <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Auth />} >
-                  <Route path='/MainPage' element={<MainPage />}/>
-                  <Route path="/ProductList/" element={<ProductList />} />
-                  <Route path="/PriceList" element={<PriceList />} />
-                  <Route path="/UserPage" element={<UserPage />} />
+                  {/* public route*/}
+                    <Route path="/ProductList" element={<ProductList />} />
+
+                  {/* private route*/}
+                  <Route element={<Authorize />}>
+                    <Route path="/MainPage" element={<MainPage />} />
+                    <Route path="/ProductList" element={<ProductList />} />
+                    <Route path="/PriceList" element={<PriceList />} />
+                    <Route path="/UserPage" element={<UserPage />} />
+                    <Route path="/ProductList" element={<ProductList />} />
+                  </Route>  
                 </Route>  
                 <Route path="/Login" element={<LoginPage />} />
               </Routes>
@@ -37,10 +44,17 @@ function App() {
           <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Auth />} >
-                  <Route path='/MainPage' element={<MainPage />}/>
-                  <Route path="/ProductList" element={<ProductList />} />
-                  <Route path="/PriceList" element={<PriceList />} />
-                  <Route path="/UserPage" element={<UserPage />} />
+                  {/* public route*/}
+                    <Route path="/ProductList" element={<ProductList />} />
+
+                  {/* private route*/}
+                  <Route element={<Authorize />}>
+                    <Route path="/MainPage" element={<MainPage />} />
+                    <Route path="/ProductList" element={<ProductList />} />
+                    <Route path="/PriceList" element={<PriceList />} />
+                    <Route path="/UserPage" element={<UserPage />} />
+                    <Route path="/ProductList" element={<ProductList />} />
+                  </Route>  
                 </Route>  
                 <Route path="/Login" element={<LoginPage />} />
               </Routes>
