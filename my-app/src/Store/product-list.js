@@ -4,7 +4,7 @@ export const fetchCartData = (e) => {
 
     return async (dispatch) => {
       const fetchData = async () => {
-        const res = await fetch('http://192.168.1.40:9001/table');
+        const res = await fetch('http://1.0.169.153:9001/table');
   
         if (!res.ok) {
           throw new Error('Could not fetch cart data!');
@@ -29,7 +29,7 @@ export const fetchCartData = (e) => {
     return async (dispatch) => {
       const fetchData = async () => {
 
-        const res = await fetch(`http://192.168.1.40:9001/subTable?itemCode=${encodeURIComponent(e)}`);
+        const res = await fetch(`http://1.0.169.153:9001/subTable?itemCode=${encodeURIComponent(e)}`);
   
         if (!res.ok) {
           throw new Error('Could not fetch cart data!');
@@ -55,7 +55,7 @@ export const fetchCartData = (e) => {
   export const updateData = (e) => {
     return async (dispatch) => {
       const fetchData = async () => {
-        const res = axios.put(`http://192.168.1.40:9001/productList`,e);
+        const res = axios.put(`http://1.0.169.153:9001/productList`,e);
         // return actualData.result.recordset;
       };
   
@@ -74,7 +74,7 @@ export const fetchCartData = (e) => {
 
     return async (dispatch) => {
       const fetchData = async () => {
-        const res = await fetch('http://192.168.1.40:9001/priceList');
+        const res = await fetch('http://1.0.169.153:9001/priceList');
   
         if (!res.ok) {
           throw new Error('Could not fetch cart data!');
