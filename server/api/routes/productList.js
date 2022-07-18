@@ -109,9 +109,9 @@ const { get } = require('../data-access/pool-manager')
                          " values " +
                          " ( "+
                           " @docNo, " +
-                          " (select COALESCE (str((select IDNo " +
+                          " (select COALESCE (str((select TOP 1 IDNo " +
                            " from DATASIGMA.dbo.ItemPriceSub " +
-                           " where DocNo = @docNo)+1 ),'1') )," +
+                           " where DocNo = @docNo order by IDNo DESC )+1 ),'1') )," +
                            " @code," +
                            " @itemName," +
                            " @pack," +
@@ -204,9 +204,9 @@ const { get } = require('../data-access/pool-manager')
                  " values " +
                  " ( "+
                   " @docNo, " +
-                  " (select COALESCE (str((select IDNo " +
+                  " (select COALESCE (str((select TOP 1 IDNo " +
                    " from DATASIGMA.dbo.ItemPriceRESub " +
-                   " where DocNo = @docNo)+1 ),'1') )," +
+                   " where DocNo = @docNo)+1  order by IDNo DESC ),'1') )," +
                    " @code," +
                    " @itemName," +
                    " @pack," +
