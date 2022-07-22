@@ -21,6 +21,7 @@ const ProductTable = (data)=>{
     const [inputValue,setInputValue] = useState();
     const dispatch = useDispatch();
     const product = useSelector((state) => state.product);
+    const department = useSelector((state)=> state.product.DepartName);
     const navigate = useNavigate();
     let token = sessionStorage.getItem('token');
     let jsonToken = JSON.parse(token);
@@ -67,120 +68,125 @@ const ProductTable = (data)=>{
       const onChangeHandle = (e) =>{
         setInputValue(e.target.value);
       }
-      
-      const dataTable = data.data.map((e)=>{
-        if(jsonToken.StAdmin == '1'){
-            return <tr key={e.i} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 ">  
-                <td   className="px-6 py-4">
-                    {e.itemcode}
-                </td>       
-                <td  className="sticky left-0 z-50 bg-white px-6 py-4">
-                    <div className = "flex">
-                        <a onClick={()=>handleOnClick(e)} className ={`${Styles.col1} grow font-medium  text-blue-600 dark:text-blue-500 hover:underline`}>{e.Name}</a>
-                    </div>    
-                </td>
-                <td  className="px-6 py-4">
-                    {e.Pack}
-                </td>
-                <td  className="px-6 py-4">
-                    {e.QBal}
-                </td>
-                <td  className="px-6 py-4">
-                    {e.BAL}
-                </td>
-                <td  className="px-6 py-4">
-                    {e.minPrice}
-                </td>
-                <td  className="px-6 py-4 ">
-                    {e.maxPrice}
-                </td>
-                <td  className="px-6 py-4">
-                    {e.TyItemDm}
-                </td>
-                <td  className="px-6 py-4">
-                    {e.costNew}
-                </td>
-                <td  className="px-6 py-4">
-                    0.00
-                </td>
-                <td className={`px-6 py-4`}>
-                {
-                        (openInput ===true && itemRow == e.itemcode && columnInput == 'cost')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
-                            <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
-                            <div className = "flex flex-col pl-2">
-                                <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
-                                <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
-                            </div>    
-                        </div>
-                        :
-                        <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,'cost')}>{e.CostN}</div>
-                    }
-                </td>
-                <td  key = {e.i} className="px-6 py-4">
-                    {e.DateCn}
-                </td>
-                <td  className="px-6 py-4">
-                {
-                        (openInput ===true && itemRow == e.itemcode && columnInput == 'price')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
-                            <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.price} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
-                            <div className = "flex flex-col pl-2">
-                                <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
-                                <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
-                            </div>    
-                        </div>
-                        :
-                        <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,'price')}>{e.price}</div>
-                    }
-                </td>
-                <td  className="px-6 py-4">
-                    {e.datePrice}
-                </td>
-                <td  className="px-6 py-4">
-                {
-                        (openInput ===true && itemRow == e.itemcode && columnInput == 'priceRe')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
-                            <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.PriceRE} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
-                            <div className = "flex flex-col pl-2">
-                                <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
-                                <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
-                            </div>    
-                        </div>
-                        :
-                        <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,'priceRe')}>{e.PriceRE}</div>
-                    }
-                </td>
-                <td  className="px-6 py-4">
-                    {e.datePriceRe}
-                </td>
-            </tr>
-
-        }else if (jsonToken.StAdmin == '2'){
-
-            return (
-                    <tr key={e.i} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 ">  
-                        <td   className="px-6 py-4">
-                            {e.itemcode}
-                        </td>       
-                        <td  className="sticky left-0 z-50 bg-white px-6 py-4">
+      let dataTable ='';
+      let arrDepart = new Array(department.length); 
+        dataTable = data.data.map((e,index)=>{
+            if(jsonToken.StAdmin == '1' ){
+                return <tr key={e.i} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 ">  
+                    <td   className="px-6 py-4">
+                        {e.itemcode}
+                    </td> 
+                    {e.rowNum == 0 ?  <td  className="sticky top-12   z-40 bg-[#fbbf24] text-white px-6 py-4">
+                                        {e.Name}
+                                      </td>  : 
+                        <td  className="sticky left-0 z-30 bg-white px-6 py-4">
                             <div className = "flex">
-                                {e.Name}
+                                <a onClick={()=>handleOnClick(e)} className ={`${Styles.col1} grow font-medium  text-blue-600 dark:text-blue-500 hover:underline`}>{e.Name}</a>
                             </div>    
                         </td>
-                        <td  className="px-6 py-4">
-                            {e.QBal}
-                        </td>
-                        <td  className="px-6 py-4">
-                            {e.BAL}
-                        </td>
-                        <td  className="px-6 py-4">
-                            {e.price}
-                        </td>
-                        <td  className="px-6 py-4">
-                            {e.datePrice}
-                        </td>
-                    </tr>
-                )
-        } 
-      })
+                    }
+                    <td  className="px-6 py-4">
+                        {e.Pack}
+                    </td>
+                    <td  className="px-6 py-4">
+                        {e.QBal}
+                    </td>
+                    <td  className="px-6 py-4">
+                        {e.BAL}
+                    </td>
+                    <td  className="px-6 py-4">
+                        {e.minPrice}
+                    </td>
+                    <td  className="px-6 py-4 ">
+                        {e.maxPrice}
+                    </td>
+                    <td  className="px-6 py-4">
+                        {e.TyItemDm}
+                    </td>
+                    <td  className="px-6 py-4">
+                        {e.costNew}
+                    </td>
+                    <td  className="px-6 py-4">
+                        0.00
+                    </td>
+                    <td className={`px-6 py-4`}>
+                    {
+                            (openInput ===true && itemRow == e.itemcode && columnInput == 'cost')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,'cost')}>{e.CostN}</div>
+                        }
+                    </td>
+                    <td  key = {e.i} className="px-6 py-4">
+                        {e.DateCn}
+                    </td>
+                    <td  className="px-6 py-4">
+                    {
+                            (openInput ===true && itemRow == e.itemcode && columnInput == 'price')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.price} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,'price')}>{e.price}</div>
+                        }
+                    </td>
+                    <td  className="px-6 py-4">
+                        {e.datePrice}
+                    </td>
+                    <td  className="px-6 py-4">
+                    {
+                            (openInput ===true && itemRow == e.itemcode && columnInput == 'priceRe')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.PriceRE} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,'priceRe')}>{e.PriceRE}</div>
+                        }
+                    </td>
+                    <td  className="px-6 py-4">
+                        {e.datePriceRe}
+                    </td>
+                </tr>
+            }else if (jsonToken.StAdmin == '2'){
+                return (
+                        <tr key={e.i} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 ">  
+                            <td   className="px-6 py-4">
+                                {e.itemcode}
+                            </td>       
+                            <td  className="sticky left-0 z-50 bg-white px-6 py-4">
+                                <div className = "flex">
+                                    {e.Name}
+                                </div>    
+                            </td>
+                            <td  className="px-6 py-4">
+                                {e.QBal}
+                            </td>
+                            <td  className="px-6 py-4">
+                                {e.BAL}
+                            </td>
+                            <td  className="px-6 py-4">
+                                {e.price}
+                            </td>
+                            <td  className="px-6 py-4">
+                                {e.datePrice}
+                            </td>
+                        </tr>
+                    )
+            }        
+        })
+        
+      
      let dataTable2 ="";
       if(item){
         dataTable2 = item.NewArr.map((e)=>{    
