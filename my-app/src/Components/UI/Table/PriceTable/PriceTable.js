@@ -52,10 +52,15 @@ const PriceTable = (data)=>{
   if(data.data){
     dataTable = data.data.map((e,index)=>{
       return (
-        <tr key={e.number} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap">        
+        <tr key={e.number} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap"> 
+        { e.PackD =='r'?
+          <td  className="sticky top-0 z-40 bg-[#fbbf24] text-white px-6 py-4">
+                                          {e.code}
+          </td>  :      
           <td  className="sticky left-0 z-50 bg-white px-6 py-4">  
             {e.code}  
           </td>
+        }    
           <td  className="px-6 py-4 text-center">
               {e.NameFGS}
           </td>
@@ -110,7 +115,7 @@ const PriceTable = (data)=>{
                             </div>
                             :
                             <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'note')}>{e.NoteF == '' ? '-':e.NoteF}</div>
-                        }
+          }
           </td>
       </tr>
       )

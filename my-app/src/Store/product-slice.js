@@ -77,16 +77,73 @@ const productSlice = createSlice({
       }
     },
     PriceTable(state,action){
+      let test;
+      let count;
       const distinct = (value,index,self) =>{
         return self.indexOf(value) === index;
       }
       const Item = action.payload; 
 
-      state.priceList = Item.priceData;
-      let departName = Item.priceData.map((e)=>{
+      let departName = Item.priceData.map((e,index)=>{
+        count = index;
             return e.DepartName;
         })
+      test = departName.filter(distinct);
       state.departNameList = departName.filter(distinct);
+   
+
+      let priceArr = [];
+      test.map((e,index)=>{
+        priceArr.push({
+            COP : '' ,
+            CP : '',
+            CU : '',
+            DateAdd : '',
+            DepartCpde:'',
+            DepartName:e,
+            ItemCode: e,
+            NameFG: '',
+            NameFGS : '',
+            NoteF:'',
+            PackD:'r',
+            PackR:'',
+            PackSale:'',
+            RPackRpt:'',
+            Rpack:'',
+            RpackSale:'',
+            TOT:'',
+            code:e,
+            containProduct:'',
+            datePriceList:'',
+            name:'',
+            number:String(count+index+2),
+            priceList:''
+          })
+      })
+      Item.priceData.map((e)=>{
+        priceArr.push(e)
+      })
+      let priceArrSort = [];
+      let map1 = new Map();
+      for(let j = 0;j<test.length;j++){
+        let varChange = test[j];
+          for(let i = 0; i<priceArr.length;i++){
+ 
+            if(varChange == priceArr[i].DepartName){
+              map1.set(priceArr[i],i)
+            }
+          }
+      }    
+      let countNum = 0 ;
+      // map1 = new Map([...map1.entries()].sort((a, b) => (a[0].PackD == 'r' && a[0].departName == b[0].departName)?-1:0));
+      console.log(map1)
+       Array.from(map1, ([key, value]) => {
+        priceArrSort[countNum] = key;
+        countNum++;
+      });
+      console.log(priceArrSort)
+
+      state.priceList = priceArrSort;
       state.data = state.priceList;
     },
     updateTable(state,action){

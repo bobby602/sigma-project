@@ -99,7 +99,6 @@ export const fetchCartData = (e) => {
       };
   
       try {
-        console.log(e)
         const productData = await fetchData();
         dispatch(
             productActions.updatePriceTable({e})
