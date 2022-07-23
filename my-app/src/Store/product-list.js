@@ -91,3 +91,21 @@ export const fetchCartData = (e) => {
       }
     };
   };
+  export const updatePriceData = (e) => {
+    return async (dispatch) => {
+      const fetchData = async () => {
+        const res = axios.put(`http://192.168.1.40:9001/priceList`,e);
+        // return actualData.result.recordset;
+      };
+  
+      try {
+        console.log(e)
+        const productData = await fetchData();
+        dispatch(
+            productActions.updatePriceTable({e})
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  };

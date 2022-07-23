@@ -54,6 +54,11 @@ const ProductTable = (data)=>{
             setOpenInput(true);
             setItemRow(e.itemcode)
             setItemRowAll(e)
+        }else if (a == 'priceList'){
+            setColumnInput(a);
+            setOpenInput(true);
+            setItemRow(e.itemcode)
+            setItemRowAll(e)
         }
     }
       const confirmHandle = (e)=>{
@@ -76,7 +81,7 @@ const ProductTable = (data)=>{
                     <td   className="px-6 py-4">
                         {e.itemcode}
                     </td> 
-                    {e.rowNum == 0 ?  <td  className="sticky top-12   z-40 bg-[#fbbf24] text-white px-6 py-4">
+                    {e.rowNum == 0 ?  <td  className="sticky top-10   z-40 bg-[#fbbf24] text-white px-6 py-4">
                                         {e.Name}
                                       </td>  : 
                         <td  className="sticky left-0 z-30 bg-white px-6 py-4">
@@ -156,6 +161,19 @@ const ProductTable = (data)=>{
                     </td>
                     <td  className="px-6 py-4">
                         {e.datePriceRe}
+                    </td>
+                    <td  className="px-6 py-4">
+                    {
+                            (openInput ===true && itemRow == e.itemcode && columnInput == 'priceList')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.PriceRE} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,'priceList')}>{e.priceList}</div>
+                        }
                     </td>
                 </tr>
             }else if (jsonToken.StAdmin == '2'){
@@ -277,6 +295,15 @@ const ProductTable = (data)=>{
                                         </th>
                                         <th scope="col" className="px-6 py-3">
                                         วันที่ปรับ
+                                        </th>
+                                        <th scope="col" className="px-6 py-3">
+                                        Price List
+                                        </th>
+                                        <th scope="col" className="px-6 py-3">
+                                          วันที่
+                                        </th>
+                                        <th scope="col" className="px-6 py-3">
+                                          ชุดแถม
                                         </th>
                                     </tr>    
                                 }

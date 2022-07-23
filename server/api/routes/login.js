@@ -65,9 +65,9 @@ router.post('/table',async function(req,res){
     console.log(body[0])
     const sql = " select tmp.* " +
                 " from ( " +
-                        " select  0 as rowNum ,'' as codem , '' as  itemcode , DepartName as Name , '' as Barcode ,  DepartName, '' as Pack, '' as minPrice, '' as maxPrice , '' as TyItemDm , '' as QBal , '' as BAL , '' as CostN , '' as DateCn , '' as costNew , '' as price, '' as PriceRE , '' as datePrice , '' as datePriceRe, ROW_NUMBER ( ) OVER ( ORDER BY DepartName ASC) as num from DATASIGMA.dbo.ItemDm  where TyItemDm = @Type group by DePartName " +
+                        " select  0 as rowNum ,'' as codem , '' as  itemcode , DepartName as Name , '' as Barcode ,  DepartName, '' as Pack, '' as minPrice, '' as maxPrice , '' as TyItemDm , '' as QBal , '' as BAL , '' as CostN , '' as DateCn , '' as costNew , '' as price, '' as PriceRE , '' as datePrice , '' as datePriceRe, ROW_NUMBER ( ) OVER ( ORDER BY DepartName ASC) as num  from DATASIGMA.dbo.ItemDm  where itemdm.TyItemDm = @Type group by DePartName " +
                         " union all " +
-                        " Select 1 as rowNum ,itemdm.codem,itemDm.itemcode,itemdm.Name,itemDm.Barcode,itemdm.DePartName, itemdm.Pack,cast(CONVERT(VARCHAR, CAST(a.p1 AS MONEY), 1) AS VARCHAR) as minPrice , cast(CONVERT(VARCHAR, CAST(a.p2 AS MONEY), 1) AS VARCHAR) as  maxPrice,TyItemDm,cast(CONVERT(VARCHAR, CAST(b.Qbal AS MONEY), 1) AS VARCHAR) as QBal ,cast(CONVERT(VARCHAR, CAST(b.BAL AS MONEY), 1) AS VARCHAR)  as BAL,  " +
+                        " Select 1 as rowNum ,itemdm.codem,itemDm.itemcode,itemdm.Name,itemDm.Barcode,itemdm.DePartName, itemdm.Pack,cast(CONVERT(VARCHAR, CAST(a.p1 AS MONEY), 1) AS VARCHAR) as minPrice , cast(CONVERT(VARCHAR, CAST(a.p2 AS MONEY), 1) AS VARCHAR) as  maxPrice,itemdm.TyItemDm,cast(CONVERT(VARCHAR, CAST(b.Qbal AS MONEY), 1) AS VARCHAR) as QBal ,cast(CONVERT(VARCHAR, CAST(b.BAL AS MONEY), 1) AS VARCHAR)  as BAL,  " +
                                                         " cast(CONVERT(VARCHAR, CAST(COSTN AS MONEY), 1) AS VARCHAR)  as CostN , FORMAT(DateCN ,'dd/MM/yyyy') as DateCn , case when (CAST(DateAddI AS DATETIME)>CAST(DateAddE AS DATETIME) OR  DateAddE is null ) and DateAddI is not null then cast(CONVERT(VARCHAR, CAST(CostI AS MONEY), 1) AS VARCHAR) "+
                                                         " when (CAST(DateAddE AS DATETIME)>CAST(DateAddI AS DATETIME) or DateAddI is null) and DateAddE  is not null  then cast(CONVERT(VARCHAR, CAST(CostE AS MONEY), 1) AS VARCHAR) " +
                                                         " else '0.00'  " +
@@ -83,8 +83,8 @@ router.post('/table',async function(req,res){
                                                                 " Select  itemcode,name,sum(qbal +QS2) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs) + Sum(Qs2) as BAL,Note " +
                                                                 " From DATASIGMA.dbo.rptstock2   " +
                                                                 " Group by itemcode,name,pack ,Note   " +
-                                                                " )b on b.itemcode = a.itemcode " +
-                                                        " where TyItemDm = @Type "+        
+                                                                " )b on b.itemcode = a.itemcode " +      
+                                                        " where itemdm.TyItemDm = @Type "+ 
                         " ) tmp " +
                         " order by tmp.num,tmp.rowNum ASC ;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(b.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(b.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA.dbo.QitemBom a inner join DATASIGMA.dbo.BomSub b on b.code  = a.code and b.itemcode = a.ItemCode    ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA.dbo.bom; select DePartName from itemDm GROUP BY DePartName";
     const pool = await get(db.Sigma);
@@ -119,6 +119,7 @@ router.post('/table',async function(req,res){
                 Data[i] = {...Data[i], NewArr,i,SumArr};  
             }
         }
+        console.log(Data)
         res.json({result:Data,Data4});
     }
     catch (error) {

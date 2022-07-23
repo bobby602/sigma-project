@@ -1,12 +1,56 @@
 import { Fragment ,useRef,useEffect,useState,useCallback} from 'react'
 import Table from '../../../Input/Table/Table'
 import Styles from './PriceTable.module.css'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {faCheck, faTimes,faBox}from '@fortawesome/free-solid-svg-icons'
+import useOutsideClick from '../../../../CustomHook/useOutsideClick';
+import { useSelector, useDispatch } from 'react-redux';
+import { updatePriceData } from '../../../../Store/product-list';
 
 const PriceTable = (data)=>{  
   let dataTable = "";
-  console.log(data)
+    const [item,setItem] = useState();
+    const [numberRow,setNumberRow] = useState('');
+    const [itemRowAll,setItemRowAll] = useState();
+    const [columnInput,setColumnInput] = useState('');
+    const [openInput,setOpenInput] = useState(false);
+    const [inputValue,setInputValue] = useState();
+    const dispatch = useDispatch();
+    const ref = useOutsideClick(() => {
+        setOpenInput(false)
+      });
+
+
+    const inputChangeHandel = (e,index,a)=>{
+      console.log(a)
+         if(a == 'priceList'){
+            setColumnInput(a);
+            setOpenInput(true);
+            setNumberRow(index)
+            setItemRowAll(e)
+        }else if (a == 'note'){
+            setColumnInput(a);
+            setOpenInput(true);
+            setNumberRow(index)
+            setItemRowAll(e)
+        }
+    }
+      const confirmHandle = (e)=>{
+        if(window.confirm("Press a ok button to confirm for update!")){
+            dispatch(updatePriceData(e))
+            setOpenInput(false)
+        }
+      }
+      const cancelHandle = ()=>{
+        setOpenInput(false)
+      }
+      const onChangeHandle = (e) =>{
+        setInputValue(e.target.value);
+      }
+
+
   if(data.data){
-    dataTable = data.data.map((e)=>{
+    dataTable = data.data.map((e,index)=>{
       return (
         <tr key={e.number} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap">        
           <td  className="sticky left-0 z-50 bg-white px-6 py-4">  
@@ -39,6 +83,35 @@ const PriceTable = (data)=>{
           <td  className="px-6 py-4">
             0.00
           </td>  
+          <td  className="px-6 py-4">
+          {
+                            (openInput ===true && numberRow == index && columnInput == 'priceList')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.priceList} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'priceList')}>{e.priceList}</div>
+                        }
+          </td>  
+          <td  className="px-6 py-4">
+            {e.datePriceList}
+          </td>
+          <td  className="px-6 py-4">
+          {
+                            (openInput ===true && numberRow == index && columnInput == 'note')?<div ref = {ref} className = {`${Styles.costInputNote} flex `}>
+                                <input  type="text" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'note')}>{e.NoteF == '' ? '-':e.NoteF}</div>
+                        }
+          </td>
       </tr>
       )
   })
@@ -79,6 +152,15 @@ const PriceTable = (data)=>{
                 </th>
                 <th scope="col" className="px-6 py-3">
                     ราคาขาย
+                </th>
+                <th scope="col" className="px-6 py-3">
+                    Price List
+                </th>
+                <th scope="col" className="px-6 py-3">
+                    วันที่
+                </th>
+                <th scope="col" className="px-6 py-3">
+                    ชุดแถม
                 </th>
               </tr> 
             </thead>

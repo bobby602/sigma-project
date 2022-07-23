@@ -128,6 +128,42 @@ const productSlice = createSlice({
           }
       })
     },
+    updatePriceTable(state,action){
+      let value = action.payload.e.inputValue;
+      const item = action.payload.e.itemRowAll;
+      const type = action.payload.e.columnInput;
+      let today = new Date();
+      console.log(item)
+      let yyyy = today.getFullYear();
+      let mm = today.getMonth() + 1; // Months start at 0!
+      let dd = today.getDate();
+      if (dd < 10) dd = '0' + dd;
+      if (mm < 10) mm = '0' + mm;
+      today = dd + '/' + mm + '/' + yyyy;
+      if(value !=null && type  =='priceList'){  
+        value = Number(value);      
+        value = value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }else if(value != null && type  =='note'){
+        console.log(value) 
+      }else{
+        value = '0.00';
+      }
+      state.priceList = state.priceList.map((e)=>{
+          if(e.ItemCode == item.ItemCode && type =='priceList' && e.code == item.code && e.NameFGS == item.NameFGS){
+            let returnValue = {...e};
+            returnValue.priceList = value;
+            returnValue.datePriceList = today;
+            return returnValue;
+          }else if(e.ItemCode == item.ItemCode && type =='note' && e.code == item.code && e.NameFGS == item.NameFGS){
+            console.log('test')
+            let returnValue = {...e};
+            returnValue.NoteF = value;
+            return returnValue;
+          }else{
+            return e;
+          }
+      })
+    },
   },
 });
 
