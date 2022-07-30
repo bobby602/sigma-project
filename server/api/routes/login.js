@@ -12,7 +12,6 @@ const { request } = require('http');
 const { response } = require('../app');
 const dotenv = require('dotenv')
 const line = require('@line/bot-sdk')
-
   var app = express();
   const router = express.Router();
   router.use(session({
@@ -20,7 +19,7 @@ const line = require('@line/bot-sdk')
       resave:true,
       saveUninitialized:true
   }));
- console.log(db)
+
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
   
@@ -75,7 +74,7 @@ router.post('/table',async function(req,res){
                                                         " from DATASIGMA.dbo.ItemDm   " +
                                                         " inner join DATASIGMA.dbo.qitemdmbal  " +
                                                         " on itemdm.itemcode=qitemdmbal.itemcode  " +
-                                                        " inner join (  " +
+                                                        " left join (  " +
                                                         " Select min(price) as p1, max(price) as p2 ,ItemCode  from DATASIGMA.dbo.IteminSub group by ItemCode  " +
                                                         " ) a  " +
                                                         " on a.ItemCode = itemDm.itemcode  " +
@@ -83,10 +82,10 @@ router.post('/table',async function(req,res){
                                                                 " Select  itemcode,name,sum(qbal +QS2) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs) + Sum(Qs2) as BAL,Note " +
                                                                 " From DATASIGMA.dbo.rptstock2   " +
                                                                 " Group by itemcode,name,pack ,Note   " +
-                                                                " )b on b.itemcode = a.itemcode " +      
+                                                                " )b on b.itemcode = itemDm.itemcode " +      
                                                         " where itemdm.TyItemDm = @Type "+ 
                         " ) tmp " +
-                        " order by tmp.num,tmp.rowNum ASC ;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(b.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(b.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA.dbo.QitemBom a inner join DATASIGMA.dbo.BomSub b on b.code  = a.code and b.itemcode = a.ItemCode    ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA.dbo.bom; select DePartName from itemDm GROUP BY DePartName";
+                        " order by tmp.num,tmp.rowNum,tmp.Name ASC ;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(b.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(b.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA.dbo.QitemBom a inner join DATASIGMA.dbo.BomSub b on b.code  = a.code and b.itemcode = a.ItemCode    ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA.dbo.bom; select DePartName from itemDm GROUP BY DePartName";
     const pool = await get(db.Sigma);
     await pool.connect()
     const request = pool.request();

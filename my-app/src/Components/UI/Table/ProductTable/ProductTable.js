@@ -81,7 +81,7 @@ const ProductTable = (data)=>{
                     <td   className="px-6 py-4">
                         {e.itemcode}
                     </td> 
-                    {e.rowNum == 0 ?  <td  className="sticky top-0 z-40 bg-[#fbbf24] text-white px-6 py-4">
+                    {e.rowNum == 0 ?  <td  className="bg-[#fbbf24] text-white px-6 py-4">
                                         {e.Name}
                                       </td>  : 
                         <td  className="sticky left-0 z-30 bg-white px-6 py-4">
@@ -169,11 +169,15 @@ const ProductTable = (data)=>{
                             <td   className="px-6 py-4">
                                 {e.itemcode}
                             </td>       
-                            <td  className="sticky left-0 z-50 bg-white px-6 py-4">
-                                <div className = "flex">
-                                    {e.Name}
-                                </div>    
-                            </td>
+                            {e.rowNum == 0 ?  <td  className="bg-[#fbbf24] text-white px-6 py-4">
+                                                {e.Name}
+                                             </td>  : 
+                                <td  className="sticky left-0 z-30 bg-white px-6 py-4">
+                                    <div className = "flex">
+                                        <a onClick={()=>handleOnClick(e)} className ={`${Styles.col1} grow font-medium  text-blue-600 dark:text-blue-500 hover:underline`}>{e.Name}</a>
+                                    </div>    
+                                </td>
+                            }
                             <td  className="px-6 py-4">
                                 {e.QBal}
                             </td>
@@ -222,7 +226,7 @@ const ProductTable = (data)=>{
                 <div className={`${Styles.font} relative z-50 overflow-auto shadow-md rounded-lg`}>
                     <div className= "overflow-scroll  max-h-[1000px]">
                         <table id="dtHorizontalExample" className=" w-full text-base text-left text-gray-500 dark:text-gray-400">
-                            <thead className={`${Styles.textCustom} text-base bg-[#10b981]  uppercase whitespace-nowrap sticky top-0 z-[100] `}>
+                            <thead className={`${Styles.textCustom} text-base bg-[#10b981] uppercase whitespace-nowrap sticky top-0 z-[100] `}>
                                 {
                                 data.data.length==0?
                                     <tr>

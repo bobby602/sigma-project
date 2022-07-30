@@ -22,18 +22,13 @@ const PriceTable = (data)=>{
 
 
     const inputChangeHandel = (e,index,a)=>{
-      console.log(a)
-         if(a == 'priceList'){
-            setColumnInput(a);
-            setOpenInput(true);
-            setNumberRow(index)
-            setItemRowAll(e)
-        }else if (a == 'note'){
-            setColumnInput(a);
-            setOpenInput(true);
-            setNumberRow(index)
-            setItemRowAll(e)
-        }
+      if(a != ''){
+        setColumnInput(a);
+        setOpenInput(true);
+        setNumberRow(index)
+        setItemRowAll(e)
+      }
+        
     }
       const confirmHandle = (e)=>{
         if(window.confirm("Press a ok button to confirm for update!")){
@@ -55,10 +50,10 @@ const PriceTable = (data)=>{
         <tr key={e.number} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap"> 
         { e.PackD =='r'?
           <td  className="sticky top-0 z-40 bg-[#fbbf24] text-white px-6 py-4">
-                                          {e.code}
+              {e.code}
           </td>  :      
-          <td  className="sticky left-0 z-50 bg-white px-6 py-4">  
-            {e.code}  
+          <td  className="sticky left-0 z-30 bg-white px-6 py-4">  
+              {e.code}  
           </td>
         }    
           <td  className="px-6 py-4 text-center">
@@ -99,7 +94,7 @@ const PriceTable = (data)=>{
                             </div>
                             :
                             <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'priceList')}>{e.priceList}</div>
-                        }
+          }
           </td>  
           <td  className="px-6 py-4">
             {e.datePriceList}
@@ -115,6 +110,110 @@ const PriceTable = (data)=>{
                             </div>
                             :
                             <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'note')}>{e.NoteF == '' ? '-':e.NoteF}</div>
+          }
+          </td>
+          <td  className="px-6 py-4">
+          {
+                            (openInput ===true && numberRow == index && columnInput == 'price10')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="text" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price10')}>{e.priceList}</div>
+          }
+          </td>
+          <td  className="px-6 py-4">
+          {
+                            (openInput ===true && numberRow == index && columnInput == 'AmtF10')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="text" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'AmtF10')}>{e.AmtF10 == '' ? '-':e.AmtF10}</div>
+          }
+          </td>
+          <td  className="px-6 py-4">
+          {
+                            (openInput ===true && numberRow == index && columnInput == 'price25')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="text" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price25')}>{e.Price25}</div>
+          }
+          </td>
+          <td  className="px-6 py-4">
+          {
+                            (openInput ===true && numberRow == index && columnInput == 'AmtF25')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="text" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'AmtF25')}>{e.AmtF25 == '' ? '-':e.AmtF25}</div>
+          }
+          </td>
+          <td  className="px-6 py-4">
+          {
+                            (openInput ===true && numberRow == index && columnInput == 'price50')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="text" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price50')}>{e.Price50}</div>
+          }
+          </td>
+          <td  className="px-6 py-4">
+          {
+                            (openInput ===true && numberRow == index && columnInput == 'AmtF50')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="text" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'AmtF50')}>{e.AmtF50 == '' ? '-':e.AmtF50}</div>
+          }
+          </td>
+          <td  className="px-6 py-4">
+          {
+                            (openInput ===true && numberRow == index && columnInput == 'price100')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="text" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price100')}>{e.Price100}</div>
+          }
+          </td>
+          <td  className="px-6 py-4">
+          {
+                            (openInput ===true && numberRow == index && columnInput == 'AmtF100')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
+                                <input  type="text" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
+                                <div className = "flex flex-col pl-2">
+                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
+                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
+                                </div>    
+                            </div>
+                            :
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'AmtF100')}>{e.AmtF100 == '' ? '-':e.AmtF100}</div>
           }
           </td>
       </tr>
@@ -166,6 +265,30 @@ const PriceTable = (data)=>{
                 </th>
                 <th scope="col" className="px-6 py-3">
                     ชุดแถม
+                </th>
+                <th scope="col" className="px-6 py-3">
+                    Price 10
+                </th>
+                <th scope="col" className="px-6 py-3">
+                    แถม
+                </th>
+                <th scope="col" className="px-6 py-3">
+                    Price 25
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  แถม
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Price 50
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  แถม
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Price 100
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  แถม
                 </th>
               </tr> 
             </thead>

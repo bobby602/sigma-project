@@ -95,6 +95,10 @@ const productSlice = createSlice({
       let priceArr = [];
       test.map((e,index)=>{
         priceArr.push({
+            AmtF10:'',
+            AmtF25:'',
+            AmtF50:'',
+            AmtF100:'',
             COP : '' ,
             CP : '',
             CU : '',
@@ -108,6 +112,10 @@ const productSlice = createSlice({
             PackD:'r',
             PackR:'',
             PackSale:'',
+            Price10:'',
+            Price25:'',
+            Price50:'',
+            Price100:'',
             RPackRpt:'',
             Rpack:'',
             RpackSale:'',
@@ -197,11 +205,11 @@ const productSlice = createSlice({
       if (dd < 10) dd = '0' + dd;
       if (mm < 10) mm = '0' + mm;
       today = dd + '/' + mm + '/' + yyyy;
-      if(value !=null && type  =='priceList'){  
+      if(value !=null && !(type  =='note' || type == 'AmtF10' || type == 'AmtF25' || type == 'AmtF50' || type == 'AmtF100' ) ){  
         value = Number(value);      
         value = value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      }else if(value != null && type  =='note'){
-        console.log(value) 
+      }else if(value != null && (type  =='note' || type == 'AmtF10' || type == 'AmtF25' || type == 'AmtF50' || type == 'AmtF100' )){
+        console.log('IN')
       }else{
         value = '0.00';
       }
@@ -212,9 +220,40 @@ const productSlice = createSlice({
             returnValue.datePriceList = today;
             return returnValue;
           }else if(e.ItemCode == item.ItemCode && type =='note' && e.code == item.code && e.NameFGS == item.NameFGS){
-            console.log('test')
             let returnValue = {...e};
             returnValue.NoteF = value;
+            return returnValue;
+          }else if(e.ItemCode == item.ItemCode && type =='price10' && e.code == item.code && e.NameFGS == item.NameFGS){
+            let returnValue = {...e};
+            returnValue.Price10 = value;
+            return returnValue;
+          }else if(e.ItemCode == item.ItemCode && type =='AmtF10' && e.code == item.code && e.NameFGS == item.NameFGS){
+            let returnValue = {...e};
+            returnValue.AmtF10 = value;
+            return returnValue;
+          }else if(e.ItemCode == item.ItemCode && type =='price25' && e.code == item.code && e.NameFGS == item.NameFGS){
+            let returnValue = {...e};
+            returnValue.Price25 = value;
+            return returnValue;
+          }else if(e.ItemCode == item.ItemCode && type =='AmtF25' && e.code == item.code && e.NameFGS == item.NameFGS){
+            let returnValue = {...e};
+            returnValue.AmtF25 = value;
+            return returnValue;
+          }else if(e.ItemCode == item.ItemCode && type =='price50' && e.code == item.code && e.NameFGS == item.NameFGS){
+            let returnValue = {...e};
+            returnValue.Price50 = value;
+            return returnValue;
+          }else if(e.ItemCode == item.ItemCode && type =='AmtF50' && e.code == item.code && e.NameFGS == item.NameFGS){
+            let returnValue = {...e};
+            returnValue.AmtF50 = value;
+            return returnValue;
+          }else if(e.ItemCode == item.ItemCode && type =='price100' && e.code == item.code && e.NameFGS == item.NameFGS){
+            let returnValue = {...e};
+            returnValue.Price100 = value;
+            return returnValue;
+          }else if(e.ItemCode == item.ItemCode && type =='AmtF100' && e.code == item.code && e.NameFGS == item.NameFGS){
+            let returnValue = {...e};
+            returnValue.AmtF100 = value;
             return returnValue;
           }else{
             return e;

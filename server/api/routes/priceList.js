@@ -23,6 +23,7 @@ const { get } = require('../data-access/pool-manager')
     let data1;
       const sql = " select  ROW_NUMBER ( ) OVER ( ORDER BY ItemCode DESC) as number ,code,name,ItemCode,Rpack,PackR,RpackSale,PackD,PackSale,RPackRpt,concat(Str(Rpack),' ',PackR,'x',RpackSale) as containProduct,cast(CONVERT(VARCHAR, CAST( CU AS MONEY), 1) AS VARCHAR) as CU,cast(CONVERT(VARCHAR, CAST( CP AS MONEY), 1) AS VARCHAR) as CP,cast(CONVERT(VARCHAR, CAST( COP AS MONEY), 1) AS VARCHAR) as COP ,cast(CONVERT(VARCHAR, CAST( TOT AS MONEY), 1) AS VARCHAR) as TOT,  FORMAT(DateAdd ,'dd/MM/yyyy') as DateAdd ,DepartCode,DepartName,NameFG,NameFGS, " +
                   " cast(CONVERT(VARCHAR, CAST( ISNULL(Pricelist,'0.00') AS MONEY), 1) AS VARCHAR)  as priceList	,FORMAT(DatePriceList ,'dd/MM/yyyy') as datePriceList,ISNULL(NoteF,'') as NoteF " +
+                  " ,cast(CONVERT(VARCHAR, CAST( Price10  AS MONEY), 1) AS VARCHAR) as Price10,  AmtF10,cast(CONVERT(VARCHAR, CAST( Price25  AS MONEY), 1) AS VARCHAR) as Price25, AmtF25,cast(CONVERT(VARCHAR, CAST( Price50  AS MONEY), 1) AS VARCHAR) as Price50, AmtF50,cast(CONVERT(VARCHAR, CAST( Price100  AS MONEY), 1) AS VARCHAR) as Price100, AmtF100 " +
                   " From ItemF  Order by departCode,NameFG  ";
     const pool = await get(db.Sigma);
     await pool.connect()
@@ -149,6 +150,102 @@ const { get } = require('../data-access/pool-manager')
      }else if(type =='note'){
           const sql = "update DATASIGMA.dbo.itemF " +
                     " set NoteF = @value  " +
+                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+                    console.log('test')
+          const data = await request
+                         .input('value',mssql.VarChar(50),value)
+                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                         .input('code',mssql.VarChar(200),code) 
+                         .query(sql) 
+          res.json({result:data});               
+     }else if(type =='price10'){
+          const sql = "update DATASIGMA.dbo.itemF " +
+                    " set Price10 = @value  " +
+                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+                    console.log('test')
+          const data = await request
+                         .input('value',mssql.VarChar(50),value)
+                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                         .input('code',mssql.VarChar(200),code) 
+                         .query(sql) 
+          res.json({result:data});               
+     }else if(type =='AmtF10'){
+          const sql = "update DATASIGMA.dbo.itemF " +
+                    " set AmtF10 = @value  " +
+                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+                    console.log('test')
+          const data = await request
+                         .input('value',mssql.VarChar(50),value)
+                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                         .input('code',mssql.VarChar(200),code) 
+                         .query(sql) 
+          res.json({result:data});               
+     }else if(type =='price25'){
+          const sql = "update DATASIGMA.dbo.itemF " +
+                    " set Price25 = @value  " +
+                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+                    console.log('test')
+          const data = await request
+                         .input('value',mssql.VarChar(50),value)
+                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                         .input('code',mssql.VarChar(200),code) 
+                         .query(sql) 
+          res.json({result:data});               
+     }else if(type =='AmtF25'){
+          const sql = "update DATASIGMA.dbo.itemF " +
+                    " set AmtF25 = @value  " +
+                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+                    console.log('test')
+          const data = await request
+                         .input('value',mssql.VarChar(50),value)
+                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                         .input('code',mssql.VarChar(200),code) 
+                         .query(sql) 
+          res.json({result:data});               
+     }else if(type =='price50'){
+          const sql = "update DATASIGMA.dbo.itemF " +
+                    " set Price50 = @value  " +
+                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+                    console.log('test')
+          const data = await request
+                         .input('value',mssql.VarChar(50),value)
+                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                         .input('code',mssql.VarChar(200),code) 
+                         .query(sql) 
+          res.json({result:data});               
+     }else if(type =='AmtF50'){
+          const sql = "update DATASIGMA.dbo.itemF " +
+                    " set AmtF50 = @value  " +
+                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+                    console.log('test')
+          const data = await request
+                         .input('value',mssql.VarChar(50),value)
+                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                         .input('code',mssql.VarChar(200),code) 
+                         .query(sql) 
+          res.json({result:data});               
+     }else if(type =='price100'){
+          const sql = "update DATASIGMA.dbo.itemF " +
+                    " set Price100 = @value  " +
+                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+                    console.log('test')
+          const data = await request
+                         .input('value',mssql.VarChar(50),value)
+                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                         .input('code',mssql.VarChar(200),code) 
+                         .query(sql) 
+          res.json({result:data});               
+     }else if(type =='AmtF100'){
+          const sql = "update DATASIGMA.dbo.itemF " +
+                    " set AmtF100 = @value  " +
                     " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
                     console.log('test')
           const data = await request
