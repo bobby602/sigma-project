@@ -23,7 +23,6 @@ const { get } = require('../data-access/pool-manager')
     let data1;
     const sql = " select * from UNoGroup.dbo.Users ";
     const pool = await get(db.Unogroup);
-    console.log(pool)
     await pool.connect()
     const request = pool.request();
     const result = await request.query(sql);

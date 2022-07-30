@@ -61,10 +61,20 @@ const line = require('@line/bot-sdk')
 
 router.post('/table',async function(req,res){
     const body = req.body.e;
-    console.log(body[0])
+    let valueSearch;
+    let Str ='';
+    if(body.length >1){
+        const typeStr = body.map((e)=>{
+            Str=  Str +e+',';
+          })
+          valueSearch =Str.substring(0, Str.length - 1)
+          console.log(valueSearch)
+    }else{
+        valueSearch = body[0];
+    }
     const sql = " select tmp.* " +
                 " from ( " +
-                        " select  0 as rowNum ,'' as codem , '' as  itemcode , DepartName as Name , '' as Barcode ,  DepartName, '' as Pack, '' as minPrice, '' as maxPrice , '' as TyItemDm , '' as QBal , '' as BAL , '' as CostN , '' as DateCn , '' as costNew , '' as price, '' as PriceRE , '' as datePrice , '' as datePriceRe, ROW_NUMBER ( ) OVER ( ORDER BY DepartName ASC) as num  from DATASIGMA.dbo.ItemDm  where itemdm.TyItemDm = @Type group by DePartName " +
+                        " select  0 as rowNum ,'' as codem , '' as  itemcode , DepartName as Name , '' as Barcode ,  DepartName, '' as Pack, '' as minPrice, '' as maxPrice , '' as TyItemDm , '' as QBal , '' as BAL , '' as CostN , '' as DateCn , '' as costNew , '' as price, '' as PriceRE , '' as datePrice , '' as datePriceRe, ROW_NUMBER ( ) OVER ( ORDER BY DepartName ASC) as num  from DATASIGMA.dbo.ItemDm  where itemdm.TyItemDm like '%['+@Type+']%' group by DePartName " +
                         " union all " +
                         " Select 1 as rowNum ,itemdm.codem,itemDm.itemcode,itemdm.Name,itemDm.Barcode,itemdm.DePartName, itemdm.Pack,cast(CONVERT(VARCHAR, CAST(a.p1 AS MONEY), 1) AS VARCHAR) as minPrice , cast(CONVERT(VARCHAR, CAST(a.p2 AS MONEY), 1) AS VARCHAR) as  maxPrice,itemdm.TyItemDm,cast(CONVERT(VARCHAR, CAST(b.Qbal AS MONEY), 1) AS VARCHAR) as QBal ,cast(CONVERT(VARCHAR, CAST(b.BAL AS MONEY), 1) AS VARCHAR)  as BAL,  " +
                                                         " cast(CONVERT(VARCHAR, CAST(COSTN AS MONEY), 1) AS VARCHAR)  as CostN , FORMAT(DateCN ,'dd/MM/yyyy') as DateCn , case when (CAST(DateAddI AS DATETIME)>CAST(DateAddE AS DATETIME) OR  DateAddE is null ) and DateAddI is not null then cast(CONVERT(VARCHAR, CAST(CostI AS MONEY), 1) AS VARCHAR) "+
@@ -83,7 +93,7 @@ router.post('/table',async function(req,res){
                                                                 " From DATASIGMA.dbo.rptstock2   " +
                                                                 " Group by itemcode,name,pack ,Note   " +
                                                                 " )b on b.itemcode = itemDm.itemcode " +      
-                                                        " where itemdm.TyItemDm = @Type "+ 
+                                                                " where itemdm.TyItemDm like '%['+@Type+']%'"+ 
                         " ) tmp " +
                         " order by tmp.num,tmp.rowNum,tmp.Name ASC ;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(b.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(b.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA.dbo.QitemBom a inner join DATASIGMA.dbo.BomSub b on b.code  = a.code and b.itemcode = a.ItemCode    ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA.dbo.bom; select DePartName from itemDm GROUP BY DePartName";
     const pool = await get(db.Sigma);
@@ -91,7 +101,7 @@ router.post('/table',async function(req,res){
     const request = pool.request();
     try{
         const data = await request
-                    .input('Type',mssql.VarChar(50),body[0])
+                    .input('Type',mssql.VarChar(50),valueSearch)
                     .query(sql);
         let Data = data.recordset;
         let Data2 = data.recordsets[1];
@@ -99,6 +109,7 @@ router.post('/table',async function(req,res){
         let Data4 = data.recordsets[3];
         let NewData = new Array(Data.length);
         let sumData = new Array(Data.length);
+        console.log(Data)
         for(let i=0;i<Data.length;i++){
             NewData[i] = Data2.filter((e)=>{        
                 if(Data[i].itemcode==e.Code){
@@ -118,7 +129,6 @@ router.post('/table',async function(req,res){
                 Data[i] = {...Data[i], NewArr,i,SumArr};  
             }
         }
-        console.log(Data)
         res.json({result:Data,Data4});
     }
     catch (error) {

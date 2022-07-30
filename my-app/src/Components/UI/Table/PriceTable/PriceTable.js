@@ -6,6 +6,7 @@ import {faCheck, faTimes,faBox}from '@fortawesome/free-solid-svg-icons'
 import useOutsideClick from '../../../../CustomHook/useOutsideClick';
 import { useSelector, useDispatch } from 'react-redux';
 import { updatePriceData } from '../../../../Store/product-list';
+import { updatePriceList } from '../../../../Store/product-list';
 
 const PriceTable = (data)=>{  
   let dataTable = "";
@@ -32,9 +33,15 @@ const PriceTable = (data)=>{
     }
       const confirmHandle = (e)=>{
         if(window.confirm("Press a ok button to confirm for update!")){
+          if(e.columnInput == 'priceList'){
+            dispatch(updatePriceList(e))
+            setOpenInput(false)
+          }else if (e.columnInput != 'priceList'){
             dispatch(updatePriceData(e))
             setOpenInput(false)
+          }
         }
+
       }
       const cancelHandle = ()=>{
         setOpenInput(false)
@@ -49,7 +56,7 @@ const PriceTable = (data)=>{
       return (
         <tr key={e.number} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap"> 
         { e.PackD =='r'?
-          <td  className="sticky top-0 z-40 bg-[#fbbf24] text-white px-6 py-4">
+          <td  className=" bg-[#fbbf24] text-white px-6 py-4">
               {e.code}
           </td>  :      
           <td  className="sticky left-0 z-30 bg-white px-6 py-4">  
@@ -122,7 +129,7 @@ const PriceTable = (data)=>{
                                 </div>    
                             </div>
                             :
-                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price10')}>{e.priceList}</div>
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price10')}>{e.Price10 == null ? '0':e.Price10}</div>
           }
           </td>
           <td  className="px-6 py-4">
@@ -148,7 +155,7 @@ const PriceTable = (data)=>{
                                 </div>    
                             </div>
                             :
-                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price25')}>{e.Price25}</div>
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price25')}>{e.Price25 == null ? '0':e.Price25}</div>
           }
           </td>
           <td  className="px-6 py-4">
@@ -174,7 +181,7 @@ const PriceTable = (data)=>{
                                 </div>    
                             </div>
                             :
-                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price50')}>{e.Price50}</div>
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price50')}>{e.Price50 == null ? '0':e.Price50}</div>
           }
           </td>
           <td  className="px-6 py-4">
@@ -200,7 +207,7 @@ const PriceTable = (data)=>{
                                 </div>    
                             </div>
                             :
-                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price100')}>{e.Price100}</div>
+                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,index,'price100')}>{e.Price100 == null ? '0':e.Price100}</div>
           }
           </td>
           <td  className="px-6 py-4">

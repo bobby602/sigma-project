@@ -22,7 +22,7 @@ const ProductList = ()=>{
         setvalue(e)
     }
 
-    const options =  [{label:'RM' , value: '1'},{label: 'TE', value: '2'},{label: 'SI', value: '3'},{label: 'SF', value: '4'}];
+    const options =  [{label:'RM' , value: '1'},{label: 'TE', value: '2'},{label: 'SI & SF', value: '3,4'}];
     
     useEffect (()=>{
         dispatch(fetchCartData(value));

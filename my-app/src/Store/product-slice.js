@@ -205,21 +205,14 @@ const productSlice = createSlice({
       if (dd < 10) dd = '0' + dd;
       if (mm < 10) mm = '0' + mm;
       today = dd + '/' + mm + '/' + yyyy;
-      if(value !=null && !(type  =='note' || type == 'AmtF10' || type == 'AmtF25' || type == 'AmtF50' || type == 'AmtF100' ) ){  
+      if(value !=null){  
         value = Number(value);      
-        value = value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      }else if(value != null && (type  =='note' || type == 'AmtF10' || type == 'AmtF25' || type == 'AmtF50' || type == 'AmtF100' )){
-        console.log('IN')
+        value = value.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
       }else{
         value = '0.00';
       }
       state.priceList = state.priceList.map((e)=>{
-          if(e.ItemCode == item.ItemCode && type =='priceList' && e.code == item.code && e.NameFGS == item.NameFGS){
-            let returnValue = {...e};
-            returnValue.priceList = value;
-            returnValue.datePriceList = today;
-            return returnValue;
-          }else if(e.ItemCode == item.ItemCode && type =='note' && e.code == item.code && e.NameFGS == item.NameFGS){
+          if(e.ItemCode == item.ItemCode && type =='note' && e.code == item.code && e.NameFGS == item.NameFGS){
             let returnValue = {...e};
             returnValue.NoteF = value;
             return returnValue;
@@ -254,6 +247,43 @@ const productSlice = createSlice({
           }else if(e.ItemCode == item.ItemCode && type =='AmtF100' && e.code == item.code && e.NameFGS == item.NameFGS){
             let returnValue = {...e};
             returnValue.AmtF100 = value;
+            return returnValue;
+          }else{
+            return e;
+          }
+      })
+    },
+    updatePriceList(state,action){
+      const departGroup = action.payload.productData[0];
+      let value = action.payload.e.inputValue;
+      const item = action.payload.e.itemRowAll;
+      const type = action.payload.e.columnInput;
+      let today = new Date();
+      let yyyy = today.getFullYear();
+      let mm = today.getMonth() + 1; // Months start at 0!
+      let dd = today.getDate();
+      if (dd < 10) dd = '0' + dd;
+      if (mm < 10) mm = '0' + mm;
+      today = dd + '/' + mm + '/' + yyyy;
+      if(value !=null ){  
+        value = Number(value);      
+        value = value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }else{
+        value = '0.00';
+      }
+      state.priceList = state.priceList.map((e)=>{
+          if(e.ItemCode == item.ItemCode && type =='priceList' && e.code == item.code && e.NameFGS == item.NameFGS){
+            let returnValue = {...e};
+            returnValue.priceList = value;
+            returnValue.datePriceList = today;
+            returnValue.Price10 = value - (value * departGroup.Disc10/100);
+            returnValue.Price25 = value - (value * departGroup.Disc25/100);
+            returnValue.Price50 = value - (value * departGroup.Disc50/100);
+            returnValue.Price100 = value - (value * departGroup.Disc100/100);
+            returnValue.AmtF10 =  departGroup.AmtF10;
+            returnValue.AmtF25 =  departGroup.AmtF25;
+            returnValue.AmtF50 =  departGroup.AmtF50;
+            returnValue.AmtF100 =  departGroup.AmtF100;
             return returnValue;
           }else{
             return e;

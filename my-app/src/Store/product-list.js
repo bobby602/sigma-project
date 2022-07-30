@@ -108,3 +108,24 @@ export const fetchCartData = (e) => {
       }
     };
   };
+  export const updatePriceList = (e) => {
+    return async (dispatch) => {
+      const fetchData = async () => {
+        const res = axios.post(`http://1.0.169.153:9001/priceList/updatePriceList`,e);
+        const actualData = await res;
+
+        return actualData.data.departData.recordset;
+        // return actualData.result.recordset;
+      };
+  
+      try {
+        const productData = await fetchData();
+        console.log(productData)
+        dispatch(
+            productActions.updatePriceList({e,productData})
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  };
