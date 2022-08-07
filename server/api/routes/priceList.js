@@ -20,19 +20,24 @@ const { get } = require('../data-access/pool-manager')
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
   router.get('/',async function(req,res){
-    let data1;
-      const sql = " select  ROW_NUMBER ( ) OVER ( ORDER BY ItemCode DESC) as number ,code,name,ItemCode,Rpack,PackR,RpackSale,PackD,PackSale,RPackRpt,concat(Str(Rpack),' ',PackR,'x',RpackSale) as containProduct,cast(CONVERT(VARCHAR, CAST( CU AS MONEY), 1) AS VARCHAR) as CU,cast(CONVERT(VARCHAR, CAST( CP AS MONEY), 1) AS VARCHAR) as CP,cast(CONVERT(VARCHAR, CAST( COP AS MONEY), 1) AS VARCHAR) as COP ,cast(CONVERT(VARCHAR, CAST( TOT AS MONEY), 1) AS VARCHAR) as TOT,  FORMAT(DateAdd ,'dd/MM/yyyy') as DateAdd ,DepartCode,DepartName,NameFG,NameFGS, " +
-                  " cast(CONVERT(VARCHAR, CAST( ISNULL(Pricelist,'0.00') AS MONEY), 1) AS VARCHAR)  as priceList	,FORMAT(DatePriceList ,'dd/MM/yyyy') as datePriceList,ISNULL(NoteF,'') as NoteF " +
-                  " ,cast(CONVERT(VARCHAR, CAST( Price10  AS MONEY), 1) AS VARCHAR) as Price10,  AmtF10,cast(CONVERT(VARCHAR, CAST( Price25  AS MONEY), 1) AS VARCHAR) as Price25, AmtF25,cast(CONVERT(VARCHAR, CAST( Price50  AS MONEY), 1) AS VARCHAR) as Price50, AmtF50,cast(CONVERT(VARCHAR, CAST( Price100  AS MONEY), 1) AS VARCHAR) as Price100, AmtF100 " +
-                  " From ItemF  Order by departCode,NameFG  ";
-    const pool = await get(db.Sigma);
-    await pool.connect()
-    const request = pool.request();
-    const result = await request.query(sql);
-    res.json({result});
+     try {
+          let data1;
+          const sql = " select  ROW_NUMBER ( ) OVER ( ORDER BY ItemCode DESC) as number ,code,name,ItemCode,Rpack,PackR,RpackSale,PackD,PackSale,RPackRpt,concat(Str(Rpack),' ',PackR,'x',RpackSale) as containProduct,cast(CONVERT(VARCHAR, CAST( CU AS MONEY), 1) AS VARCHAR) as CU,cast(CONVERT(VARCHAR, CAST( CP AS MONEY), 1) AS VARCHAR) as CP,cast(CONVERT(VARCHAR, CAST( COP AS MONEY), 1) AS VARCHAR) as COP ,cast(CONVERT(VARCHAR, CAST( TOT AS MONEY), 1) AS VARCHAR) as TOT,  FORMAT(DateAdd ,'dd/MM/yyyy') as DateAdd ,DepartCode,DepartName,NameFG,NameFGS, " +
+                      " cast(CONVERT(VARCHAR, CAST( ISNULL(Pricelist,'0.00') AS MONEY), 1) AS VARCHAR)  as priceList	,FORMAT(DatePriceList ,'dd/MM/yyyy') as datePriceList,ISNULL(NoteF,'') as NoteF " +
+                      " ,cast(CONVERT(VARCHAR, CAST( Price10  AS MONEY), 1) AS VARCHAR) as Price10,  AmtF10,cast(CONVERT(VARCHAR, CAST( Price25  AS MONEY), 1) AS VARCHAR) as Price25, AmtF25,cast(CONVERT(VARCHAR, CAST( Price50  AS MONEY), 1) AS VARCHAR) as Price50, AmtF50,cast(CONVERT(VARCHAR, CAST( Price100  AS MONEY), 1) AS VARCHAR) as Price100, AmtF100 " +
+                      " From ItemF  Order by departCode,NameFG  ";
+        const pool = await get(db.Sigma);
+        await pool.connect()
+        const request = pool.request();
+        const result = await request.query(sql);
+        res.json({result});
+        } catch (err) {
+          // ... handle it locally
+          throw new Error(err.message);
+        }
     });
     router.put('/',async function(req,res){
-      const ItemCode = req.body.itemRowAll.ItemCode;
+     const ItemCode = req.body.itemRowAll.ItemCode;
      let value = req.body.inputValue;
      const itemName = req.body.itemRowAll.name;
      const DepartCode = req.body.itemRowAll.DepartCode;
@@ -45,248 +50,258 @@ const { get } = require('../data-access/pool-manager')
      const type = req.body.columnInput;
      let date1 = new Date();
      let dateToday = '';
-     dateToday = date1.getFullYear() +'-'+ ('0' + (date1.getMonth()+1)).slice(-2)+ '-'+ ('0' + date1.getDate()).slice(-2);
-     const pool = await get(db.Sigma);
-     await pool.connect();
-     const request = pool.request();
-     if(type =='note'){
-          const sql = "update DATASIGMA.dbo.itemF " +
-                    " set NoteF = @value  " +
-                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-          const data = await request
-                         .input('value',mssql.VarChar(50),value)
-                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                         .input('code',mssql.VarChar(200),code) 
-                         .query(sql) 
-          res.json({result:data});               
-     }else if(type =='price10'){
-          const sql = "update DATASIGMA.dbo.itemF " +
-                    " set Price10 = Round(@value,0)  " +
-                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-          const data = await request
-                         .input('value',mssql.VarChar(50),value)
-                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                         .input('code',mssql.VarChar(200),code) 
-                         .query(sql) 
-          res.json({result:data});               
-     }else if(type =='AmtF10'){
-          if(value=='-'){
-               value = '0'
+     try {
+          dateToday = date1.getFullYear() +'-'+ ('0' + (date1.getMonth()+1)).slice(-2)+ '-'+ ('0' + date1.getDate()).slice(-2);
+          const pool = await get(db.Sigma);
+          await pool.connect();
+          const request = pool.request();
+          if(type =='note'){
+               const sql = "update DATASIGMA.dbo.itemF " +
+                         " set NoteF = @value  " +
+                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+               const data = await request
+                              .input('value',mssql.VarChar(50),value)
+                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                              .input('code',mssql.VarChar(200),code) 
+                              .query(sql) 
+               res.json({result:data});               
+          }else if(type =='price10'){
+               const sql = "update DATASIGMA.dbo.itemF " +
+                         " set Price10 = Round(@value,0)  " +
+                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+               const data = await request
+                              .input('value',mssql.VarChar(50),value)
+                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                              .input('code',mssql.VarChar(200),code) 
+                              .query(sql) 
+               res.json({result:data});               
+          }else if(type =='AmtF10'){
+               if(value=='-'){
+                    value = '0'
+               }
+               const sql = "update DATASIGMA.dbo.itemF " +
+                         " set AmtF10 = @value  " +
+                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+               const data = await request
+                              .input('value',mssql.VarChar(50),value)
+                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                              .input('code',mssql.VarChar(200),code) 
+                              .query(sql) 
+               res.json({result:data});               
+          }else if(type =='price25'){
+               const sql = "update DATASIGMA.dbo.itemF " +
+                         " set Price25 = Round(@value,0)  " +
+                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+               const data = await request
+                              .input('value',mssql.VarChar(50),value)
+                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                              .input('code',mssql.VarChar(200),code) 
+                              .query(sql) 
+               res.json({result:data});               
+          }else if(type =='AmtF25'){
+               const sql = "update DATASIGMA.dbo.itemF " +
+                         " set AmtF25 = @value  " +
+                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+                         console.log('test')
+               const data = await request
+                              .input('value',mssql.VarChar(50),value)
+                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                              .input('code',mssql.VarChar(200),code) 
+                              .query(sql) 
+               res.json({result:data});               
+          }else if(type =='price50'){
+               const sql = "update DATASIGMA.dbo.itemF " +
+                         " set Price50 = Round(@value,0)  " +
+                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+                         console.log('test')
+               const data = await request
+                              .input('value',mssql.VarChar(50),value)
+                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                              .input('code',mssql.VarChar(200),code) 
+                              .query(sql) 
+               res.json({result:data});               
+          }else if(type =='AmtF50'){
+               const sql = "update DATASIGMA.dbo.itemF " +
+                         " set AmtF50 = @value  " +
+                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+
+               const data = await request
+                              .input('value',mssql.VarChar(50),value)
+                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                              .input('code',mssql.VarChar(200),code) 
+                              .query(sql) 
+               res.json({result:data});               
+          }else if(type =='price100'){
+               const sql = "update DATASIGMA.dbo.itemF " +
+                         " set Price100 = Round(@value,0)  " +
+                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+               const data = await request
+                              .input('value',mssql.VarChar(50),value)
+                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                              .input('code',mssql.VarChar(200),code) 
+                              .query(sql) 
+               res.json({result:data});               
+          }else if(type =='AmtF100'){
+               const sql = "update DATASIGMA.dbo.itemF " +
+                         " set AmtF100 = @value  " +
+                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+               const data = await request
+                              .input('value',mssql.VarChar(50),value)
+                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
+                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
+                              .input('code',mssql.VarChar(200),code) 
+                              .query(sql) 
+               res.json({result:data});               
           }
-          const sql = "update DATASIGMA.dbo.itemF " +
-                    " set AmtF10 = @value  " +
-                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-          const data = await request
-                         .input('value',mssql.VarChar(50),value)
-                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                         .input('code',mssql.VarChar(200),code) 
-                         .query(sql) 
-          res.json({result:data});               
-     }else if(type =='price25'){
-          const sql = "update DATASIGMA.dbo.itemF " +
-                    " set Price25 = Round(@value,0)  " +
-                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-          const data = await request
-                         .input('value',mssql.VarChar(50),value)
-                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                         .input('code',mssql.VarChar(200),code) 
-                         .query(sql) 
-          res.json({result:data});               
-     }else if(type =='AmtF25'){
-          const sql = "update DATASIGMA.dbo.itemF " +
-                    " set AmtF25 = @value  " +
-                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-                    console.log('test')
-          const data = await request
-                         .input('value',mssql.VarChar(50),value)
-                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                         .input('code',mssql.VarChar(200),code) 
-                         .query(sql) 
-          res.json({result:data});               
-     }else if(type =='price50'){
-          const sql = "update DATASIGMA.dbo.itemF " +
-                    " set Price50 = Round(@value,0)  " +
-                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-                    console.log('test')
-          const data = await request
-                         .input('value',mssql.VarChar(50),value)
-                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                         .input('code',mssql.VarChar(200),code) 
-                         .query(sql) 
-          res.json({result:data});               
-     }else if(type =='AmtF50'){
-          const sql = "update DATASIGMA.dbo.itemF " +
-                    " set AmtF50 = @value  " +
-                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-                    console.log('test')
-          const data = await request
-                         .input('value',mssql.VarChar(50),value)
-                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                         .input('code',mssql.VarChar(200),code) 
-                         .query(sql) 
-          res.json({result:data});               
-     }else if(type =='price100'){
-          const sql = "update DATASIGMA.dbo.itemF " +
-                    " set Price100 = Round(@value,0)  " +
-                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-          const data = await request
-                         .input('value',mssql.VarChar(50),value)
-                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                         .input('code',mssql.VarChar(200),code) 
-                         .query(sql) 
-          res.json({result:data});               
-     }else if(type =='AmtF100'){
-          const sql = "update DATASIGMA.dbo.itemF " +
-                    " set AmtF100 = @value  " +
-                    " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-          const data = await request
-                         .input('value',mssql.VarChar(50),value)
-                         .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                         .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                         .input('code',mssql.VarChar(200),code) 
-                         .query(sql) 
-          res.json({result:data});               
-     }
+        } catch (err) {
+          // ... handle it locally
+          throw new Error(err.message);
+        }
    });
 
    router.post('/updatePriceList',async function(req,res){
-     const DepartName = req.body.itemRowAll.DepartName;
-     const ItemCode = req.body.itemRowAll.ItemCode;
-    const value = req.body.inputValue;
-    const itemName = req.body.itemRowAll.name;
-    const DepartCode = req.body.itemRowAll.DepartCode;
-    const RpackSale = req.body.itemRowAll.RpackSale;
-    const PackR = req.body.itemRowAll.PackR;
-    const Rpack = req.body.itemRowAll.Rpack;
-    const NameFGS = req.body.itemRowAll.NameFGS;
-    const NameFG = req.body.itemRowAll.NameFG;
-    const code = req.body.itemRowAll.code;
-    const type = req.body.columnInput;
-    let date1 = new Date();
-    let dateToday = '';
-    dateToday = date1.getFullYear() +'-'+ ('0' + (date1.getMonth()+1)).slice(-2)+ '-'+ ('0' + date1.getDate()).slice(-2);
-    const pool = await get(db.Sigma);
-    await pool.connect();
-    const request = pool.request();
-    if (type =='priceList'){
-        const sqlRes =  "select * from DATASIGMA.dbo.Depart  where Name = @DepartName ";
-        const sql = "update a " +
-                 " set a.Pricelist = @value,  " +
-                         " a.DatePriceList  = GETDATE(),  " +
-                         " a.Price10 = Round((@value - (@value * Disc10/100)),0) , " +
-                         " a.Price25 = Round((@value - (@value * Disc25/100)),0) , " +
-                         " a.Price50 = Round((@value - (@value * Disc50/100)),0) , " +
-                         " a.Price100 = Round((@value - (@value * Disc100/100)),0) , " +
-                         " a.AmtF10 = b.AmtF10, " +
-                         " a.AmtF25 = b.AmtF25, " +
-                         " a.AmtF50 = b.AmtF50, " +
-                         " a.AmtF100 = b.AmtF100 " +
-                    " from 	DATASIGMA.dbo.itemF a inner join 	 DATASIGMA.dbo.Depart b on b.Name = a.DePartName " +
-                    " where a.ItemCode = @ItemCode and a.NameFGS = @NameFGS and a.Code = @code " ;
-     const checkInsert = " select  TOP 1 FORMAT(DocDate,'yyyy-MM-dd') as DocDate ,DocNo " +
-     " from DATASIGMA.dbo.ItemPricePack " +
-     " where Month(DocDate) = MONTH(GETDATE()) and  " +
-     " YEAR(DocDate) = YEAR(GETDATE()) "+
-     " order by right(DocNo,4) DESC " ;
-     const insertSub = "insert into DATASIGMA.dbo.ItemPricePackSub(DocNo,IDNO,ItemCode,Code,NameFG,NameFGS,Package,DepartCode,GrItem,Pricepack,DatePricePack,Name) " +  
-                        "values " + 
-                        "( " +
-                        "@docNo, " + 
-                        "(select COALESCE (str((select TOP 1  IDNo " + 
-                        "from DATASIGMA.dbo.ItemPricePackSub " +  
-                        " where DocNo = @docNo order by IDNo DESC )+1 ),'1') ), " + 
-                        " @ItemCode2, " +
-                        "@code2, " +
-                        "@NameFG, " +
-                        "@NameFGS2," +
-                        "concat( @Rpack , @PackR,'X',@RpackSale), " +
-                        "@DepartCode, " +
-                        "@DepartCode, " +
-                        "@values, " +
-                        "GETDATE(), " + 
-                        "@itemName " +
-                        " ) " ;                         
-     const data = await request
-     .input('value',mssql.VarChar(50),value)
-     .input('ItemCode',mssql.VarChar(50),ItemCode) 
-     .input('NameFGS',mssql.VarChar(200),NameFGS) 
-     .input('code',mssql.VarChar(200),code) 
-     .query(sql) 
-     const dataCheck = await request.query(checkInsert);
-     let [arrRecord] = dataCheck.recordset;
-         if(arrRecord.DocDate != dateToday ){
-              const insertDocNO = "insert into DATASIGMA.dbo.ItemPricePack (DocNo,QNo,DocDate,EmpCode,MonthCal,GrItem) " +
-                                  "VALUES  " +
-                                  "( " +
-                                  "(select concat('PAC','-', right(FORMAT(GETDATE() ,'yyyy') +543,2), " +
-                                            "format(GETDATE(),'MM'), " +
-                                            "( " +
-                                                 "select FORMAT( " +
-                                                                "COALESCE " +
-                                                                          "( " +
-                                                                               "(                       " +
-                                                                               "select max(b.DocNo) as DocNo " +
-                                                                               "from( " +
-                                                                                         "select right(DocNo,4) as DocNo  " +
-                                                                                         "from DATASIGMA.dbo.ItemPricePack a  " +
-                                                                                         "where Month(DocDate) = MONTH(GETDATE()) and  " +
-                                                                                              "YEAR(DocDate) = YEAR(GETDATE()) " +
-                                                                                    ")b " +
-                                                                               "),'0001' " +
-                                                                          ")+1 , '0000') as r  " +
-                                                 ") " +
-                                            ") " +
-                                  "), " +
-                                  "( " +
-                                  "select COALESCE( " +
+     try {
+          const DepartName = req.body.itemRowAll.DepartName;
+          const ItemCode = req.body.itemRowAll.ItemCode;
+         const value = req.body.inputValue;
+         const itemName = req.body.itemRowAll.name;
+         const DepartCode = req.body.itemRowAll.DepartCode;
+         const RpackSale = req.body.itemRowAll.RpackSale;
+         const PackR = req.body.itemRowAll.PackR;
+         const Rpack = req.body.itemRowAll.Rpack;
+         const NameFGS = req.body.itemRowAll.NameFGS;
+         const NameFG = req.body.itemRowAll.NameFG;
+         const code = req.body.itemRowAll.code;
+         const type = req.body.columnInput;
+         let date1 = new Date();
+         let dateToday = '';
+         dateToday = date1.getFullYear() +'-'+ ('0' + (date1.getMonth()+1)).slice(-2)+ '-'+ ('0' + date1.getDate()).slice(-2);
+         const pool = await get(db.Sigma);
+         await pool.connect();
+         const request = pool.request();
+         if (type =='priceList'){
+             const sqlRes =  "select * from DATASIGMA.dbo.Depart  where Name = @DepartName ";
+             const sql = "update a " +
+                      " set a.Pricelist = @value,  " +
+                              " a.DatePriceList  = GETDATE(),  " +
+                              " a.Price10 = Round((@value - (@value * Disc10/100)),0) , " +
+                              " a.Price25 = Round((@value - (@value * Disc25/100)),0) , " +
+                              " a.Price50 = Round((@value - (@value * Disc50/100)),0) , " +
+                              " a.Price100 = Round((@value - (@value * Disc100/100)),0) , " +
+                              " a.AmtF10 = b.AmtF10, " +
+                              " a.AmtF25 = b.AmtF25, " +
+                              " a.AmtF50 = b.AmtF50, " +
+                              " a.AmtF100 = b.AmtF100 " +
+                         " from 	DATASIGMA.dbo.itemF a inner join 	 DATASIGMA.dbo.Depart b on b.Name = a.DePartName " +
+                         " where a.ItemCode = @ItemCode and a.NameFGS = @NameFGS and a.Code = @code " ;
+          const checkInsert = " select  TOP 1 FORMAT(DocDate,'yyyy-MM-dd') as DocDate ,DocNo " +
+          " from DATASIGMA.dbo.ItemPricePack " +
+          " where Month(DocDate) = MONTH(GETDATE()) and  " +
+          " YEAR(DocDate) = YEAR(GETDATE()) "+
+          " order by right(DocNo,4) DESC " ;
+          const insertSub = "insert into DATASIGMA.dbo.ItemPricePackSub(DocNo,IDNO,ItemCode,Code,NameFG,NameFGS,Package,DepartCode,GrItem,Pricepack,DatePricePack,Name) " +  
+                             "values " + 
+                             "( " +
+                             "@docNo, " + 
+                             "(select COALESCE (str((select TOP 1  IDNo " + 
+                             "from DATASIGMA.dbo.ItemPricePackSub " +  
+                             " where DocNo = @docNo order by IDNo DESC )+1 ),'1') ), " + 
+                             " @ItemCode2, " +
+                             "@code2, " +
+                             "@NameFG, " +
+                             "@NameFGS2," +
+                             "concat( @Rpack , @PackR,'X',@RpackSale), " +
+                             "@DepartCode, " +
+                             "@DepartCode, " +
+                             "@values, " +
+                             "GETDATE(), " + 
+                             "@itemName " +
+                             " ) " ;                         
+          const data = await request
+          .input('value',mssql.VarChar(50),value)
+          .input('ItemCode',mssql.VarChar(50),ItemCode) 
+          .input('NameFGS',mssql.VarChar(200),NameFGS) 
+          .input('code',mssql.VarChar(200),code) 
+          .query(sql) 
+          const dataCheck = await request.query(checkInsert);
+          let [arrRecord] = dataCheck.recordset;
+              if(arrRecord.DocDate != dateToday ){
+                   const insertDocNO = "insert into DATASIGMA.dbo.ItemPricePack (DocNo,QNo,DocDate,EmpCode,MonthCal,GrItem) " +
+                                       "VALUES  " +
+                                       "( " +
+                                       "(select concat('PAC','-', right(FORMAT(GETDATE() ,'yyyy') +543,2), " +
+                                                 "format(GETDATE(),'MM'), " +
                                                  "( " +
-                                                 "select max(b.DocNo) as DocNo " +
-                                                 "from( " +
-                                                      "select right(DocNo,4) as DocNo  " +
-                                                      "from DATASIGMA.dbo.ItemPricePack a  " +
-                                                      "where Month(DocDate) = MONTH(GETDATE()) and  " +
-                                                           "YEAR(DocDate) = YEAR(GETDATE()) " +
-                                                      ")b     " +
-                                                 "),'0001' " +
-                                                 ")+1   " +
-                                  "), " +
-                                  "GETDATE(), " +
-                                  " 'ADMIN', " +
-                                  "MONTH(getDATE()), " +
-                                  " @TypeMain " +
-                             ") " ;
-              const insertMain = await request 
-                              .input('TypeMain',mssql.VarChar(50),DepartCode) 
-                              .query(insertDocNO) 
-              const dataCheck2 = await request.query(checkInsert);
-              [arrRecord] = dataCheck2.recordset;        
+                                                      "select FORMAT( " +
+                                                                     "COALESCE " +
+                                                                               "( " +
+                                                                                    "(                       " +
+                                                                                    "select max(b.DocNo) as DocNo " +
+                                                                                    "from( " +
+                                                                                              "select right(DocNo,4) as DocNo  " +
+                                                                                              "from DATASIGMA.dbo.ItemPricePack a  " +
+                                                                                              "where Month(DocDate) = MONTH(GETDATE()) and  " +
+                                                                                                   "YEAR(DocDate) = YEAR(GETDATE()) " +
+                                                                                         ")b " +
+                                                                                    "),'0001' " +
+                                                                               ")+1 , '0000') as r  " +
+                                                      ") " +
+                                                 ") " +
+                                       "), " +
+                                       "( " +
+                                       "select COALESCE( " +
+                                                      "( " +
+                                                      "select max(b.DocNo) as DocNo " +
+                                                      "from( " +
+                                                           "select right(DocNo,4) as DocNo  " +
+                                                           "from DATASIGMA.dbo.ItemPricePack a  " +
+                                                           "where Month(DocDate) = MONTH(GETDATE()) and  " +
+                                                                "YEAR(DocDate) = YEAR(GETDATE()) " +
+                                                           ")b     " +
+                                                      ")+1 ,'0001' " +
+                                                      ")  " +
+                                       "), " +
+                                       "GETDATE(), " +
+                                       " 'ADMIN', " +
+                                       "MONTH(getDATE()), " +
+                                       " @TypeMain " +
+                                  ") " ;
+                   const insertMain = await request 
+                                   .input('TypeMain',mssql.VarChar(50),DepartCode) 
+                                   .query(insertDocNO) 
+                   const dataCheck2 = await request.query(checkInsert);
+                   [arrRecord] = dataCheck2.recordset;        
+              }
+          const insert = await request
+          .input('docNo',mssql.VarChar(50),arrRecord.DocNo)
+          .input('ItemCode2',mssql.VarChar(50),ItemCode) 
+          .input('code2',mssql.VarChar(200),code) 
+          .input('NameFG',mssql.VarChar(200),NameFG) 
+          .input('NameFGS2',mssql.VarChar(200),NameFGS) 
+          .input('Rpack',mssql.Numeric,Rpack)
+          .input('PackR',mssql.VarChar(50),PackR)
+          .input('RpackSale',mssql.Numeric,RpackSale)
+          .input('DepartCode',mssql.VarChar(50),DepartCode)
+          .input('values',mssql.VarChar(50),value)
+          .input('itemName',mssql.VarChar(200),itemName)
+          .query(insertSub);
+          const  departData = await request
+          .input('DepartName',mssql.VarChar(50),DepartName)
+          .query(sqlRes)
+          res.json({result:data,departData});
          }
-     const insert = await request
-     .input('docNo',mssql.VarChar(50),arrRecord.DocNo)
-     .input('ItemCode2',mssql.VarChar(50),ItemCode) 
-     .input('code2',mssql.VarChar(200),code) 
-     .input('NameFG',mssql.VarChar(200),NameFG) 
-     .input('NameFGS2',mssql.VarChar(200),NameFGS) 
-     .input('Rpack',mssql.Numeric,Rpack)
-     .input('PackR',mssql.VarChar(50),PackR)
-     .input('RpackSale',mssql.Numeric,RpackSale)
-     .input('DepartCode',mssql.VarChar(50),DepartCode)
-     .input('values',mssql.VarChar(50),value)
-     .input('itemName',mssql.VarChar(200),itemName)
-     .query(insertSub);
-     const  departData = await request
-     .input('DepartName',mssql.VarChar(50),DepartName)
-     .query(sqlRes)
-     res.json({result:data,departData});
-    }
+        } catch (err) {
+          // ... handle it locally
+          throw new Error(err.message);
+        }
   });
  
  

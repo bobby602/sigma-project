@@ -34,9 +34,7 @@ const line = require('@line/bot-sdk')
 
   router.post('/',async function(req,res){
     var Login = req.body.username;
-    console.log(Login);
     var password = req.body.password;
-    console.log(password);
     if(Login){
         const pool = await get(db.Sigma);
         await pool.connect()
@@ -68,7 +66,6 @@ router.post('/table',async function(req,res){
             Str=  Str +e+',';
           })
           valueSearch =Str.substring(0, Str.length - 1)
-          console.log(valueSearch)
     }else{
         valueSearch = body[0];
     }
@@ -109,7 +106,6 @@ router.post('/table',async function(req,res){
         let Data4 = data.recordsets[3];
         let NewData = new Array(Data.length);
         let sumData = new Array(Data.length);
-        console.log(Data)
         for(let i=0;i<Data.length;i++){
             NewData[i] = Data2.filter((e)=>{        
                 if(Data[i].itemcode==e.Code){
@@ -147,8 +143,7 @@ router.post('/table',async function(req,res){
             let Data = data.recordset;
             let Data2 = data.recordsets[1];
             let NewData = new Array(Data.length);
-            for(let i=0;i>1;i++){
-                console.log(Data[i])             
+            for(let i=0;i>1;i++){           
             }
         }
         catch(err) {
