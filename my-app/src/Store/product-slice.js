@@ -49,8 +49,11 @@ const productSlice = createSlice({
     filterPriceList(state,action){
       const Item = action.payload;
       state.priceList = state.data.filter((e)=>{
+        console.log(e.NameFG)
         if (e.NameFGS.toLowerCase().includes(Item.toLowerCase())){
             return {...e};
+        }else if (e.NameFG.toLowerCase().includes(Item.toLowerCase())){
+          return {...e};
         }
        })  
     },
@@ -91,7 +94,6 @@ const productSlice = createSlice({
       test = departName.filter(distinct);
       state.departNameList = departName.filter(distinct);
    
-
       let priceArr = [];
       test.map((e,index)=>{
         priceArr.push({
