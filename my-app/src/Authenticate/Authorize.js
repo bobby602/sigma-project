@@ -7,9 +7,13 @@ const Authorize= (props)=>{
     const authCtx = useContext(AuthContext);
     let token = sessionStorage.getItem('token');
     let jsonToken = JSON.parse(token);
+    console.log(jsonToken)
     let checkpage;
     if(jsonToken.StAdmin =='1'){
       checkpage= <Outlet/>;
+    }
+    else if(jsonToken.StAdmin =='3'){
+      checkpage = <Navigate to ="/PriceList"/>;
     }
    else{
       checkpage = <Navigate to ="/ProductList"/>;

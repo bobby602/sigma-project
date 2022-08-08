@@ -27,7 +27,7 @@ const CardList = (prop)=>{
                         alt=""
                         />  */}
                         {/* <div className = {styles.content}> */}
-                            <img src={process.env.PUBLIC_URL + "/icons/S__55869455-removebg-preview.png"} className="rounded py-2 mx-auto z-0  d-block" alt="..."width="300" height="300"/> 
+                            <img src={process.env.PUBLIC_URL + "/icons/S__55869455-removebg-preview.png"} className="rounded py-2 mx-auto z-0 d-block" alt="..."width="300" height="300"/> 
                                 <p className={`my-5  text-center text-base font-semibold text-gray-900 ${styles.text} dark:text-white`}>
                                     {date} 
                                 </p>

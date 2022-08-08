@@ -49,6 +49,7 @@ const PriceList = ()=>{
                 <div className ={`${Styles.search} `}>
                     <div className ="flex flex-wrap">
                         <div className ="basis-1/4">
+                        <label  className="flex items-center pr-2  block font-semibold text-base font-medium text-gray-900 dark:text-gray-400 ">ชื่อการค้า/ชื่อสามัญ</label> 
                         <Search handleOnChange = {handleOnChange} />
                         </div>
                         <div className="basis-3/4 grid grid-cols-4 gap-3">

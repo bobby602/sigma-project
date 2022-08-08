@@ -27,6 +27,9 @@ function App() {
                   {/* public route*/}
                     <Route path="/ProductList" element={<ProductList />} />
 
+                  {/* public route*/}
+                  <Route path="/PriceList" element={<PriceList />} />
+
                   {/* private route*/}
                   <Route element={<Authorize />}>
                     <Route path="/MainPage" element={<MainPage />} />
@@ -45,7 +48,10 @@ function App() {
               <Routes>
                 <Route path="/" element={<Auth />} >
                   {/* public route*/}
-                    <Route path="/ProductList" element={<ProductList />} />
+                  <Route path="/ProductList" element={<ProductList />} />
+
+                  {/* public route*/}
+                  <Route path="/PriceList" element={<PriceList />} />
 
                   {/* private route*/}
                   <Route element={<Authorize />}>

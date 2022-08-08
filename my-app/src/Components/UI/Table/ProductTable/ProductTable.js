@@ -73,6 +73,7 @@ const ProductTable = (data)=>{
       const onChangeHandle = (e) =>{
         setInputValue(e.target.value);
       }
+      console.log(data.data)
       let dataTable ='';
       let arrDepart = new Array(department.length); 
         dataTable = data.data.map((e,index)=>{
@@ -113,6 +114,9 @@ const ProductTable = (data)=>{
                     </td>
                     <td  className="px-6 py-4">
                         0.00
+                    </td>
+                    <td  className="px-6 py-4">
+                        {e.PriceOffer}
                     </td>
                     <td className={`px-6 py-4`}>
                     {
@@ -268,6 +272,9 @@ const ProductTable = (data)=>{
                                         </th>
                                         <th scope="col" className="px-6 py-3">
                                         ราคา PO
+                                        </th>
+                                        <th scope="col" className="px-6 py-3">
+                                        ราคา Offer
                                         </th>
                                         <th scope="col" className="px-6 py-3">
                                         ทุนปรับแต่ง
