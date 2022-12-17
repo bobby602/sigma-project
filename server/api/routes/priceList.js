@@ -22,10 +22,12 @@ const { get } = require('../data-access/pool-manager')
   router.get('/',async function(req,res){
      try {
           let data1;
-          const sql = " select  ROW_NUMBER ( ) OVER ( ORDER BY ItemCode DESC) as number ,code,name,ItemCode,Rpack,PackR,RpackSale,PackD,PackSale,RPackRpt,concat(Str(Rpack),' ',PackR,'x',RpackSale) as containProduct,cast(CONVERT(VARCHAR, CAST( CU AS MONEY), 1) AS VARCHAR) as CU,cast(CONVERT(VARCHAR, CAST( CP AS MONEY), 1) AS VARCHAR) as CP,cast(CONVERT(VARCHAR, CAST( COP AS MONEY), 1) AS VARCHAR) as COP ,cast(CONVERT(VARCHAR, CAST( TOT AS MONEY), 1) AS VARCHAR) as TOT,  FORMAT(DateAdd ,'dd/MM/yyyy') as DateAdd ,DepartCode,DepartName,NameFG,NameFGS, " +
-                      " cast(CONVERT(VARCHAR, CAST( ISNULL(Pricelist,'0.00') AS MONEY), 1) AS VARCHAR)  as priceList	,FORMAT(DatePriceList ,'dd/MM/yyyy') as datePriceList,ISNULL(NoteF,'') as NoteF " +
-                      " ,cast(CONVERT(VARCHAR, CAST( Price10  AS MONEY), 1) AS VARCHAR) as Price10,  AmtF10,cast(CONVERT(VARCHAR, CAST( Price25  AS MONEY), 1) AS VARCHAR) as Price25, AmtF25,cast(CONVERT(VARCHAR, CAST( Price50  AS MONEY), 1) AS VARCHAR) as Price50, AmtF50,cast(CONVERT(VARCHAR, CAST( Price100  AS MONEY), 1) AS VARCHAR) as Price100, AmtF100 " +
-                      " From ItemF  Order by departCode,NameFG  ";
+          const sql = " select  ROW_NUMBER ( ) OVER ( ORDER BY a.ItemCode DESC) as number ,cast(CONVERT(VARCHAR, CAST( ISNULL(b.BAL,'0.00') AS MONEY), 1) AS VARCHAR) as bal ,b.pack,a.code,a.name,a.ItemCode,a.Rpack,a.PackR,a.RpackSale,a.PackD,a.PackSale,a.RPackRpt,concat(Str(a.Rpack),' ',a.PackR,'x',a.RpackSale) as containProduct,cast(CONVERT(VARCHAR, CAST( a.CU AS MONEY), 1) AS VARCHAR) as CU,cast(CONVERT(VARCHAR, CAST( a.CP AS MONEY), 1) AS VARCHAR) as CP,cast(CONVERT(VARCHAR, CAST( a.COP AS MONEY), 1) AS VARCHAR) as COP ,cast(CONVERT(VARCHAR, CAST( a.TOT AS MONEY), 1) AS VARCHAR) as TOT,  FORMAT(a.DateAdd ,'dd/MM/yyyy') as DateAdd ,a.DepartCode,a.DepartName,a.NameFG,a.NameFGS, " +
+                      " cast(CONVERT(VARCHAR, CAST( ISNULL(a.Pricelist,'0.00') AS MONEY), 1) AS VARCHAR)  as priceList	,FORMAT(a.DatePriceList ,'dd/MM/yyyy') as datePriceList,ISNULL(a.NoteF,'') as NoteF " +
+                         " ,cast(CONVERT(VARCHAR, CAST( a.Price10  AS MONEY), 1) AS VARCHAR) as Price10,  AmtF10,cast(CONVERT(VARCHAR, CAST( a.Price25  AS MONEY), 1) AS VARCHAR) as Price25, a.AmtF25,cast(CONVERT(VARCHAR, CAST( a.Price50  AS MONEY), 1) AS VARCHAR) as Price50, a.AmtF50,cast(CONVERT(VARCHAR, CAST( a.Price100  AS MONEY), 1) AS VARCHAR) as Price100, a.AmtF100 " +
+                         " From ItemF a inner join (Select  itemcode,name,sum(qbal +QS2) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs) + Sum(Qs2) as BAL,Note " +
+                                                  " From DATASIGMA.dbo.rptstock2 " +  
+                                                  " Group by itemcode,name,pack ,Note ) b on b.itemcode = a.ItemCode Order by departCode,NameFG " ;
         const pool = await get(db.Sigma);
         await pool.connect()
         const request = pool.request();

@@ -57,16 +57,16 @@ const PriceTable = (data)=>{
     dataTable = data.data.map((e,index)=>{
       if(jsonToken.StAdmin == '1' ){
         return (
-          <tr key={e.number} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap"> 
+          <tr key={e.number} className={` bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap`}> 
           { e.PackD =='r'?
-            <td  className=" bg-[#fbbf24] text-white px-6 py-4">
+            <td  className={`bg-[#fbbf24] text-white px-6 py-4`}>
                 {e.code}
             </td>  :      
-            <td  className="sticky left-0 z-30 bg-white px-6 py-4">  
+            <td  className={`px-6 py-4`}>  
                 {e.code}  
             </td>
           }    
-            <td  className="px-6 py-4 text-center">
+            <td  className=" sticky left-0 z-30 bg-white px-6 py-4 text-center">
                 {e.NameFGS}
             </td>
             <td  className="px-6 py-4">
@@ -230,29 +230,59 @@ const PriceTable = (data)=>{
         )
       }else if(jsonToken.StAdmin == '3'){
         return(
-          <tr key={e.number} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap"> 
+          <tr key={e.number} className={`${Styles.colOne} bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap`}> 
             { e.PackD =='r'?
-              <td  className=" bg-[#fbbf24] text-white px-6 py-4">
-                {e.code}
+              <td  className={`bg-[#fbbf24] text-white px-6 py-4`}>
+                {e.ItemCode}
               </td>  :      
-              <td  className="sticky left-0 z-30 bg-white px-6 py-4">  
-                {e.code}  
+              <td  className={`bg-white px-6 py-4`}>  
+                {e.ItemCode}  
               </td>
             }    
-            <td className="px-6 py-4 text-center">
+            <td className="sticky left-0 bg-white text-blue-600 px-6 py-4 text-right">
                 {e.NameFGS}
             </td>
             <td  className="px-6 py-4">
                 {e.NameFG}
             </td>
-            <td  className="px-6 py-4">
+            <td  className=" text-blue-400 px-6 py-4">
                 {e.containProduct}
             </td>
-            <td  className="px-6 py-4">
-                0.00
+            <td  className=" text-red-700 px-6 py-4">
+              {e.priceList}
+            </td>
+            <td  className=" text-orange-500 px-6 py-4">
+              {e.Price10 == null ? '0':e.Price10}
             </td>
             <td  className="px-6 py-4">
-              {e.priceList}
+              {e.AmtF10 == '' ? '-':e.AmtF10}
+            </td>
+            <td  className="text-amber-400 px-6 py-4">
+              {e.Price25 == null ? '0':e.Price25}
+            </td>
+            <td  className="px-6 py-4">
+              {e.AmtF25 == '' ? '-':e.AmtF25}
+            </td>
+            <td  className="text-lime-500 px-6 py-4">
+              {e.Price50 == null ? '0':e.Price50}
+            </td>
+            <td  className="px-6 py-4">
+              {e.AmtF50 == '' ? '-':e.AmtF50}
+            </td>
+            <td  className="text-green-500 px-6 py-4">
+              {e.Price100 == null ? '0':e.Price100}
+            </td>
+            <td  className="px-6 py-4">
+              {e.Amt100 == '' ? '-':e.AmtF100}
+            </td>
+            <td  className="px-6 py-4">
+              {e.name}
+            </td>
+            <td  className="text-teal-500 px-6 py-4">
+                {e.bal}
+            </td>
+            <td  className="px-6 py-4">
+              {e.pack == 'L'? 'ลิตร':e.pack == 'KG' ? 'กิโลกรัม' : '-'}
             </td>
             <td  className="px-6 py-4 ">
               {e.NoteF == '' ? '-':e.NoteF}
@@ -267,13 +297,13 @@ const PriceTable = (data)=>{
     return(
         <Fragment>
           <Table>
-            <thead className={`${Styles.textCustom} text-base bg-[#AE50FF]  uppercase whitespace-nowrap sticky top-0 z-[100] `}>
+            <thead className={`${Styles.textCustom} ${Styles.colOne} text-base bg-[#AE50FF]  uppercase whitespace-nowrap sticky top-0 z-[100] `}>
             { jsonToken.StAdmin =='1' ?
               <tr>
-                <th scope="col" className="sticky left-0 bg-[#AE50FF] px-6 py-3 z-[100]">
+                <th scope="col" className=" px-6 py-3 ">
                   รหัสผลิตภัณฑ์
                 </th>
-                <th scope="col" className={` px-6 py-3 text-center `}>
+                <th scope="col" className={`sticky left-0 bg-[#AE50FF]  px-6 py-3 text-center z-[100] `}>
                   ชื่อการค้า
                 </th>
                 <th scope="col" className={`px-6 py-3`}>
@@ -335,10 +365,10 @@ const PriceTable = (data)=>{
                 </th> 
               </tr> :
                 <tr>
-                  <th scope="col" className="sticky left-0 bg-[#AE50FF] px-6 py-3 z-[100]">
+                  <th scope="col" className={` px-6 py-3 `}>
                     รหัสผลิตภัณฑ์
                   </th>
-                  <th scope="col" className={` px-6 py-3 text-center `}>
+                  <th scope="col" className={`sticky left-0 z-[100] bg-[#AE50FF] px-6 py-3 text-right `}>
                     ชื่อการค้า
                   </th>
                   <th scope="col" className={`px-6 py-3`}>
@@ -348,16 +378,43 @@ const PriceTable = (data)=>{
                     ขนาดบรรจุ
                   </th>
                   <th scope="col" className="px-6 py-3">
-                    สต๊อกคงเหลือหลังหัก
-                  </th>
+                    Price 1
+                  </th>          
                   <th scope="col" className="px-6 py-3">
-                    ราคา
+                    Price 10
                   </th>
                   <th scope="col" className="px-6 py-3">
                     แถม
                   </th>
                   <th scope="col" className="px-6 py-3">
-                    แพ็คกิ้ง
+                    Price 25
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    แถม
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Price 50
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    แถม
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Price 100
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    แถม
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    ซื้อชุดแพ็คกิ้ง
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    สต๊อกคงเหลือหลังหัก
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    หน่วย
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    หมายเหตุ
                   </th>
                 </tr>  
               }  

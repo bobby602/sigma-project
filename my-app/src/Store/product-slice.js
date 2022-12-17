@@ -72,6 +72,7 @@ const productSlice = createSlice({
       if(type.length !=0){
         state.priceList = state.data.filter((e)=>{
           if (type.includes(e.DepartName)){
+            console.log({...e})
               return {...e};
           }
         });

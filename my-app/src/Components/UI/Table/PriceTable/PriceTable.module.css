@@ -11,3 +11,25 @@
   .costInputNote{
     width:400px;
   }
+
+  @media (max-width: 1099px) and (min-width: 200px){
+      /* .colOne td:nth-of-type(1) , .colOne th:nth-of-type(1) {
+        position:sticky;
+        z-index:0 !important;
+        width:20px !important;
+        white-space: normal!important;
+    } */
+     .colOne th:nth-of-type(2) ,  .colOne td:nth-of-type(2) {
+      position:sticky !important;
+      left:20 !important;
+      z-index:20  !important;
+      width:30px !important;
+      white-space: normal!important;
+     } 
+     .colOne td:nth-of-type(2){
+      background-color: white;
+     }
+     .colOne th:nth-of-type(2) {
+      background-color: #AE50FF;
+    }
+  }

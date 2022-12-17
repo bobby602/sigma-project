@@ -7,18 +7,14 @@
 var app = require('../app');
 var debug = require('debug')('api:server');
 var http = require('http');
-
 /**
  * Get port from environment and store in Express.
  */
-
 var port = normalizePort(process.env.PORT || '9001');
 app.set('port', port);
-
 /**
  * Create HTTP server.
  */
-
 var server = http.createServer(app);
 
 /**
