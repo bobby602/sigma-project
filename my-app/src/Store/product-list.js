@@ -4,13 +4,12 @@ export const fetchCartData = (e) => {
 
     return async (dispatch) => {
       const fetchData = async () => {
-        console.log(e)
         const res = await axios.post('http://1.0.169.153:9001/table',{e});
         const actualData = await res.data.result;
         const actualData2 = await res.data.Data4;
         return {actualData,actualData2};
       };
-  
+      let err = null;
       try {
         const productData = await fetchData();
         dispatch(
@@ -18,6 +17,7 @@ export const fetchCartData = (e) => {
         );
       } catch (error) {
         console.log(error);
+        err = error;
       }
     };
   };
@@ -25,7 +25,7 @@ export const fetchCartData = (e) => {
   export const fetchSubData = (e) => {
     return async (dispatch) => {
       const fetchData = async () => {
-
+        let err = null;
         const res = await fetch(`http://1.0.169.153:9001/subTable?itemCode=${encodeURIComponent(e)}`);
   
         if (!res.ok) {
@@ -36,8 +36,9 @@ export const fetchCartData = (e) => {
   
         return actualData.result.recordset;
       };
-  
+      let err = null;
       try {
+        
         const productData = await fetchData();
         
         dispatch(
@@ -45,12 +46,14 @@ export const fetchCartData = (e) => {
         );
       } catch (error) {
         console.log(error);
+        err = error;
       }
     };
   };
 
   export const updateData = (e) => {
     return async (dispatch) => {
+      let err = null;
       const fetchData = async () => {
         const res = axios.put(`http://1.0.169.153:9001/productList`,e);
         // return actualData.result.recordset;
@@ -64,12 +67,14 @@ export const fetchCartData = (e) => {
         );
       } catch (error) {
         console.log(error);
+        err = error;
       }
     };
   };
   export const fetchPriceList = (e) => {
 
     return async (dispatch) => {
+      let err = null;
       const fetchData = async () => {
         const res = await fetch('http://1.0.169.153:9001/priceList');
   
@@ -88,11 +93,13 @@ export const fetchCartData = (e) => {
         );
       } catch (error) {
         console.log(error);
+        err = error;
       }
     };
   };
   export const updatePriceData = (e) => {
     return async (dispatch) => {
+      let err = null;
       const fetchData = async () => {
         const res = axios.put(`http://1.0.169.153:9001/priceList`,e);
         // return actualData.result.recordset;
@@ -105,11 +112,13 @@ export const fetchCartData = (e) => {
         );
       } catch (error) {
         console.log(error);
+        err = error;
       }
     };
   };
   export const updatePriceList = (e) => {
     return async (dispatch) => {
+      let err = null;
       const fetchData = async () => {
         const res = axios.post(`http://1.0.169.153:9001/priceList/updatePriceList`,e);
         const actualData = await res;
@@ -126,6 +135,7 @@ export const fetchCartData = (e) => {
         );
       } catch (error) {
         console.log(error);
+        err = error;
       }
     };
   };

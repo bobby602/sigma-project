@@ -21,6 +21,4 @@ root.render(
     </AuthContextProvider>  
   </Provider>  
 );
-// serviceWorkerRegistration.register();
-// swDev();
 
