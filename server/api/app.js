@@ -9,6 +9,7 @@ var loginRouter = require('./routes/login');
 var lineRouter = require('./routes/line');
 var priceListRouter = require('./routes/priceList');
 var productListRouter = require('./routes/productList');
+var reserveRouter =  require('./routes/reserveList');
 
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'build')));
@@ -18,6 +19,7 @@ app.use('/', loginRouter);
 app.use('/line', lineRouter);
 app.use('/productList', productListRouter);
 app.use('/priceList', priceListRouter);
+app.use('/reserveList',reserveRouter);
 
 // app.set('views', path.join(__dirname, 'views'));
 // app.set('view engine', 'ejs');

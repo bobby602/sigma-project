@@ -23,7 +23,7 @@ const PriceTable = (data)=>{
     const ref = useOutsideClick(() => {
         setOpenInput(false)
       });
-
+      
 
     const inputChangeHandel = (e,index,a)=>{
       if(a != ''){
@@ -278,6 +278,11 @@ const PriceTable = (data)=>{
             <td  className="px-6 py-4">
               {e.name}
             </td>
+            <td  className="sticky left-0 z-30 bg-white px-6 py-4">
+              <div className = "flex">
+                <a onClick={()=>data.handleOnClick(e)} className ={`${Styles.col1} grow font-medium text-blue-600 dark:text-blue-500 hover:underline`}>{e.Reserve}</a>
+              </div>    
+            </td>
             <td  className="text-teal-500 px-6 py-4">
                 {e.bal}
             </td>
@@ -406,6 +411,9 @@ const PriceTable = (data)=>{
                   </th>
                   <th scope="col" className="px-6 py-3">
                     ซื้อชุดแพ็คกิ้ง
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    จอง
                   </th>
                   <th scope="col" className="px-6 py-3">
                     สต๊อกคงเหลือหลังหัก

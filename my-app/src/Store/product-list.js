@@ -1,7 +1,6 @@
 import { productActions } from './product-slice';
 import axios from 'axios';
 export const fetchCartData = (e) => {
-
     return async (dispatch) => {
       const fetchData = async () => {
         const res = await axios.post('http://1.0.169.153:9001/table',{e});

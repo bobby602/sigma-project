@@ -182,8 +182,12 @@ const ProductTable = (data)=>{
                                     </div>    
                                 </td>
                             }
+                            
                             <td  className="px-6 py-4">
                                 {e.QBal}
+                            </td>
+                            <td  className="px-6 py-4">
+                                <a onClick={()=>data.handleOnClick(e)} className ={`${Styles.col1} grow font-medium text-blue-600 dark:text-blue-500 hover:underline`}>{e.Reserve}</a>
                             </td>
                             <td  className="px-6 py-4">
                                 {e.BAL}
@@ -340,6 +344,9 @@ const ProductTable = (data)=>{
                                         </th>
                                         <th scope="col" className="px-6 py-3">
                                             คงเหลือ
+                                        </th>
+                                        <th scope="col" className="px-6 py-3">
+                                            จอง
                                         </th>
                                         <th scope="col" className="px-6 py-3">
                                             หักสถานะค้างต่างๆ

@@ -87,7 +87,7 @@ const productSlice = createSlice({
         return self.indexOf(value) === index;
       }
       const Item = action.payload; 
-
+      console.log(Item)
       let departName = Item.priceData.map((e,index)=>{
         count = index;
             return e.DepartName;
@@ -111,6 +111,7 @@ const productSlice = createSlice({
             ItemCode: e,
             NameFG: '',
             NameFGS : '',
+            Reserve : '',
             NoteF:'',
             PackD:'r',
             PackR:'',
@@ -201,7 +202,6 @@ const productSlice = createSlice({
       const item = action.payload.e.itemRowAll;
       const type = action.payload.e.columnInput;
       let today = new Date();
-      console.log(item)
       let yyyy = today.getFullYear();
       let mm = today.getMonth() + 1; // Months start at 0!
       let dd = today.getDate();

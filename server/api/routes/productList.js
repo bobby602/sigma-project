@@ -20,7 +20,6 @@ const { get } = require('../data-access/pool-manager')
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
   router.get('/',async function(req,res){
-     let data1;
     const sql = " select * from UNoGroup.dbo.Users ";
     const pool = await get(db.Unogroup);
      try {
@@ -54,8 +53,7 @@ const { get } = require('../data-access/pool-manager')
      }else if(TyItem == '4'){
       Type = 'SF';
      }
-     try {
-           
+     try {   
      const pool = await get(db.Sigma);
      await pool.connect();
      const request = pool.request();
