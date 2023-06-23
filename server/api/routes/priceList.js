@@ -22,13 +22,14 @@ const { get } = require('../data-access/pool-manager')
   router.get('/',async function(req,res){
      try {
           let data1;
-          const sql = " select  ROW_NUMBER ( ) OVER ( ORDER BY a.ItemCode DESC) as number ,cast(CONVERT(VARCHAR, CAST( ISNULL((b.BAL-ISNULL(QTY,0)),'0.00') AS MONEY), 1) AS VARCHAR) as bal ,b.pack,a.code,a.name,a.ItemCode,a.Rpack,a.PackR,a.RpackSale,a.PackD,a.PackSale,a.RPackRpt,concat(Str(a.Rpack),' ',a.PackR,' x ',a.RpackSale) as containProduct,cast(CONVERT(VARCHAR, CAST( a.CU AS MONEY), 1) AS VARCHAR) as CU,cast(CONVERT(VARCHAR, CAST( a.CP AS MONEY), 1) AS VARCHAR) as CP,cast(CONVERT(VARCHAR, CAST( a.COP AS MONEY), 1) AS VARCHAR) as COP ,cast(CONVERT(VARCHAR, CAST( a.TOT AS MONEY), 1) AS VARCHAR) as TOT,  FORMAT(a.DateAdd ,'dd/MM/yyyy') as DateAdd ,a.DepartCode,a.DepartName,a.NameFG,a.NameFGS, " +
+          const sql = " select  ROW_NUMBER ( ) OVER ( ORDER BY a.ItemCode DESC) as number ,cast(CONVERT(VARCHAR, CAST( ISNULL((b.BAL-ISNULL(d.QTY,0)),'0.00') AS MONEY), 1) AS VARCHAR) as bal ,b.pack,a.code,a.name,a.ItemCode,a.Rpack,a.PackR,a.RpackSale,a.PackD,a.PackSale,a.RPackRpt,concat(a.Rpack,' ',a.PackR,' x ',a.RpackSale) as containProduct,cast(CONVERT(VARCHAR, CAST( a.CU AS MONEY), 1) AS VARCHAR) as CU,cast(CONVERT(VARCHAR, CAST( a.CP AS MONEY), 1) AS VARCHAR) as CP,cast(CONVERT(VARCHAR, CAST( a.COP AS MONEY), 1) AS VARCHAR) as COP ,cast(CONVERT(VARCHAR, CAST( a.TOT AS MONEY), 1) AS VARCHAR) as TOT,  FORMAT(a.DateAdd ,'dd/MM/yyyy') as DateAdd ,a.DepartCode,a.DepartName,a.NameFG,a.NameFGS, " +
                       " cast(CONVERT(VARCHAR, CAST( ISNULL(a.Pricelist,'0.00') AS MONEY), 1) AS VARCHAR)  as priceList	,FORMAT(a.DatePriceList ,'dd/MM/yyyy') as datePriceList,ISNULL(a.NoteF,'') as NoteF " +
-                         " ,cast(CONVERT(VARCHAR, CAST( a.Price10  AS MONEY), 1) AS VARCHAR) as Price10,  AmtF10,cast(CONVERT(VARCHAR, CAST( a.Price25  AS MONEY), 1) AS VARCHAR) as Price25, a.AmtF25,cast(CONVERT(VARCHAR, CAST( a.Price50  AS MONEY), 1) AS VARCHAR) as Price50, a.AmtF50,cast(CONVERT(VARCHAR, CAST( a.Price100  AS MONEY), 1) AS VARCHAR) as Price100, a.AmtF100 ,ISNULL(cast(CONVERT(VARCHAR, CAST( c.QTY  AS MONEY), 1) AS VARCHAR),'0.00')  as Reserve " +
+                         " ,cast(CONVERT(VARCHAR, CAST( a.Price10  AS MONEY), 1) AS VARCHAR) as Price10,  AmtF10,cast(CONVERT(VARCHAR, CAST( a.Price25  AS MONEY), 1) AS VARCHAR) as Price25, a.AmtF25,cast(CONVERT(VARCHAR, CAST( a.Price50  AS MONEY), 1) AS VARCHAR) as Price50, a.AmtF50,cast(CONVERT(VARCHAR, CAST( a.Price100  AS MONEY), 1) AS VARCHAR) as Price100, a.AmtF100 ,ISNULL(cast(CONVERT(VARCHAR, CAST( c.QTY  AS MONEY), 1) AS VARCHAR),'0.00')  as Reserve , FORMAT(DatePriceList ,'dd/MM/yyyy') as DatePriceList " +
                          " From ItemF a inner join (Select  itemcode,name,sum(qbal +QS2) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs) + Sum(Qs2) as BAL,Note " +
                                                   " From DATASIGMA.dbo.rptstock2 " +  
                                                   " Group by itemcode,name,pack ,Note ) b on b.itemcode = a.ItemCode " +
                                                   " left join ( select itemCode,sum(QTY) as QTY ,code ,NameFGS from ReserveProduct  group by itemCode,code,NameFGS ) c on c.itemCode = a.ItemCode and c.code = a.code and c.NameFGS = a.NameFGS  " + 
+                                                  " left join ( select itemCode,sum(QTY) as QTY  from ReserveProduct  group by itemCode ) d on d.itemCode = a.ItemCode " +
                                                   " Order by departCode,NameFG ";
         const pool = await get(db.Sigma);
         await pool.connect()
@@ -60,7 +61,7 @@ const { get } = require('../data-access/pool-manager')
           await pool.connect();
           const request = pool.request();
           if(type =='note'){
-               const sql = "update DATASIGMA2.dbo.itemF " +
+               const sql = "update DATASIGMA.dbo.itemF " +
                          " set NoteF = @value  " +
                          " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
                const data = await request
@@ -71,7 +72,7 @@ const { get } = require('../data-access/pool-manager')
                               .query(sql) 
                res.json({result:data});               
           }else if(type =='price10'){
-               const sql = "update DATASIGMA2.dbo.itemF " +
+               const sql = "update DATASIGMA.dbo.itemF " +
                          " set Price10 = Round(@value,0)  " +
                          " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
                const data = await request
@@ -85,7 +86,7 @@ const { get } = require('../data-access/pool-manager')
                if(value=='-'){
                     value = '0'
                }
-               const sql = "update DATASIGMA2.dbo.itemF " +
+               const sql = "update DATASIGMA.dbo.itemF " +
                          " set AmtF10 = @value  " +
                          " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
                const data = await request
@@ -96,7 +97,7 @@ const { get } = require('../data-access/pool-manager')
                               .query(sql) 
                res.json({result:data});               
           }else if(type =='price25'){
-               const sql = "update DATASIGMA2.dbo.itemF " +
+               const sql = "update DATASIGMA.dbo.itemF " +
                          " set Price25 = Round(@value,0)  " +
                          " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
                const data = await request
@@ -107,7 +108,7 @@ const { get } = require('../data-access/pool-manager')
                               .query(sql) 
                res.json({result:data});               
           }else if(type =='AmtF25'){
-               const sql = "update DATASIGMA2.dbo.itemF " +
+               const sql = "update DATASIGMA.dbo.itemF " +
                          " set AmtF25 = @value  " +
                          " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
                          console.log('test')
@@ -119,7 +120,7 @@ const { get } = require('../data-access/pool-manager')
                               .query(sql) 
                res.json({result:data});               
           }else if(type =='price50'){
-               const sql = "update DATASIGMA2.dbo.itemF " +
+               const sql = "update DATASIGMA.dbo.itemF " +
                          " set Price50 = Round(@value,0)  " +
                          " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
                          console.log('test')
@@ -131,7 +132,7 @@ const { get } = require('../data-access/pool-manager')
                               .query(sql) 
                res.json({result:data});               
           }else if(type =='AmtF50'){
-               const sql = "update DATASIGMA2.dbo.itemF " +
+               const sql = "update DATASIGMA.dbo.itemF " +
                          " set AmtF50 = @value  " +
                          " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
 
@@ -143,7 +144,7 @@ const { get } = require('../data-access/pool-manager')
                               .query(sql) 
                res.json({result:data});               
           }else if(type =='price100'){
-               const sql = "update DATASIGMA2.dbo.itemF " +
+               const sql = "update DATASIGMA.dbo.itemF " +
                          " set Price100 = Round(@value,0)  " +
                          " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
                          console.log('testq')
@@ -155,7 +156,7 @@ const { get } = require('../data-access/pool-manager')
                               .query(sql) 
                res.json({result:data});               
           }else if(type =='AmtF100'){
-               const sql = "update DATASIGMA2.dbo.itemF " +
+               const sql = "update DATASIGMA.dbo.itemF " +
                          " set AmtF100 = @value  " +
                          " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
                const data = await request
@@ -193,7 +194,7 @@ const { get } = require('../data-access/pool-manager')
          await pool.connect();
          const request = pool.request();
          if (type =='priceList'){
-             const sqlRes =  "select * from DATASIGMA2.dbo.Depart  where Name = @DepartName ";
+             const sqlRes =  "select * from DATASIGMA.dbo.Depart  where Name = @DepartName ";
              const sql = "update a " +
                       " set a.Pricelist = @value,  " +
                               " a.DatePriceList  = GETDATE(),  " +
@@ -205,19 +206,19 @@ const { get } = require('../data-access/pool-manager')
                               " a.AmtF25 = b.AmtF25, " +
                               " a.AmtF50 = b.AmtF50, " +
                               " a.AmtF100 = b.AmtF100 " +
-                         " from 	DATASIGMA2.dbo.itemF a inner join 	 DATASIGMA2.dbo.Depart b on b.Name = a.DePartName " +
+                         " from 	DATASIGMA.dbo.itemF a inner join 	 DATASIGMA.dbo.Depart b on b.Name = a.DePartName " +
                          " where a.ItemCode = @ItemCode and a.NameFGS = @NameFGS and a.Code = @code " ;
           const checkInsert = " select  TOP 1 FORMAT(DocDate,'yyyy-MM-dd') as DocDate ,DocNo " +
-          " from DATASIGMA2.dbo.ItemPricePack " +
+          " from DATASIGMA.dbo.ItemPricePack " +
           " where Month(DocDate) = MONTH(GETDATE()) and  " +
           " YEAR(DocDate) = YEAR(GETDATE()) "+
           " order by right(DocNo,4) DESC " ;
-          const insertSub = "insert into DATASIGMA2.dbo.ItemPricePackSub(DocNo,IDNO,ItemCode,Code,NameFG,NameFGS,Package,DepartCode,GrItem,Pricepack,DatePricePack,Name) " +  
+          const insertSub = "insert into DATASIGMA.dbo.ItemPricePackSub(DocNo,IDNO,ItemCode,Code,NameFG,NameFGS,Package,DepartCode,GrItem,Pricepack,DatePricePack,Name) " +  
                              "values " + 
                              "( " +
                              "@docNo, " + 
                              "(select COALESCE (str((select TOP 1  IDNo " + 
-                             "from DATASIGMA2.dbo.ItemPricePackSub " +  
+                             "from DATASIGMA.dbo.ItemPricePackSub " +  
                              " where DocNo = @docNo order by IDNo DESC )+1 ),'1') ), " + 
                              " @ItemCode2, " +
                              "@code2, " +
@@ -240,7 +241,7 @@ const { get } = require('../data-access/pool-manager')
           const dataCheck = await request.query(checkInsert);
           let [arrRecord] = dataCheck.recordset;
               if(arrRecord.DocDate != dateToday ){
-                   const insertDocNO = "insert into DATASIGMA2.dbo.ItemPricePack (DocNo,QNo,DocDate,EmpCode,MonthCal,GrItem) " +
+                   const insertDocNO = "insert into DATASIGMA.dbo.ItemPricePack (DocNo,QNo,DocDate,EmpCode,MonthCal,GrItem) " +
                                        "VALUES  " +
                                        "( " +
                                        "(select concat('PAC','-', right(FORMAT(GETDATE() ,'yyyy') +543,2), " +
@@ -253,7 +254,7 @@ const { get } = require('../data-access/pool-manager')
                                                                                     "select max(b.DocNo) as DocNo " +
                                                                                     "from( " +
                                                                                               "select right(DocNo,4) as DocNo  " +
-                                                                                              "from DATASIGMA2.dbo.ItemPricePack a  " +
+                                                                                              "from DATASIGMA.dbo.ItemPricePack a  " +
                                                                                               "where Month(DocDate) = MONTH(GETDATE()) and  " +
                                                                                                    "YEAR(DocDate) = YEAR(GETDATE()) " +
                                                                                          ")b " +
@@ -268,7 +269,7 @@ const { get } = require('../data-access/pool-manager')
                                                       "select max(b.DocNo) as DocNo " +
                                                       "from( " +
                                                            "select right(DocNo,4) as DocNo  " +
-                                                           "from DATASIGMA2.dbo.ItemPricePack a  " +
+                                                           "from DATASIGMA.dbo.ItemPricePack a  " +
                                                            "where Month(DocDate) = MONTH(GETDATE()) and  " +
                                                                 "YEAR(DocDate) = YEAR(GETDATE()) " +
                                                            ")b     " +

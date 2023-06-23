@@ -16,6 +16,10 @@ let result;
           port:1433,      // Replace with your database username
         password: 'GoodMan@Pm.Com'  ,
         driver: "msnodesqlv8",
+        pool: {
+          max: 50,
+          min: 0
+        },
         connectionTimeout: 300000,
         idleTimeoutMillis: 300000,
         requestTimeout: 300000,

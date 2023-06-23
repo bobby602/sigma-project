@@ -44,17 +44,22 @@ const PriceList = ()=>{
     }
 
     const handleReserveSubmit = (e)=>{
-        dispatch(insertReserveData(e,reserveValue,item,item_value.Name,'pricePage'));
+        
+            dispatch(insertReserveData(e,reserveValue,item,item_value.Name,'pricePage'));
+            setModalOn(false);
+        
     }
     const handleReservePrice = (e)=>{
         setReserveValue(e.target.value);
     }
 
     const handleReserveCancel =(e)=>{
+        
         dispatch(deleteReserveData(e,radioValue));
+        
     }
     const handleRadio = (e)=>{
-        console.log(e);
+        console.log(e)
         setRadiovalue(e);
     }
 
@@ -62,7 +67,7 @@ const PriceList = ()=>{
         setReserveSection(true);
     }
    const CanclereserveSec = (e,a)=>{
-        dispatch(fetchReserveData(e,a));
+        dispatch(fetchReserveData(e,a,'pricePage'));
         setReserveSection(false);
    }
     const op = optionsList.map((e)=>{
@@ -111,7 +116,7 @@ const PriceList = ()=>{
                         <Modal item = {item} setModalOn={setModalOn}>
                             <h3 className="mb-4 text-2xl font-medium text-gray-900 dark:text-white">{item.ItemCode} ({item.NameFGS})</h3> 
  
-                            <ul className="hidden mb-10 text-sm font-medium text-center text-gray-500 divide-x divide-gray-200 rounded-lg shadow sm:flex dark:divide-gray-700 dark:text-gray-400">
+                            <ul className="mb-10 text-sm font-medium text-center text-gray-500 divide-x divide-gray-200 rounded-lg shadow sm:flex dark:divide-gray-700 dark:text-gray-400">
                                 <li className="w-full">
                                     <a onClick = {reserveSec} className="inline-block w-full p-4 text-gray-900 bg-gray-100 rounded-l-lg focus:ring-4 focus:ring-blue-300 active focus:outline-none dark:bg-gray-700 dark:text-white" aria-current="page">จอง</a>
                                 </li>
@@ -123,25 +128,25 @@ const PriceList = ()=>{
                             {    
                                 reserveSection == true?
                                 <Fragment>
-                                    <form  onSubmit = {handleReserveSubmit}>
+                                    {/* <form  onSubmit = {handleReserveSubmit}> */}
                                         <table id="dtHorizontalExample" className=" w-full text-base text-left text-gray-500 dark:text-gray-400 mb-5">
                                             <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" >
                                             <td scope="col" class="px-6 py-4">Sale Name</td>
                                             <td className="px-6 py-4" >{item_value.Name}</td>
                                             </tr> 
                                             <tr  className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                            <td scope="col" class="px-6 py-4" >ราคา จอง</td>
+                                            <td scope="col" class="px-6 py-4" >จำนวน จอง</td>
                                             <td className="px-6 py-4"><input type="number" id="reservePrice"  onChange = {handleReservePrice} className="bg-green-50 border border-dark-500 text-green-900 dark:text-blue-400 placeholder-blue-700 dark:placeholder-black-500 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-green-500" placeholder="Reseve Input"/></td>
                                             </tr> 
                                         </table> 
-                                            <button type="submit"  className="h-12 text-lg  text-white bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg  mr-10 px-6 py-2.5 text-center ">จอง</button>
-                                    </form>    
+                                            <button type="submit"  onClick = {handleReserveSubmit} className="h-12 text-lg  text-white bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg  mr-10 px-6 py-2.5 text-center ">จอง</button>
+                                    {/* </form>     */}
                                 </Fragment>
                                 :
                                 <Fragment>
-                                    <form  onSubmit = {handleReserveCancel}>
+                                    {/* <form  onSubmit = {handleReserveCancel}> */}
                                     <div className={`${Styles.font} relative z-50 overflow-auto shadow-md rounded-lg`}>
-                                        <div className= "overflow-scroll  max-h-[500px]">
+                                        <div className= "overflow-scroll  max-h-[300px]">
                                             <table id="dtHorizontalExample" className=" w-full text-base text-left  dark:text-gray-400">
                                                     <thead className={`${Styles.textCustom}  text-white text-base bg-[#FF9E0A]  uppercase whitespace-nowrap sticky top-0 z-[100]`}>
                                                         <tr>
@@ -206,8 +211,8 @@ const PriceList = ()=>{
                                             </table>
                                         </div>  
                                     </div>
-                                    <button type="submit" className="h-12 text-lg  text-white bg-gradient-to-r from-red-500 via-red-600 to-red-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 dark:shadow-lg dark:shadow-red-800/80 font-medium rounded-lg mt-5 mr-10 px-6 py-2.5 text-center ">ยกเลิก จอง</button>
-                                    </form>
+                                    <button type="submit" onClick = {handleReserveCancel} className="h-12 text-lg  text-white bg-gradient-to-r from-red-500 via-red-600 to-red-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 dark:shadow-lg dark:shadow-red-800/80 font-medium rounded-lg mt-5 mr-10 px-6 py-2.5 text-center ">ยกเลิก จอง</button>
+                                    {/* </form> */}
                                 </Fragment>
                             }   
                         </Modal>

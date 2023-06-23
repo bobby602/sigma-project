@@ -247,6 +247,9 @@ const PriceTable = (data)=>{
             <td  className=" text-blue-400 px-6 py-4">
                 {e.containProduct}
             </td>
+            <td  className=" text-dark-400 px-6 py-4">
+                {e.DatePriceList}
+            </td>
             <td  className=" text-red-700 px-6 py-4">
               {e.priceList}
             </td>
@@ -380,6 +383,9 @@ const PriceTable = (data)=>{
                   </th>
                   <th scope="col" className="px-6 py-3">
                     ขนาดบรรจุ
+                  </th>
+                  <th scope="col" className={`px-6 py-3`}>
+                      วันที่
                   </th>
                   <th scope="col" className="px-6 py-3">
                     Price 1

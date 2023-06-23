@@ -24,21 +24,41 @@ const { get } = require('../data-access/pool-manager')
     let data1;
     const itemCode = req.body.e.ItemCode;
     const saleName = req.body.a;
-   const sql = " select * , FORMAT(docdate ,'dd/MM/yyyy') as docdateT  from DATASIGMA.dbo.ReserveProduct  where itemCode = @itemCode and SaleName = @saleName ";
-   const pool = await get(db.Sigma);
+    const type = req.body.type;
+    
+    const pool = await get(db.Sigma);
     try {
-         await pool.connect()
-         const request = pool.request();
-         const result = await request
-         .input('itemCode',mssql.VarChar(50),itemCode)
-         .input('saleName',mssql.VarChar(50),saleName)
-         .query(sql);
-         console.log(result)
-         res.json({result});
+        if(type ==  'pricePage'){
+          const NameFGS = req.body.e.NameFGS;
+          const code = req.body.e.code;
+          const sql = " select * , FORMAT(docdate ,'dd/MM/yyyy') as docdateT  from DATASIGMA.dbo.ReserveProduct  where itemCode = @itemCode and SaleName = @saleName and NameFGS = @NameFGS and code = @code";
+          await pool.connect()
+          const request = pool.request();
+          const result = await request
+          .input('itemCode',mssql.VarChar(50),itemCode)
+          .input('saleName',mssql.VarChar(50),saleName)
+          .input('NameFGS',mssql.VarChar(50),NameFGS)
+          .input('code',mssql.VarChar(50),code)
+          .query(sql);
+          console.log(result)
+          res.json({result});
+        }else{
+          const sql = " select * , FORMAT(docdate ,'dd/MM/yyyy') as docdateT  from DATASIGMA.dbo.ReserveProduct  where itemCode = @itemCode and SaleName = @saleName ";
+          await pool.connect()
+          const request = pool.request();
+          const result = await request
+          .input('itemCode',mssql.VarChar(50),itemCode)
+          .input('saleName',mssql.VarChar(50),saleName)
+          .query(sql);
+          console.log(result)
+          res.json({result});
+        }
        } catch (err) {
          // ... handle it locally
          throw new Error(err.message);
-       }
+       }finally {
+        pool.close(); // closing connection after request is finished
+      }
    });
 
    router.use((err,req,res,next)=>{
@@ -51,16 +71,23 @@ const { get } = require('../data-access/pool-manager')
     const sql = " delete from DATASIGMA.dbo.ReserveProduct where id = @id";
     const pool = await get(db.Sigma);
     try {
-         await pool.connect()
-         const request = pool.request();
-         const result = await request
-         .input('id',mssql.VarChar(50),id)
-         .query(sql);
-         res.json({result});
+          if(id === undefined || id ==""){
+           const result = false;
+           res.json({result});
+          }else{
+            await pool.connect()
+            const request = pool.request();
+            const result = await request
+            .input('id',mssql.VarChar(50),id)
+            .query(sql);
+            res.json({result});
+          }
        } catch (err) {
          // ... handle it locally
          throw new Error(err.message);
-       }
+       }finally {
+        pool.close(); // closing connection after request is finished
+      }
    });
 
    router.post('/insertRecord',async function(req,res){
@@ -68,20 +95,19 @@ const { get } = require('../data-access/pool-manager')
     const saleName = req.body.saleName;
     const itemCode = req.body.item.ItemCode;
     const itemName = req.body.item.name;
-    const Pack = req.body.item.pack;
     const code = req.body.item.code;
     const NameFGS = req.body.item.NameFGS;
     const type = req.body.type;
     const pool = await get(db.Sigma);
-
     try {
         if(type == 'pricePage'){
+          const Pack = req.body.item.pack;
           const sql = " insert into ReserveProduct (id,itemCode,itemName ,Qty,pack, SaleCode,SaleName,docdate,code,NameFGS) VALUES (left(NEWID(),8),@itemCode,@itemName,@price,@Pack,(select DePartCode from users where Name = @saleName),@saleName2,CURRENT_TIMESTAMP,@code,@NameFGS);";
           await pool.connect()
           const request = pool.request();
           const result = await request
           .input('itemCode',mssql.VarChar(50),itemCode)
-          .input('itemName',mssql.VarChar(50),itemName)
+          .input('itemName',mssql.VarChar(300),itemName)
           .input('price',mssql.Float(53),price)
           .input('Pack',mssql.VarChar(50),Pack)
           .input('saleName',mssql.VarChar(50),saleName)
@@ -91,22 +117,28 @@ const { get } = require('../data-access/pool-manager')
           .query(sql);
           res.json({result});
         }else{
-          const sql = " insert into ReserveProduct (id,itemCode,itemName ,Qty, SaleCode,SaleName,docdate) VALUES (left(NEWID(),8),@itemCode,@itemName,@price,(select DePartCode from users where Name = @saleName),@saleName2,CURRENT_TIMESTAMP);";
+          const Pack = req.body.item.Pack;
+          const sql = " insert into ReserveProduct (id,itemCode,itemName ,Qty, SaleCode,SaleName,docdate,pack) VALUES (left(NEWID(),8),@itemCode,@itemName,@price,(select DePartCode from users where Name = @saleName),@saleName2,CURRENT_TIMESTAMP,@Pack);";
           await pool.connect()
           const request = pool.request();
           const result = await request
           .input('itemCode',mssql.VarChar(50),itemCode)
-          .input('itemName',mssql.VarChar(50),req.body.item.Name)
+          .input('itemName',mssql.VarChar(300),req.body.item.Name)
           .input('price',mssql.Float(53),price)
           .input('saleName',mssql.VarChar(50),saleName)
           .input('saleName2',mssql.VarChar(50),saleName)
+          .input('Pack',mssql.VarChar(50),Pack)
           .query(sql);
+          console.log('insert')
           res.json({result});
+          
         }
-        
+
        } catch (err) {
          throw new Error(err.message);
-       }
+       }finally {
+        pool.close(); // closing connection after request is finished
+      }
    });
 
    router.use((err,req,res,next)=>{

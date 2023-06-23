@@ -19,7 +19,7 @@ const get = (options) => {
     if (!pools.has(options.name)) {
         set(options)
     }
-    console.log( pools.get(options.name))
+
     return pools.get(options.name)
 }
 
