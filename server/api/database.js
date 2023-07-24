@@ -56,7 +56,34 @@ let result;
           }
         }     // Replace wit
       }
-    }       // Replace with your database password // // Replace with your database Name
+    }, 
+    SigmaOffice:{
+      name:"DAT-OFFICE", //Server Name
+      config:{
+        server:'49.0.87.90',
+        database:'SIGMA-OFFICE', // Database Name
+        user: 'sa',
+          port:1433,      // Replace with your database username
+        password: 'GoodMan@Pm.Com'  ,
+        driver: "msnodesqlv8",
+        pool: {
+          max: 50,
+          min: 0
+        },
+        connectionTimeout: 300000,
+        idleTimeoutMillis: 300000,
+        requestTimeout: 300000,
+        trustServerCertificate: true,
+        options: {
+          trustedConnection: true,
+          enableArithAbort: true,
+          encrypt:false,
+          cryptoCredentialsDetails: {
+            minVersion: 'TLSv1'
+          }
+        }
+      }  
+    }      // Replace with your database password // // Replace with your database Name
   }; 
 
 module.exports = conn1;

@@ -56,9 +56,7 @@ const { get } = require('../data-access/pool-manager')
        } catch (err) {
          // ... handle it locally
          throw new Error(err.message);
-       }finally {
-        pool.close(); // closing connection after request is finished
-      }
+       }
    });
 
    router.use((err,req,res,next)=>{
@@ -85,9 +83,7 @@ const { get } = require('../data-access/pool-manager')
        } catch (err) {
          // ... handle it locally
          throw new Error(err.message);
-       }finally {
-        pool.close(); // closing connection after request is finished
-      }
+       }
    });
 
    router.post('/insertRecord',async function(req,res){
@@ -136,9 +132,7 @@ const { get } = require('../data-access/pool-manager')
 
        } catch (err) {
          throw new Error(err.message);
-       }finally {
-        pool.close(); // closing connection after request is finished
-      }
+       }
    });
 
    router.use((err,req,res,next)=>{

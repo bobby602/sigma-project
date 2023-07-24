@@ -65,7 +65,7 @@ const PriceTable = (data)=>{
                 {e.code}  
             </td>
           }    
-            <td  className=" sticky left-0 z-30 bg-white px-6 py-4 text-center">
+            <td  className=" sticky left-0 z-30 bg-white px-8 py-4 text-center">
                 {e.NameFGS}
             </td>
             <td  className="px-6 py-4">
@@ -372,10 +372,10 @@ const PriceTable = (data)=>{
                 </th> 
               </tr> :
                 <tr>
-                  <th scope="col" className={` px-6 py-3 `}>
+                  <th scope="col" className={` px-3 py-3 `}>
                     รหัสผลิตภัณฑ์
                   </th>
-                  <th scope="col" className={`sticky left-0 z-[100] bg-[#AE50FF] px-6 py-3 text-right `}>
+                  <th scope="col" className={`sticky left-0 z-[100] bg-[#AE50FF] px-8 py-3 text-right `}>
                     ชื่อการค้า
                   </th>
                   <th scope="col" className={`px-6 py-3`}>

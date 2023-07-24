@@ -12,6 +12,17 @@ const Navbar = ()=>{
     authCtx.onLogOut();
     navigate("/Login");
   }
+
+  let token = sessionStorage.getItem('token');
+  let jsonToken = JSON.parse(token);
+  let checkpage;
+  if(jsonToken.StAdmin =='1'){
+    checkpage= "/MainPage";
+  }else if(jsonToken.StAdmin =='2'){
+    checkpage= "/SalesPage";
+  }else{
+    checkpage= "/PriceLsit";
+  }
   // const ref = useRef(null);
   // const [y, setY] = useState(window.scrollY);
   // const [height, setHeight] = useState(0);
@@ -86,7 +97,7 @@ const Navbar = ()=>{
               <div className ={`${styles.content} sticky top-0 z-[200] bg-[#3F83F8] `}>   
                 <nav className={` bg-[#3F83F8] border-gray-100 px-1 sm:px-3 py-2 pr-4 pl-3  `}>
                   <div className=" flex flex-wrap  flex justify-between content-center  mx-auto ">
-                    <a href="/MainPage" className="flex content-center items-center">
+                    <a href={checkpage} className="flex content-center items-center">
                       <img src={process.env.PUBLIC_URL + "/icons/a-icon-chemical.png"} className="mr-3 h-6 sm:h-9 "  />
                       <span className={`${styles.textCustom} text-xl font-semibold whitespace-nowrap text-white`}>Sigma</span>
                     </a>

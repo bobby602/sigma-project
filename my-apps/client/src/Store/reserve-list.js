@@ -31,7 +31,6 @@ export const deleteReserveData = (e,a) => {
           const actualData = await res.data.result.recordset;
           return true;
         }  
-
       };
       let err = null;
       try {
@@ -50,7 +49,6 @@ export const deleteReserveData = (e,a) => {
       }
     };
 };
-
 export const insertReserveData = (e,a,item,saleName,type) => {
   return async (dispatch) => {
     const insertReserveRecord = async () => {

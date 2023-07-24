@@ -32,31 +32,36 @@ const line = require('@line/bot-sdk')
     res.json({result})
   });
 
-  router.post('/',async function(req,res){
-    var Login = req.body.username;
-    var password = req.body.password;
-    if(Login){
-        const pool = await get(db.Sigma);
-        await pool.connect()
-        const request = pool.request();
-        request
-        .input('Login',mssql.VarChar(50),Login)
-        .input('Password',mssql.VarChar(50),password)
-        .query('select Login,Name,StAdmin from [DATASIGMA].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
-            if(data.rowsAffected > 0){
-                console.log('test')
-                req.session.Login = Login;
-                res.json({result:data.recordsets});
-            }else{
-                res.status(400).send({
-                    result: "There was an issue signing up."
-                  });
+    router.post('/',async function(req,res){
+        try {
+            var Login = req.body.username;
+            var password = req.body.password;
+            if(Login){
+                const pool = await get(db.Sigma);
+                await pool.connect()
+                const request = pool.request();
+                request
+                .input('Login',mssql.VarChar(50),Login)
+                .input('Password',mssql.VarChar(50),password)
+                .query('select Login,Name,StAdmin,SaleCode from [DATASIGMA].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
+                    if(data.rowsAffected > 0){
+                        console.log('test')
+                        req.session.Login = Login;
+                        res.json({result:data.recordsets});
+                    }else{
+                        res.status(400).send({
+                            result: "There was an issue signing up."
+                        });
+                    }
+                });
+            } else{
+                res.json('Please Fill Username and Password');
             }
-        });
-    } else{
-        res.json('Please Fill Username and Password');
-    }
-});
+        } catch (error) {
+            console.error(error);
+            throw new Error(error);
+        } 
+    });
 
 router.post('/table',async function(req,res){
     const body = req.body.e;
@@ -131,6 +136,7 @@ router.post('/table',async function(req,res){
     }
     catch (error) {
         console.log(error);
+        throw new Error(error);
     }
 });
   router.get('/subTable',function(req,res){

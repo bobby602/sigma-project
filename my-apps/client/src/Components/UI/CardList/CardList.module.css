@@ -37,7 +37,7 @@
 .reportnumlist ol{
 	counter-reset: li !important;
 	list-style: none;
-	*list-style: decimal;
+	/* list-style: decimal; */
 	font: 15px ;
 	padding: 5px;
 	margin-bottom: 2em;
@@ -47,7 +47,7 @@
 	position: relative;
 	display: block; 
 	padding: .2em .4em .2em 2em;
-	*padding: .4em;
+	/* padding: .4em; */
 	margin: 1em 0;
 	background: rgb(217, 230, 238);
 	color: #444 !important;
@@ -82,7 +82,7 @@
 }
 .report_box{
 	/* font-family: 'Prompt', sans-serif; */
-	margin: 5px;
+	margin: 30px;
 	padding-left: 30px !important;
 	padding-right: 30px !important;
 	padding-bottom: 5px !important;

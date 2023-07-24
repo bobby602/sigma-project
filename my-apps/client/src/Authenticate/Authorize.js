@@ -13,10 +13,11 @@ const Authorize= (props)=>{
       checkpage= <Outlet/>;
     }
     else if(jsonToken.StAdmin =='3'){
-      checkpage = <Navigate to ="/PriceList"/>;
+      checkpage = <Navigate to ="/PriceLsit"/>;
     }
    else{
-      checkpage = <Navigate to ="/ProductList"/>;
+      checkpage= <Outlet/>;
+      // checkpage = <Navigate to ="/SalesPage"/>;
     }
     return (
             <Fragment>

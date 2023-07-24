@@ -2,13 +2,16 @@ import { BrowserRouter,Route ,Routes} from 'react-router-dom'
 import React,{ useState ,useEffect,useContext} from 'react';
 import LoginPage from './Pages/Login/LoginPage';
 import MainPage  from './Pages/Main/MainPage';
+import SalesPage  from './Pages/SalesPage/SalesPage';
 import UserPage  from './Pages/User/UserPage';
 import ProductList  from './Pages/ProductList/ProductList';
 import PriceList  from './Pages/PriceList/PriceList';
 import react,{Fragment} from 'react';
 import { useMediaQuery } from 'react-responsive';
-import Auth from './Authenticate/Auth'
-import Authorize from './Authenticate/Authorize'
+import Auth from './Authenticate/Auth';
+import Authorize from './Authenticate/Authorize';
+import CustomerPage from './Pages/Customer/CustomerPage';
+import SummaryPage from './Pages/SummarySale/SummaryPages';
 
 function App() {
 
@@ -24,14 +27,21 @@ function App() {
               <Routes>
                 <Route path="/" element={<Auth />} >
                   {/* public route*/}
-                    <Route path="/ProductList" element={<ProductList />} />
-
-                  {/* public route*/}
-                  <Route path="/PriceList" element={<PriceList />} />
+                    {/* <Route path="/ProductList" element={<ProductList />} /> */}
+                    <Route path="/PriceList" element={<PriceList />} />
 
                   {/* private route*/}
+                  {/* <Route element={<Authorize />}>
+                    <Route path="/SalesPage" element={<SalesPage />} />
+                    <Route path="/PriceList" element={<PriceList />}
+                  </Route> */}
+                   {/* <Route path="/SalesPage" element={<SalesPage />} /> */}
+                  {/* private route*/}
                   <Route element={<Authorize />}>
+                    <Route path="/SalesPage" element={<SalesPage />} />
                     <Route path="/MainPage" element={<MainPage />} />
+                    <Route path="/CustomerPage" element={<CustomerPage />} />
+                    <Route path="/SummaryPages" element={<SummaryPage />} />
                     <Route path="/ProductList" element={<ProductList />} />
                     <Route path="/PriceList" element={<PriceList />} />
                     <Route path="/UserPage" element={<UserPage />} />
@@ -47,14 +57,21 @@ function App() {
               <Routes>
                 <Route path="/" element={<Auth />} >
                   {/* public route*/}
-                  <Route path="/ProductList" element={<ProductList />} />
-
-                  {/* public route*/}
+                  {/* <Route path="/ProductList" element={<ProductList />} /> */}
                   <Route path="/PriceList" element={<PriceList />} />
+
+                   {/* private route*/}
+                   {/* <Route element={<Authorize />}>
+                    <Route path="/SalesPage" element={<SalesPage />} />
+                    <Route path="/PriceList" element={<PriceList />} />
+                  </Route> */}
 
                   {/* private route*/}
                   <Route element={<Authorize />}>
+                    <Route path="/SalesPage" element={<SalesPage />} />
                     <Route path="/MainPage" element={<MainPage />} />
+                    <Route path="/CustomerPage" element={<CustomerPage />} />
+                    <Route path="/SummaryPages" element={<SummaryPage />} />
                     <Route path="/ProductList" element={<ProductList />} />
                     <Route path="/PriceList" element={<PriceList />} />
                     <Route path="/UserPage" element={<UserPage />} />

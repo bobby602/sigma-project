@@ -20,7 +20,7 @@ const NewLoginPage =  (props)=>{
     const navigate = useNavigate();
     const submitHandler = (e) => {  
         e.preventDefault();
-       let url ='http://1.0.169.153:9001/';
+       let url ='http://192.168.1.102:9001/';
         fetch(url, {
             method: 'POST',
             body: JSON.stringify(input),
@@ -44,7 +44,7 @@ const NewLoginPage =  (props)=>{
               if(data.result[0][0].StAdmin == '1'){
                 navigate("/MainPage");
               }else if(data.result[0][0].StAdmin == '2'){
-                navigate("/ProductList");
+                navigate("/SalesPage");
               }else if(data.result[0][0].StAdmin == '3'){
                 navigate("/PriceList");
               }

@@ -2,19 +2,18 @@ import Navbar from "../../Components/UI/Navbar/Navbar";
 import react,{Fragment,useRef, useEffect,useCallback,useState} from 'react'
 import CardList from "../../Components/UI/CardList/CardList";
 // import TabMain from "../components/UI/Tab/TabMain";
-import Styles from "./MainPage.module.css"
+import Styles from "./SalesPage.module.css"
 
-const MainPage = ()=>{
-    
-    
-    const MenuName = {menu:["ระบบคำนวณ ราคาขาย",""],link:[["รายการสินค้า แยกตามประเภท","/ProductList"],["บันทึกรายการสินค้าตามแพ็คกิ้ง","/PriceList"],["ทะเบียนสินค้า","#"],["คำนวณราคาขาย/กำไร ตาม Packing","#"]]}
+const SalesPage = ()=>{
+
+    const MenuName = {menu:["ระบบคำนวณ ราคาขาย",""],link:[["ทะเบียนลูกค้า","/CustomerPage"],["สรุปยอดขาย","/SummaryPages"],["Price List","/ProductList"]]}
     
     return (
             <Fragment>
                 <div className={`${Styles.font} `} >
                     <img
                         className={Styles.demo}
-                        src={process.env.PUBLIC_URL + "/icons/S__9453600.jpg"}
+                        src={process.env.PUBLIC_URL + "/icons/background-gaf653d700_1280.jpg"}
                         alt=""
                     />  
                     <div className="relative ">
@@ -25,4 +24,4 @@ const MainPage = ()=>{
             </Fragment>    
     )
 }
-export default MainPage;
+export default SalesPage;
