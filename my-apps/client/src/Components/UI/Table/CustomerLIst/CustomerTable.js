@@ -25,7 +25,7 @@ const CustomerTable = (data)=>{
     const items = e.Code;
     const Name = e.Name;
     setItem(e);
-    console.log(e)
+    console.log(e.Code)
     dispatch(userList.getCustRegByCustCode(items));
     setModalOn(true);
 }
@@ -141,7 +141,7 @@ const formatDate = (date)=>{
                                     <tr>
                                         <td>
                                             <div className="p-6 w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
-                                                <img className = {`${Styles.img}`} src = {process.env.PUBLIC_URL + "/icon/folder.png"} alt="My Happy SVG"  width="200" height="300" />
+                                                <img className = {`${Styles.img}`} src = {process.env.PUBLIC_URL + "/icons/folder.png"} alt="My Happy SVG"  width="200" height="300" />
                                                 <p className = "text-xl">No Data </p>
                                             </div> 
                                         </td> 

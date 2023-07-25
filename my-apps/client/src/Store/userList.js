@@ -87,6 +87,10 @@ const userAction = createSlice({
        }
        
       },
+      getCustReg(state,action){
+        console.log(action.payload.searchData)
+        state.CustRegData = action.payload.searchData;
+      },
       getCustRegByCustCode(state,action){
         const item = action.payload;
         let CustRegData = state.CustRegData;

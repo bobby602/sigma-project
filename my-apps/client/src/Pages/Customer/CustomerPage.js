@@ -42,7 +42,7 @@ const CustomerPage= ()=>{
                         <Search Name = 'ชื่อลูกค้า' handleOnChange = {handleOnChange} />
                     </div>
                     <div className = "ml-10 pr-5">
-                        <Search Name = 'ชื่อยาสามัญ และ ชื่อยาการค้า' handleOnChange = {handleOnChange} />
+                        {/* <Search Name = 'ชื่อยาสามัญ และ ชื่อยาการค้า' handleOnChange = {handleOnChange} /> */}
                     </div>
                 </div>    
                 <CustomerList data ={userData} />

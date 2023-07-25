@@ -37,7 +37,7 @@ const { get } = require('../data-access/pool-manager')
 
    router.post('/selectSummaryUser',async function(req,res){
     let data1;
-   const sql = " select  CustCode ,CustName ,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(NetAmt),'0.00') AS MONEY), 1) AS VARCHAR) as NetAmt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amt),'0.00') AS MONEY), 1) AS VARCHAR)  as Amt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Cost),'0.00') AS MONEY), 1) AS VARCHAR) as Cost, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(amtdiff),'0.00') AS MONEY), 1) AS VARCHAR)  as amtdiff, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Coltd),'0.00') AS MONEY), 1) AS VARCHAR)   as Coltd, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(CUMSSP),'0.00') AS MONEY), 1) AS VARCHAR)  as CUMSSP, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(MS),'0.00') AS MONEY), 1) AS VARCHAR)  as MS,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Comsale),'0.00') AS MONEY), 1) AS VARCHAR)  as Comsale from RptAR1G where DocDate between @date1 and @date2 AND saleCode = @salecode group by CustCode,CustName ";
+   const sql = " select  CustCode ,CustName ,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(NetAmt), 0.00) AS MONEY), 1) AS VARCHAR) as NetAmt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amt),0.00) AS MONEY), 1) AS VARCHAR)  as Amt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Cost),0.00) AS MONEY), 1) AS VARCHAR) as Cost, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(amtdiff),0.00) AS MONEY), 1) AS VARCHAR)  as amtdiff, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Coltd),0.00) AS MONEY), 1) AS VARCHAR)   as Coltd, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(CUMSSP),0.00) AS MONEY), 1) AS VARCHAR)  as CUMSSP, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(MS),0.00) AS MONEY), 1) AS VARCHAR)  as MS,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Comsale),0.00) AS MONEY), 1) AS VARCHAR)  as Comsale from RptAR1G where DocDate between @date1 and @date2 AND saleCode = @salecode group by CustCode,CustName ";
    const pool = await get(db.SigmaOffice);
    let date1 = new Date();
    let date1Query;
@@ -176,6 +176,20 @@ const { get } = require('../data-access/pool-manager')
           }
         }
          res.json({finalResult});
+       } catch (err) {
+         // ... handle it locally
+         throw new Error(err.message);
+       }
+   });
+   router.get('/custReg',async function(req,res){
+    let data1;
+   const sql = " select * from custREG ";
+   const pool = await get(db.SigmaOffice);
+    try {
+         await pool.connect()
+         const request = pool.request();
+         const result = await request.query(sql);
+         res.json({result});
        } catch (err) {
          // ... handle it locally
          throw new Error(err.message);

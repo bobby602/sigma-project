@@ -122,7 +122,7 @@ const SummaryPage = ()=>{
                 <div className ={`${Styles.search} `}>
                 </div> 
                 <div className ="flex flex-wrap mb-5">
-                    <div className ="basis-2/4 ">  
+                    <div className =" ">  
                         {
                             showValue?
                             <div className="ml-10">

@@ -60,9 +60,9 @@ const SummaryTable = (data)=>{
             return (
                 <tr key={e.number} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap"> 
                  <td  className="px-6 py-4">
-                    <a onClick = {()=>{data.getLink(e.CustCode,e.CustName)}} className = "grow font-medium  text-blue-600 dark:text-blue-500 hover:underline">
+                    {/* <a onClick = {()=>{data.getLink(e.CustCode,e.CustName)}} className = "grow font-medium  text-blue-600 dark:text-blue-500 hover:underline"> */}
                       {e.CustCode}
-                    </a>
+                    {/* </a> */}
                   </td>
                  <td  className="px-6 py-4">
                     {e.CustName}
