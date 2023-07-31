@@ -30,8 +30,12 @@ const userAction = createSlice({
         console.log(searchVal);
         console.log(current(UserData))
         const result = myArray.filter((e)=>{
-            console.log(searchVal)
-           if(e.CustCode.includes(searchVal)){
+            if(e.CustName ==undefined){
+              e.CustName  = '';
+            }
+          if(e.CustName.includes(searchVal)){
+            return {...e};
+          }else if(e.CustCode.includes(searchVal)){
             return {...e};
           }
         })  
@@ -48,7 +52,6 @@ const userAction = createSlice({
         let UserData = state.userData;
         let CustRegData = state.CustRegData;
         let searchVal = action.payload;
-        console.log(CustRegData)
         let resultSearch = CustRegData.filter((e)=>{
           if (e.ItemName.includes(searchVal)){
             return {...e};
@@ -95,7 +98,6 @@ const userAction = createSlice({
         const item = action.payload;
         let CustRegData = state.CustRegData;
         let result  = CustRegData.filter((e)=>{
-          
           if(e.CustCode == item){
             return {...e}
           }

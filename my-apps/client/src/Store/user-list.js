@@ -64,3 +64,21 @@ import { userList } from './userList'
     };
   };
 
+  export const fetchCustomer = (date1,date2,code) => {
+    return async (dispatch) => {
+      const getCustomerData = async () => {
+        const res = await axios.get(`http://localhost:9001/customerList/custCode?custCode=${encodeURIComponent(code)}&date1=${encodeURIComponent(date1)}&date2=${encodeURIComponent(date2)}`);
+        console.log(res.data.finalResult)
+        return res.data.finalResult;
+      };
+      try {
+        const customerData = await getCustomerData();
+        dispatch(
+          userList.fetchCustomer({customerData})
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  };
+

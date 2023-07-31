@@ -12,6 +12,7 @@ import Auth from './Authenticate/Auth';
 import Authorize from './Authenticate/Authorize';
 import CustomerPage from './Pages/Customer/CustomerPage';
 import SummaryPage from './Pages/SummarySale/SummaryPages';
+import CustPage from './Pages/CustCode/CustPages';
 
 function App() {
 
@@ -42,6 +43,7 @@ function App() {
                     <Route path="/MainPage" element={<MainPage />} />
                     <Route path="/CustomerPage" element={<CustomerPage />} />
                     <Route path="/SummaryPages" element={<SummaryPage />} />
+                    <Route path="/CustPage" element={<CustPage />} />
                     <Route path="/ProductList" element={<ProductList />} />
                     <Route path="/PriceList" element={<PriceList />} />
                     <Route path="/UserPage" element={<UserPage />} />
@@ -72,6 +74,7 @@ function App() {
                     <Route path="/MainPage" element={<MainPage />} />
                     <Route path="/CustomerPage" element={<CustomerPage />} />
                     <Route path="/SummaryPages" element={<SummaryPage />} />
+                    <Route path="/CustPage" element={<CustPage />} />
                     <Route path="/ProductList" element={<ProductList />} />
                     <Route path="/PriceList" element={<PriceList />} />
                     <Route path="/UserPage" element={<UserPage />} />

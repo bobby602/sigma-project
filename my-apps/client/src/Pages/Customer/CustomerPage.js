@@ -20,6 +20,7 @@ const CustomerPage= ()=>{
     const handleOnChange = (e,name)=>{
         const search = e;
     if(name =='ชื่อยาสามัญ และ ชื่อยาการค้า'){
+        console.log('etst')
       dispatch(userList.searchCustomer(search));  
     }else{
         dispatch(userList.searchCustomerName(search));
@@ -42,7 +43,7 @@ const CustomerPage= ()=>{
                         <Search Name = 'ชื่อลูกค้า' handleOnChange = {handleOnChange} />
                     </div>
                     <div className = "ml-10 pr-5">
-                        {/* <Search Name = 'ชื่อยาสามัญ และ ชื่อยาการค้า' handleOnChange = {handleOnChange} /> */}
+                        <Search Name = 'ชื่อยาสามัญ และ ชื่อยาการค้า' handleOnChange = {handleOnChange} />
                     </div>
                 </div>    
                 <CustomerList data ={userData} />

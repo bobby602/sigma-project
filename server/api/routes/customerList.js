@@ -49,6 +49,7 @@ const { get } = require('../data-access/pool-manager')
         if(date1 != undefined && date2 != undefined && saleCode != undefined){
           let arrayDate1 = date1.split("/");
           let arrayDate2 = date2.split("/");
+          console.log(arrayDate2)
           date1Query = arrayDate1[2]+'-'+arrayDate1[1]+'-'+arrayDate1[0];
           date2Query = arrayDate2[2]+'-'+arrayDate2[1]+'-'+arrayDate2[0];
         }else{
@@ -200,6 +201,108 @@ const { get } = require('../data-access/pool-manager')
     const {status = 500} =err
     res.status(status).send('ERORR')
   })
+
+  router.get('/custCode',async function(req,res){
+    let data1;
+   const sql =  "select Docdate, DocNo, ItemName,PackSale , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Price),'0.00') AS MONEY), 1) AS VARCHAR) as Price,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(priceSale),'0.00') AS MONEY), 1) AS VARCHAR)  as priceSale ,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(QtySale),'0.00') AS MONEY), 1) AS VARCHAR)  as QtySale , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amt),'0.00') AS MONEY), 1) AS VARCHAR)  as Amt , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amtdiff),'0.00') AS MONEY), 1) AS VARCHAR)   as Margin  from RptAr1N  where DocDate between @date1 and @date2 and CustCode = @custCode  GROUP BY DocNo , ItemName ,Docdate ,PackSale ";
+   const pool = await get(db.SigmaOffice);
+   let date1 = new Date();
+    try {
+        let custCode = req.query.custCode;
+        let date1 = req.query.date1;
+        let date2 = req.query.date2;
+
+          await pool.connect()
+          const request = pool.request();
+          const result = await request
+          .input('date1',mssql.VarChar(50),date1)
+          .input('date2',mssql.VarChar(50),date2)
+          .input('custCode',mssql.VarChar(50),custCode)
+          .query(sql);
+
+        const num = result.rowsAffected[0];
+        let sumArr;
+        let sumPrice = 0;
+        let sumPriceSale = 0;
+        let sumQtySale = 0;
+        let sumAmt = 0;
+        let sumMargin = 0;
+        let Price ;
+        let priceSale;
+        let QtySale;
+        let Amt;
+        let Margin;
+        let sumAll = result.recordset.map((e,i)=>{
+
+          if(e.Price != null){
+            Price =  parseFloat(e.Price.replaceAll(',',''));
+          }
+          if( e.priceSale != null){
+            priceSale =  parseFloat( e.priceSale.replaceAll(',',''));
+          }
+          if(e.QtySale != null){
+            QtySale =  parseFloat(e.QtySale.replaceAll(',',''));
+          }
+          if(e.Amt != null){
+            Amt =  parseFloat(e.Amt.replaceAll(',',''));
+          }
+          if(e.Margin!= null){
+            Margin =  parseFloat(e.Margin.replaceAll(',',''));
+          }
+          sumPrice += Price; 
+          sumPriceSale +=  priceSale;
+          sumQtySale += QtySale;
+          sumAmt += Amt;
+          sumMargin += Margin;
+        });
+        if(sumPrice != null){
+          sumPrice= sumPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }else{
+          sumPrice = '0.00';
+        }
+
+        if(sumPriceSale != null){
+          sumPriceSale= sumPriceSale.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }else{
+          sumPriceSale = '0.00';
+        }
+
+        if(sumQtySale != null){
+          sumQtySale= sumQtySale.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }else{
+          sumQtySale = '0.00';
+        }
+
+        if(sumAmt != null){
+          sumAmt= sumAmt.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }else{
+          sumAmt = '0.00';
+        }
+
+        if(sumMargin != null){
+          sumMargin= sumMargin.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }else{
+          sumMargin = '0.00';
+        }
+        
+        let finalResult = {
+          ...result.recordset,
+          '110' :{
+            DocNo: 'รวม',
+            Price: sumPrice,
+            priceSale: sumPriceSale,
+            QtySale: sumQtySale,
+            Amt: sumAmt,
+            Margin: sumMargin
+          }
+        }
+        res.json({finalResult});
+       } catch (err) {
+         // ... handle it locally
+         throw new Error(err.message);
+         console.log(err.message)
+       }
+   });
 
 
 

@@ -1,13 +1,16 @@
-import { Fragment ,useRef,useEffect,useState,useCallback} from 'react';
+import { Fragment ,useRef,useEffect,useState,useCallback} from 'react'
 import Table from '../../../Input/Table/Table'
-import Styles from './SummaryTable.module.css';
+import Styles from './CustTable.module.css'
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+// import {faCheck, faTimes,faBox}from '@fortawesome/free-solid-svg-icons'
+// import useOutsideClick from '../../../../CustomHook/useOutsideClick';
 import { useSelector, useDispatch } from 'react-redux';
 import { useFetcher } from 'react-router-dom';
 
 
-const SummaryTable = (data)=>{  
+const MonthlyTable = (data)=>{  
   let dataTable = "";
-    console.log(data)
+
     const [item,setItem] = useState();
     const [numberRow,setNumberRow] = useState('');
     const [itemRowAll,setItemRowAll] = useState();
@@ -17,79 +20,67 @@ const SummaryTable = (data)=>{
     const dispatch = useDispatch();
     let token = sessionStorage.getItem('token');
     let jsonToken = JSON.parse(token);
+    // console.log(data.data[0])
     const arrData = Object.values(data.data);
-    
+
   if(data.data){
     dataTable = arrData.map((e,index)=>{
-        if(e.CustName == 'รวม'){
+        if(e.DocNo == 'รวม'){
             return (
                 <tr key={e.number} className="bg-yellow-200 border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap"> 
                   <td  className="px-6 py-4">
-                    {e.CustCode}
+                    {e.DocNo}
                   </td>
                  <td  className="px-6 py-4">
-                    {e.CustName}
+                    {e.ItemName}
                   </td> 
                   <td  className="px-6 py-4">
-                  {e.NetAmt}
+                    {e.QtySale}
                   </td>
                   <td  className="px-6 py-4">
-                  {e.Amt}
+                  {e.PackSale}
+                  </td>
+                  <td  className="px-6 py-4">
+                  {e.Price}
                   </td>  
                   <td className="px-6 py-4">
-                      {e.Cost}
+                      {e.priceSale}
                   </td>  
                   <td  className="px-6 py-4">
-                    {e.amtdiff}
-                  </td>
-                  <td  className="px-6 py-4">
-                    {e.Coltd}
+                    {e.Amt}
                   </td> 
                   <td  className="px-6 py-4">
-                    {e.CUMSSP}
-                  </td> 
-                  <td  className="px-6 py-4">
-                    {e.MS}
-                  </td> 
-                  <td  className="px-6 py-4">
-                    {e.Comsale}
+                    {e.Margin}
                   </td> 
               </tr>
             )
         }else{
             return (
                 <tr key={e.number} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap"> 
-                 <td  className="px-6 py-4">
-                    <a onClick = {()=>{data.getLink(e.CustCode,e.CustName)}} className = "grow font-medium  text-blue-600 dark:text-blue-500 hover:underline">
-                      {e.CustCode}
-                    </a>
+                <td  className="px-6 py-4">
+                    {e.DocNo}
                   </td>
                  <td  className="px-6 py-4">
-                    {e.CustName}
+                    {e.ItemName}
                   </td> 
                   <td  className="px-6 py-4">
-                  {e.NetAmt}
+                    {e.QtySale}
                   </td>
                   <td  className="px-6 py-4">
-                  {e.Amt}
+                  {e.PackSale}
+                  </td>
+                  <td  className="px-6 py-4">
+                  {e.Price}
                   </td>  
                   <td className="px-6 py-4">
-                      {e.Cost}
+                      {e.priceSale}
                   </td>  
+                 
                   <td  className="px-6 py-4">
-                    {e.amtdiff}
-                  </td>
-                  <td  className="px-6 py-4">
-                    {e.Coltd}
+                    {e.Amt}
                   </td> 
                   <td  className="px-6 py-4">
-                    {e.CUMSSP}
-                  </td> 
-                  <td  className="px-6 py-4">
-                    {e.MS}
-                  </td> 
-                  <td  className="px-6 py-4">
-                    {e.Comsale}
+                    {e.Margin}
                   </td> 
               </tr>
               )
@@ -103,40 +94,35 @@ const SummaryTable = (data)=>{
             <thead className={`${Styles.textCustom} text-base bg-cyan-500  uppercase whitespace-nowrap sticky top-0 z-[100] `}>
               <tr>
               <th scope="col" className="px-6 py-3">
-              CustCode
-                </th>
-              <th scope="col" className="px-6 py-3">
-              CustName
+                Doc No.
                 </th>
                 <th scope="col" className="px-6 py-3">
-                NetAmt
+                ItemName
+                </th>
+                <th scope="col" className="px-6 py-3">
+                QtySale
+                </th>
+                <th scope="col" className="px-6 py-3">
+                PackSale
+                </th>
+                <th scope="col" className="px-6 py-3">
+                Price
+                </th>
+                <th scope="col" className=" px-6 py-3 ">
+                priceSale 
                 </th>
                 <th scope="col" className="px-6 py-3">
                 Amt
                 </th>
-                <th scope="col" className=" px-6 py-3 ">
-                Cost 
-                </th>
                 <th scope="col" className="px-6 py-3">
-                amtdiff
-                </th>
-                <th scope="col" className="px-6 py-3">
-                Coltd
-                </th>
-                <th scope="col" className="px-6 py-3">
-                CUMSSP
-                </th>
-                <th scope="col" className="px-6 py-3">
-                MS
-                </th>
-                <th scope="col" className="px-6 py-3">
-                Comsale
+                Margin
                 </th>
               </tr> 
             </thead>
             <tbody>{dataTable}</tbody>      
-          </Table>      
+          </Table>
+            
         </Fragment>
         )
 }
-export default SummaryTable;
+export default MonthlyTable;
