@@ -37,7 +37,7 @@ const { get } = require('../data-access/pool-manager')
 
    router.post('/selectSummaryUser',async function(req,res){
     let data1;
-   const sql = " select  CustCode ,CustName ,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(NetAmt), 0.00) AS MONEY), 1) AS VARCHAR) as NetAmt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amt),0.00) AS MONEY), 1) AS VARCHAR)  as Amt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Cost),0.00) AS MONEY), 1) AS VARCHAR) as Cost, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(amtdiff),0.00) AS MONEY), 1) AS VARCHAR)  as amtdiff, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Coltd),0.00) AS MONEY), 1) AS VARCHAR)   as Coltd, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(CUMSSP),0.00) AS MONEY), 1) AS VARCHAR)  as CUMSSP, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(MS),0.00) AS MONEY), 1) AS VARCHAR)  as MS,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Comsale),0.00) AS MONEY), 1) AS VARCHAR)  as Comsale from RptAR1G where DocDate between @date1 and @date2 AND saleCode = @salecode group by CustCode,CustName ";
+   const sql = " select  CustCode ,CustName ,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(NetAmt), 0.00) AS MONEY), 1) AS VARCHAR) as NetAmt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amt),0.00) AS MONEY), 1) AS VARCHAR)  as Amt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Cost),0.00) AS MONEY), 1) AS VARCHAR) as Cost, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(amtdiff),0.00) AS MONEY), 1) AS VARCHAR)  as amtdiff, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Coltd),0.00) AS MONEY), 1) AS VARCHAR)   as Coltd, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(CUMSSP),0.00) AS MONEY), 1) AS VARCHAR)  as CUMSSP, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(MS),0.00) AS MONEY), 1) AS VARCHAR)  as MS,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Comsale),0.00) AS MONEY), 1) AS VARCHAR)  as Comsale,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Target),0) AS int), 1) AS VARCHAR)  as Target from RptAR1G where DocDate between @date1 and @date2 AND saleCode = @salecode group by CustCode,CustName ";
    const pool = await get(db.SigmaOffice);
    let date1 = new Date();
    let date1Query;
@@ -75,6 +75,7 @@ const { get } = require('../data-access/pool-manager')
         let sumCUMSSP = 0;
         let sumMS = 0;
         let sumComsale = 0;
+        let sumTarget = 0;
         let NetAmt ;
         let Amt;
         let Cost;
@@ -83,6 +84,7 @@ const { get } = require('../data-access/pool-manager')
         let CUMSSP;
         let MS;
         let Comsale;
+        let Target;
         let sumAll = result.recordset.map((e,i)=>{
           if(e.NetAmt!= null){
             NetAmt =  parseFloat(e.NetAmt.replaceAll(',',''));
@@ -106,10 +108,13 @@ const { get } = require('../data-access/pool-manager')
           if(e.MS!= null){
             MS =  parseFloat(e.MS.replaceAll(',',''));
           }
-
           if(e.Comsale!= null){
             Comsale =  parseFloat(e.Comsale.replaceAll(',',''));
           }
+          if(e.Target!= null){
+            Target =  parseInt(e.Target.replaceAll(',',''));
+          }
+          
           sumNetAmt += NetAmt; 
           sumAmt +=  Amt;
           sumCost += Cost;
@@ -118,6 +123,7 @@ const { get } = require('../data-access/pool-manager')
           sumCUMSSP += CUMSSP;
           sumMS += MS;
           sumComsale += Comsale;
+          sumTarget += Target;
         });
 
         if(sumNetAmt != null){
@@ -162,6 +168,12 @@ const { get } = require('../data-access/pool-manager')
           sumComsale = '0.00';
         }
 
+        if(sumComsale != null){
+          sumTarget= sumTarget.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }else{
+          sumTarget = '0';
+        }
+
         let finalResult = {
           ...result.recordset,
           '110' :{
@@ -173,7 +185,8 @@ const { get } = require('../data-access/pool-manager')
             Coltd: sumColtd,
             CUMSSP: sumCUMSSP,
             MS: sumMS,
-            Comsale: sumComsale
+            Comsale: sumComsale,
+            Target : sumTarget
           }
         }
          res.json({finalResult});
@@ -204,7 +217,7 @@ const { get } = require('../data-access/pool-manager')
 
   router.get('/custCode',async function(req,res){
     let data1;
-   const sql =  "select Docdate, DocNo, ItemName,PackSale , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Price),'0.00') AS MONEY), 1) AS VARCHAR) as Price,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(priceSale),'0.00') AS MONEY), 1) AS VARCHAR)  as priceSale ,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(QtySale),'0.00') AS MONEY), 1) AS VARCHAR)  as QtySale , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amt),'0.00') AS MONEY), 1) AS VARCHAR)  as Amt , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amtdiff),'0.00') AS MONEY), 1) AS VARCHAR)   as Margin  from RptAr1N  where DocDate between @date1 and @date2 and CustCode = @custCode  GROUP BY DocNo , ItemName ,Docdate ,PackSale ";
+   const sql =  "select FORMAT(docdate ,'dd/MM/yyyy') as docdate, DocNo,ItemCode, ItemName,PackSale , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Price),'0.00') AS MONEY), 1) AS VARCHAR) as Price,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(priceSale),'0.00') AS MONEY), 1) AS VARCHAR)  as priceSale ,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(QtySale),'0.00') AS MONEY), 1) AS VARCHAR)  as QtySale , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amt),'0.00') AS MONEY), 1) AS VARCHAR)  as Amt , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amtdiff),'0.00') AS MONEY), 1) AS VARCHAR)   as Margin , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(NetAmt),'0.00') AS MONEY), 1) AS VARCHAR)   as NetAmt, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(QtyPackD),'0.00') AS MONEY), 1) AS VARCHAR)   as QtyPackD,Package,PackD  from RptAr1N  where DocDate between @date1 and @date2 and CustCode = @custCode  GROUP BY DocNo , ItemName ,Docdate ,PackSale,Package,PackD ,ItemCode";
    const pool = await get(db.SigmaOffice);
    let date1 = new Date();
     try {
@@ -227,11 +240,15 @@ const { get } = require('../data-access/pool-manager')
         let sumQtySale = 0;
         let sumAmt = 0;
         let sumMargin = 0;
+        let sumNetAmt = 0;
+        let sumQtyPackD = 0;
         let Price ;
         let priceSale;
         let QtySale;
         let Amt;
         let Margin;
+        let NetAmt;
+        let QtyPackD;
         let sumAll = result.recordset.map((e,i)=>{
 
           if(e.Price != null){
@@ -249,11 +266,19 @@ const { get } = require('../data-access/pool-manager')
           if(e.Margin!= null){
             Margin =  parseFloat(e.Margin.replaceAll(',',''));
           }
+          if(e.NetAmt!= null){
+            NetAmt =  parseFloat(e.NetAmt.replaceAll(',',''));
+          }
+          if(e.QtyPackD!= null){
+            QtyPackD =  parseFloat(e.QtyPackD.replaceAll(',',''));
+          }
           sumPrice += Price; 
           sumPriceSale +=  priceSale;
           sumQtySale += QtySale;
           sumAmt += Amt;
           sumMargin += Margin;
+          sumNetAmt += NetAmt;
+          sumQtyPackD += QtyPackD;
         });
         if(sumPrice != null){
           sumPrice= sumPrice.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -284,6 +309,17 @@ const { get } = require('../data-access/pool-manager')
         }else{
           sumMargin = '0.00';
         }
+
+        if(sumNetAmt != null){
+          sumNetAmt= sumNetAmt.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }else{
+          sumNetAmt = '0.00';
+        }
+        if(sumQtyPackD != null){
+          sumQtyPackD= sumQtyPackD.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }else{
+          sumQtyPackD = '0.00';
+        }
         
         let finalResult = {
           ...result.recordset,
@@ -293,7 +329,9 @@ const { get } = require('../data-access/pool-manager')
             priceSale: sumPriceSale,
             QtySale: sumQtySale,
             Amt: sumAmt,
-            Margin: sumMargin
+            Margin: sumMargin,
+            NetAmt: sumNetAmt,
+            QtyPackD: sumQtyPackD
           }
         }
         res.json({finalResult});

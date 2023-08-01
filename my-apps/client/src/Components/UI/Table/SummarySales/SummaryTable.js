@@ -21,7 +21,7 @@ const SummaryTable = (data)=>{
     
   if(data.data){
     dataTable = arrData.map((e,index)=>{
-        if(e.CustName == 'รวม'){
+        if(e.CustCode == 'รวม'){
             return (
                 <tr key={e.number} className="bg-yellow-200 border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap"> 
                   <td  className="px-6 py-4">
@@ -34,9 +34,9 @@ const SummaryTable = (data)=>{
                   {e.NetAmt}
                   </td>
                   <td  className="px-6 py-4">
-                  {e.Amt}
+                  {e.Target}
                   </td>  
-                  <td className="px-6 py-4">
+                  {/* <td className="px-6 py-4">
                       {e.Cost}
                   </td>  
                   <td  className="px-6 py-4">
@@ -53,7 +53,7 @@ const SummaryTable = (data)=>{
                   </td> 
                   <td  className="px-6 py-4">
                     {e.Comsale}
-                  </td> 
+                  </td>  */}
               </tr>
             )
         }else{
@@ -71,9 +71,9 @@ const SummaryTable = (data)=>{
                   {e.NetAmt}
                   </td>
                   <td  className="px-6 py-4">
-                  {e.Amt}
+                  {e.Target}
                   </td>  
-                  <td className="px-6 py-4">
+                  {/* <td className="px-6 py-4">
                       {e.Cost}
                   </td>  
                   <td  className="px-6 py-4">
@@ -90,7 +90,7 @@ const SummaryTable = (data)=>{
                   </td> 
                   <td  className="px-6 py-4">
                     {e.Comsale}
-                  </td> 
+                  </td>  */}
               </tr>
               )
         }  
@@ -112,9 +112,9 @@ const SummaryTable = (data)=>{
                 NetAmt
                 </th>
                 <th scope="col" className="px-6 py-3">
-                Amt
+                Target
                 </th>
-                <th scope="col" className=" px-6 py-3 ">
+                {/* <th scope="col" className=" px-6 py-3 ">
                 Cost 
                 </th>
                 <th scope="col" className="px-6 py-3">
@@ -131,7 +131,7 @@ const SummaryTable = (data)=>{
                 </th>
                 <th scope="col" className="px-6 py-3">
                 Comsale
-                </th>
+                </th> */}
               </tr> 
             </thead>
             <tbody>{dataTable}</tbody>      

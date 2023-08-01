@@ -40,7 +40,7 @@ const NewLoginPage =  (props)=>{
               }
             })
             .then((data) => {
-              authCtx.onLogin(data.result[0]);
+              authCtx.onLogin(data);
               if(data.result[0][0].StAdmin == '1'){
                 navigate("/MainPage");
               }else if(data.result[0][0].StAdmin == '2'){

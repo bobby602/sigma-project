@@ -36,24 +36,40 @@ const line = require('@line/bot-sdk')
         try {
             var Login = req.body.username;
             var password = req.body.password;
+            let saleCode;
             if(Login){
                 const pool = await get(db.Sigma);
                 await pool.connect()
                 const request = pool.request();
+                const pool2 = await get(db.SigmaOffice);
+                await pool2.connect()
+                const request2 = pool2.request();
                 request
                 .input('Login',mssql.VarChar(50),Login)
                 .input('Password',mssql.VarChar(50),password)
                 .query('select Login,Name,StAdmin,SaleCode from [DATASIGMA].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
                     if(data.rowsAffected > 0){
-                        console.log('test')
-                        req.session.Login = Login;
-                        res.json({result:data.recordsets});
+                        if(data.recordsets[0][0].SaleCode != undefined && data.recordsets[0][0].SaleCode!=''){
+                            saleCode = data.recordsets[0][0].SaleCode;
+                            request2
+                            .input('salecode',mssql.VarChar(50),saleCode)
+                            .query('select Name,SurName from sale where Code = @salecode',function(err,Data2,fields){
+                                if(Data2.rowsAffected > 0){
+                                    req.session.Login = Login;
+                                    res.json({result:data.recordsets,resultInfo:Data2.recordsets});
+                                }
+                            });
+                        }else{
+                            req.session.Login = Login;
+                            res.json({result:data.recordsets});
+                        }
                     }else{
                         res.status(400).send({
                             result: "There was an issue signing up."
                         });
                     }
                 });
+
             } else{
                 res.json('Please Fill Username and Password');
             }

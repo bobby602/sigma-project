@@ -31,57 +31,63 @@ const MonthlyTable = (data)=>{
                   <td  className="px-6 py-4">
                     {e.DocNo}
                   </td>
-                 <td  className="px-6 py-4">
-                    {e.ItemName}
-                  </td> 
                   <td  className="px-6 py-4">
-                    {e.QtySale}
+                    {e.DocDate}
                   </td>
                   <td  className="px-6 py-4">
-                  {e.PackSale}
+                    {e.ItemCode}
+                  </td>
+                 <td  className="px-6 py-4">
+                    {e.ItemName}
+                  </td>
+                  <td  className="px-6 py-4">
+                  {e.Package}
                   </td>
                   <td  className="px-6 py-4">
                   {e.Price}
                   </td>  
                   <td className="px-6 py-4">
-                      {e.priceSale}
-                  </td>  
-                  <td  className="px-6 py-4">
+                      {e.NetAmt}
+                  </td>   
+                  {/* <td  className="px-6 py-4">
                     {e.Amt}
                   </td> 
                   <td  className="px-6 py-4">
                     {e.Margin}
-                  </td> 
+                  </td>  */}
               </tr>
             )
         }else{
             return (
                 <tr key={e.number} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap"> 
                 <td  className="px-6 py-4">
+                    {e.docdate}
+                  </td>
+                <td  className="px-6 py-4">
                     {e.DocNo}
+                  </td>
+                  <td  className="px-6 py-4">
+                    {e.ItemCode}
                   </td>
                  <td  className="px-6 py-4">
                     {e.ItemName}
                   </td> 
                   <td  className="px-6 py-4">
-                    {e.QtySale}
-                  </td>
-                  <td  className="px-6 py-4">
-                  {e.PackSale}
+                  {e.Package}
                   </td>
                   <td  className="px-6 py-4">
                   {e.Price}
                   </td>  
                   <td className="px-6 py-4">
-                      {e.priceSale}
+                      {e.NetAmt}
                   </td>  
                  
-                  <td  className="px-6 py-4">
+                  {/* <td  className="px-6 py-4">
                     {e.Amt}
                   </td> 
                   <td  className="px-6 py-4">
                     {e.Margin}
-                  </td> 
+                  </td>  */}
               </tr>
               )
         }  
@@ -94,29 +100,32 @@ const MonthlyTable = (data)=>{
             <thead className={`${Styles.textCustom} text-base bg-cyan-500  uppercase whitespace-nowrap sticky top-0 z-[100] `}>
               <tr>
               <th scope="col" className="px-6 py-3">
+                Doc Date
+                </th>
+              <th scope="col" className="px-6 py-3">
                 Doc No.
+                </th>
+                <th scope="col" className="px-6 py-3">
+                ItemCode
                 </th>
                 <th scope="col" className="px-6 py-3">
                 ItemName
                 </th>
                 <th scope="col" className="px-6 py-3">
-                QtySale
-                </th>
-                <th scope="col" className="px-6 py-3">
-                PackSale
+                Package
                 </th>
                 <th scope="col" className="px-6 py-3">
                 Price
                 </th>
                 <th scope="col" className=" px-6 py-3 ">
-                priceSale 
+                NetAmt 
                 </th>
-                <th scope="col" className="px-6 py-3">
+                {/* <th scope="col" className="px-6 py-3">
                 Amt
                 </th>
                 <th scope="col" className="px-6 py-3">
                 Margin
-                </th>
+                </th> */}
               </tr> 
             </thead>
             <tbody>{dataTable}</tbody>      

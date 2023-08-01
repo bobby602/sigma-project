@@ -37,7 +37,12 @@ const CardList = (prop)=>{
                                 <p className={`my-5  text-center text-base font-semibold text-gray-900 ${styles.text} dark:text-white`}>
                                     {date} 
                                 </p>
-                                <h1 className = "text-4xl leading-loose text-center mb-20">Welcome to Sigma Group Thailand</h1>
+                                <h1 className = "text-4xl leading-loose text-center mb-5">Welcome to Sigma Group Thailand</h1>
+                                {
+                                    prop.saleMenu?  
+                                     <h2 className= "text-4xl leading-loose text-center ">{prop.saleMenu.Name} {prop.saleMenu.SurName}</h2>
+                                     :''
+                                }
                                 <div className ={`${styles.report_box}`}>  
                                     <p className = "text-3xl text-left leading-4 text-green-600"><strong>{prop.listName.menu[0]}</strong></p>
                                     <div className ={`${styles.reportnumlist}`}>

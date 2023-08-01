@@ -20,21 +20,50 @@ const SummaryPage = ()=>{
     let token = sessionStorage.getItem('token');
     let jsonToken = JSON.parse(token);
     const [error, setError] = useState(null);
-    const [value1, setvalue1] = useState('');
+    const [value1, setvalue1] = useState(0);
     const [value2, setvalue2] = useState('');
     const [search,setSearch] = useState('');
-    const [cust,setCust] = useState(false);
+    const [cust,setCust] = useState(true);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    
-        // if((searchParams.get("date1") !=null) && (searchParams.get("date2")!= null)){
-            // setShowValue(true);
-            // updateValue();
-            // console.log(showValue)
-            // dispatch(fetchSummaryUserbyDate({date1Val:searchParams.get("date1"),date2Val:searchParams.get("date2")},jsonToken.SaleCode));
-        // }
+    const updateValue = async()=>{
+        setInput({
+          date1Val:searchParams.get("date1"),
+          date2Val:searchParams.get("date2")
+        })
+        document.getElementById("date1").value = input.date1Val;
+        document.getElementById("date2").value = input.date2Val;
+        setShowValue(true)
+    }
+
+        useEffect (()=>{
+            if((searchParams.get("date1") !=null) && (searchParams.get("date2")!= null)){
+                updateValue();
+                // setvalue1(value1+1)
+                // dispatch(fetchSummaryUserbyDate(input,jsonToken.SaleCode));
+                // async function fetchData() {
+                //     try {
+                //         updateValue();
+                //         // const response =  await dispatch(fetchSummaryUserbyDate(input,jsonToken.SaleCode));
+                //     } catch (error) {
+                //       console.error('Error fetching data:', error);
+
+                //     }
+                // }
+                // const timeout = setTimeout(() => {
+                //     updateValue(); // Replace 'updated value' with the desired updated value.
+                // }, 2000);
+
+                // const timeout2 = setTimeout(() => {
+                //     fetchData(); // Replace 'updated value' with the desired updated value.
+                // }, 3000);
+
+                // return () => clearTimeout(timeout,timeout2); 
+
+            }
+        },[])
    
 
     const getLink = (e,a)=>{
@@ -43,6 +72,7 @@ const SummaryPage = ()=>{
     }
 
     const goToCust = (input,e,a) =>{
+        setShowValue(false)
       navigate({
         pathname: '/CustPage',
         search:`?custCode=${e}&date1=${input.date1Val}&date2=${input.date2Val}&custName=${a}`,
@@ -59,14 +89,7 @@ const SummaryPage = ()=>{
         if(re.exec(input.date1Val)!= null && re.exec(input.date2Val)!= null ){
             setShowValue(true);
             dispatch(fetchSummaryUserbyDate(input,jsonToken.SaleCode));
-        }
-        // else if((searchParams.get("date1") !=null) && (searchParams.get("date2")!= null)){
-        //     if(re.exec(document.getElementById("date1").value)!= null && re.exec(document.getElementById("date2").value)!= null){
-        //         setShowValue(true);
-        //         dispatch(fetchSummaryUserbyDate({date1Val:searchParams.get("date1"),date2Val:searchParams.get("date2")},jsonToken.SaleCode));
-        //     }
-        // }
-        else{
+        }else{
             alert("Invalid date Format ! \n Please enter the date in the format dd/MM/YYYY")
         }
     }
@@ -95,7 +118,7 @@ const SummaryPage = ()=>{
             <Navbar/>
             <div className={`${Styles.borderTable}  `}>
             <button type="button" className="text-gray-900 bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 mt-4">Back to Main Page</button>
-                <p className= "text-3xl text-gray-700 font-mono hover:text-blue-600">สรุปยอดขาย</p>
+                <p className= "text-3xl text-gray-700 font-mono hover:text-blue-600">สรุปยอดขาย{}</p>
                     <form className ={`${Styles.searchDate}`} onSubmit={submitHandler} >
                         <div className = "flex px-4 mt-10 justify-center">
                             <div className="content-center mt-8 px-3">

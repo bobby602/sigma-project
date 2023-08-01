@@ -5,8 +5,11 @@ import CardList from "../../Components/UI/CardList/CardList";
 import Styles from "./SalesPage.module.css"
 
 const SalesPage = ()=>{
-
+    let token = sessionStorage.getItem('token2');
+    let jsonToken = JSON.parse(token);
+    console.log(jsonToken)
     const MenuName = {menu:["ระบบคำนวณ ราคาขาย",""],link:[["ทะเบียนลูกค้า","/CustomerPage"],["สรุปยอดขาย","/SummaryPages"],["Price List","/ProductList"]]}
+    console.log()
     
     return (
             <Fragment>
@@ -18,7 +21,7 @@ const SalesPage = ()=>{
                     />  
                     <div className="relative ">
                         <Navbar />
-                        <CardList listName ={MenuName}/> 
+                        <CardList listName ={MenuName} saleMenu = {jsonToken}/> 
                     </div>    
                 </div>    
             </Fragment>    

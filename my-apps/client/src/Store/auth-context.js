@@ -13,11 +13,15 @@ export const AuthContextProvider = (props)=>{
     const tokenData = retrieveStoredToken();
     let initialToken;
     const [token, setToken] = useState(initialToken);
+    const [token2, setToken2] = useState(initialToken);
     const [isLoggedIn,setIsLoggin] = useState();
 
     const loginHandler = (token) =>{
-        setToken(token[0]);
-        sessionStorage.setItem('token', JSON.stringify(token[0]));
+        // console.log(token.result[0][0])
+        setToken(token.result[0][0]);
+        setToken2(token.resultInfo[0][0]);
+        sessionStorage.setItem('token', JSON.stringify(token.result[0][0]));
+        sessionStorage.setItem('token2', JSON.stringify(token.resultInfo[0][0]));
         setIsLoggin(true);
     }
     const failLogin = () =>{
