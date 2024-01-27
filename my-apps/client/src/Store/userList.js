@@ -8,6 +8,7 @@ const userAction = createSlice({
     summaryuserData:[],
     summaryFilterData:[],
     custUserData:[],
+    custFilterUserData:[],
     CustRegData:[],
     CustRegDataByCustCode:[],
     filterData:[]
@@ -47,6 +48,32 @@ const userAction = createSlice({
       },
       fetchCustomer(state,action){
         state.custUserData = action.payload.customerData;
+        state.custFilterUserData = action.payload.customerData;
+      },
+      searchCustCode(state,action){
+        let searchVal = action.payload;
+        let UserData = state.custUserData;
+        const myArray = Object.values(UserData).map((e) => {return {...e}});
+        const result = myArray.filter((e)=>{
+          if(e.ItemName ==undefined){
+            e.ItemName  = '';
+          }
+          if(e.ItemCode ==undefined){
+            e.ItemCode  = '';
+          }
+
+          if(e.ItemName.includes(searchVal)){
+            return {...e};
+          }else if(e.ItemCode.includes(searchVal)){
+            return {...e};
+          }
+       })  
+       if(searchVal == ""){
+        state.custFilterUserData = UserData;
+       }else{
+        state.custFilterUserData = result;
+       }
+       
       },
       searchCustomer(state,action){
         let UserData = state.userData;

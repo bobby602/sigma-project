@@ -17,7 +17,7 @@ let result;
         password: 'GoodMan@Pm.Com'  ,
         driver: "msnodesqlv8",
         pool: {
-          max: 50,
+          max: 100,
           min: 0
         },
         connectionTimeout: 300000,
@@ -67,7 +67,7 @@ let result;
         password: 'GoodMan@Pm.Com'  ,
         driver: "msnodesqlv8",
         pool: {
-          max: 50,
+          max: 200,
           min: 0
         },
         connectionTimeout: 300000,

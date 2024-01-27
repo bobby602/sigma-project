@@ -1,5 +1,7 @@
 import { MultiSelect } from 'primereact/multiselect';
 import { Fragment } from 'react';
+import "primereact/resources/primereact.min.css";    
+import "primereact/resources/themes/lara-light-indigo/theme.css";   
 import  './Selectbox.css'
 import { useSelector, useDispatch } from 'react-redux';
 

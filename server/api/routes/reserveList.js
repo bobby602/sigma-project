@@ -37,7 +37,7 @@ const { get } = require('../data-access/pool-manager')
           const result = await request
           .input('itemCode',mssql.VarChar(50),itemCode)
           .input('saleName',mssql.VarChar(50),saleName)
-          .input('NameFGS',mssql.VarChar(50),NameFGS)
+          .input('NameFGS',mssql.VarChar(150),NameFGS)
           .input('code',mssql.VarChar(50),code)
           .query(sql);
           console.log(result)

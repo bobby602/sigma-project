@@ -108,14 +108,14 @@ router.post('/table',async function(req,res){
                                                         " ) a  " +
                                                         " on a.ItemCode = itemDm.itemcode  " +
                                                         " inner join (  " +
-                                                                " Select  itemcode,name,sum(qbal +QS2) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs) + Sum(Qs2) as BAL,Note " +
+                                                                " Select  itemcode,name,sum(qbal) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs)  as BAL,Note " +
                                                                 " From DATASIGMA.dbo.rptstock2   " +
                                                                 " Group by itemcode,name,pack ,Note   " +
                                                                 " )b on b.itemcode = itemDm.itemcode " +   
                                                         " left join ( select itemCode,sum(QTY) as QTY from ReserveProduct  group by itemCode ) c on c.itemCode = ItemDm.ItemCode " +    
                                                                 " where itemdm.TyItemDm like '%['+@Type+']%' and  itemdm.StDispPrice <> '2'"+ 
                         " ) tmp " +
-                        " order by tmp.num,tmp.rowNum,tmp.Name ASC;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(b.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(b.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA.dbo.QitemBom a inner join DATASIGMA.dbo.BomSub b on b.code  = a.code and b.itemcode = a.ItemCode    ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA.dbo.bom; select DePartName from itemDm GROUP BY DePartName";
+                        " order by tmp.num,tmp.rowNum,tmp.Name ASC;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(a.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(a.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA.dbo.QitemBom a ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA.dbo.bom; select DePartName from itemDm GROUP BY DePartName";
     const pool = await get(db.Sigma);
     await pool.connect()
     const request = pool.request();
@@ -130,13 +130,15 @@ router.post('/table',async function(req,res){
         let NewData = new Array(Data.length);
         let sumData = new Array(Data.length);
         for(let i=0;i<Data.length;i++){
-            NewData[i] = Data2.filter((e)=>{        
-                if(Data[i].itemcode==e.Code){
+
+            NewData[i] = Data2.filter((e)=>{    
+                  
+                if(Data[i].ItemCode==e.Code){
                     return e;
                 }
             })
             sumData[i] = Data3.filter((e)=>{
-                if(Data[i].itemcode==e.Code){
+                if(Data[i].ItemCode==e.Code){
                     return e;
                 }
             })

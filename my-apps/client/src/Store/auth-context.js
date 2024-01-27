@@ -17,11 +17,12 @@ export const AuthContextProvider = (props)=>{
     const [isLoggedIn,setIsLoggin] = useState();
 
     const loginHandler = (token) =>{
-        // console.log(token.result[0][0])
         setToken(token.result[0][0]);
-        setToken2(token.resultInfo[0][0]);
+        if(token.resultInfo != undefined && token.resultInfo !=''){
+            setToken2(token.resultInfo[0][0]);
+            sessionStorage.setItem('token2', JSON.stringify(token.resultInfo[0][0]));
+        }
         sessionStorage.setItem('token', JSON.stringify(token.result[0][0]));
-        sessionStorage.setItem('token2', JSON.stringify(token.resultInfo[0][0]));
         setIsLoggin(true);
     }
     const failLogin = () =>{

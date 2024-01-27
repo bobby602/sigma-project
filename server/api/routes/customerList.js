@@ -224,12 +224,23 @@ const { get } = require('../data-access/pool-manager')
         let custCode = req.query.custCode;
         let date1 = req.query.date1;
         let date2 = req.query.date2;
+        if(date1 != undefined && date2 != undefined && custCode != undefined){
+          let arrayDate1 = date1.split("/");
+          let arrayDate2 = date2.split("/");
+          console.log(arrayDate2)
+          date1Query = arrayDate1[2]+'-'+arrayDate1[1]+'-'+arrayDate1[0];
+          date2Query = arrayDate2[2]+'-'+arrayDate2[1]+'-'+arrayDate2[0];
+        }else{
+          date1 = '';
+          date2 = '';
+          saleCode = 'aaa';
+        }
 
           await pool.connect()
           const request = pool.request();
           const result = await request
-          .input('date1',mssql.VarChar(50),date1)
-          .input('date2',mssql.VarChar(50),date2)
+          .input('date1',mssql.VarChar(50),date1Query)
+          .input('date2',mssql.VarChar(50),date2Query)
           .input('custCode',mssql.VarChar(50),custCode)
           .query(sql);
 

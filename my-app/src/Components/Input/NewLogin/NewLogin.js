@@ -20,7 +20,7 @@ const NewLoginPage =  (props)=>{
     const navigate = useNavigate();
     const submitHandler = (e) => {  
         e.preventDefault();
-       let url ='http://1.0.169.153:9001/';
+       let url ='http://1.0.169.153:9002/';
         fetch(url, {
             method: 'POST',
             body: JSON.stringify(input),

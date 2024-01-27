@@ -44,7 +44,7 @@ const MonthlyTable = (data)=>{
                   {e.Package}
                   </td>
                   <td  className="px-6 py-4">
-                  {e.Price}
+                  
                   </td>  
                   <td className="px-6 py-4">
                       {e.NetAmt}
@@ -76,7 +76,7 @@ const MonthlyTable = (data)=>{
                   {e.Package}
                   </td>
                   <td  className="px-6 py-4">
-                  {e.Price}
+                  {e.Amt}
                   </td>  
                   <td className="px-6 py-4">
                       {e.NetAmt}

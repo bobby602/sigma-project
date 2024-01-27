@@ -58,14 +58,14 @@ const PriceTable = (data)=>{
         return (
           <tr key={e.number} className={` bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap`}> 
           { e.PackD =='r'?
-            <td  className={`bg-[#fbbf24] text-white px-6 py-4`}>
+            <td  className={`bg-[#fbbf24] text-white px-3 py-4`}>
                 {e.code}
             </td>  :      
-            <td  className={`px-6 py-4`}>  
+            <td  className={`px-3 py-4`}>  
                 {e.code}  
             </td>
           }    
-            <td  className=" sticky left-0 z-30 bg-white px-8 py-4 text-center">
+            <td  className=" sticky left-0 z-30 bg-white px-3 py-4 text-center">
                 {e.NameFGS}
             </td>
             <td  className="px-6 py-4">
@@ -231,14 +231,14 @@ const PriceTable = (data)=>{
         return(
           <tr key={e.number} className={`${Styles.colOne} bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600  whitespace-nowrap`}> 
             { e.PackD =='r'?
-              <td  className={`bg-[#fbbf24] text-white px-6 py-4`}>
+              <td  className={`bg-[#fbbf24] text-white px-3 py-4`}>
                 {e.ItemCode}
               </td>  :      
-              <td  className={`bg-white px-6 py-4`}>  
+              <td  className={`bg-white px-3 py-4`}>  
                 {e.ItemCode}  
               </td>
             }    
-            <td className="sticky left-0 bg-white text-blue-600 px-6 py-4 text-right">
+            <td className="sticky left-0 bg-white text-blue-600 px-3 py-4 text-right">
                 {e.NameFGS}
             </td>
             <td  className="px-6 py-4">
@@ -310,7 +310,7 @@ const PriceTable = (data)=>{
                 <th scope="col" className=" px-6 py-3 ">
                   รหัสผลิตภัณฑ์
                 </th>
-                <th scope="col" className={`sticky left-0 bg-[#AE50FF]  px-6 py-3 text-center z-[100] `}>
+                <th scope="col" className={`sticky left-0 bg-[#AE50FF]  px-8 py-3 text-center z-[100] `}>
                   ชื่อการค้า
                 </th>
                 <th scope="col" className={`px-6 py-3`}>
@@ -375,7 +375,7 @@ const PriceTable = (data)=>{
                   <th scope="col" className={` px-3 py-3 `}>
                     รหัสผลิตภัณฑ์
                   </th>
-                  <th scope="col" className={`sticky left-0 z-[100] bg-[#AE50FF] px-8 py-3 text-right `}>
+                  <th scope="col" className={`sticky left-0 z-[100] bg-[#AE50FF] px-7 py-3 text-right `}>
                     ชื่อการค้า
                   </th>
                   <th scope="col" className={`px-6 py-3`}>
