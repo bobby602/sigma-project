@@ -7,7 +7,6 @@ const Authorize= (props)=>{
     const authCtx = useContext(AuthContext);
     let token = sessionStorage.getItem('token');
     let jsonToken = JSON.parse(token);
-    console.log(jsonToken)
     let checkpage;
     if(jsonToken.StAdmin =='1'){
       checkpage= <Outlet/>;

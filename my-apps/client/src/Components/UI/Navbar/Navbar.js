@@ -3,12 +3,17 @@ import styles from './Navbar.module.css'
 import { menuItems } from "./MenuItem/MenuItems";
 import { Link , useNavigate  } from 'react-router-dom'
 // import MenuItems from "./MenuItem/MenuItems";
+import { useSelector, useDispatch } from 'react-redux';
 import AuthContext from '../../../Store/auth-context';
+import  {LogoutApi}  from '../../../Store/logoutApi';
 
 const Navbar = ()=>{
   const navigate = useNavigate();
   const authCtx = useContext(AuthContext); 
+  const dispatch = useDispatch();
+  
   const handelOnClick = ()=>{
+    dispatch(LogoutApi())
     authCtx.onLogOut();
     navigate("/Login");
   }

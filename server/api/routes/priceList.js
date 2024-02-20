@@ -8,7 +8,8 @@ const res = require('express/lib/response');
 const { resourceLimits } = require('worker_threads');
 const { request } = require('http');
 const { response } = require('../app');
-const { get } = require('../data-access/pool-manager')
+const { get } = require('../data-access/pool-manager');
+const checkAuthMiddleware = require('../util/auth')
   var app = express();
   const router = express.Router();
   router.use(session({
@@ -19,7 +20,7 @@ const { get } = require('../data-access/pool-manager')
 
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
-  router.get('/',async function(req,res){
+  router.get('/',checkAuthMiddleware,async function(req,res){
      try {
           let data1;
           const sql = " select  ROW_NUMBER ( ) OVER ( ORDER BY a.ItemCode DESC) as number ,cast(CONVERT(VARCHAR, CAST( ISNULL((b.BAL-ISNULL(d.QTY,0)),'0.00') AS MONEY), 1) AS VARCHAR) as bal ,b.pack,a.code,a.name,a.ItemCode,a.Rpack,a.PackR,a.RpackSale,a.PackD,a.PackSale,a.RPackRpt,concat(a.Rpack,' ',a.PackR,' x ',a.RpackSale) as containProduct,cast(CONVERT(VARCHAR, CAST( a.CU AS MONEY), 1) AS VARCHAR) as CU,cast(CONVERT(VARCHAR, CAST( a.CP AS MONEY), 1) AS VARCHAR) as CP,cast(CONVERT(VARCHAR, CAST( a.COP AS MONEY), 1) AS VARCHAR) as COP ,cast(CONVERT(VARCHAR, CAST( a.TOT AS MONEY), 1) AS VARCHAR) as TOT,  FORMAT(a.DateAdd ,'dd/MM/yyyy') as DateAdd ,a.DepartCode,a.DepartName,a.NameFG,a.NameFGS, " +
@@ -41,7 +42,7 @@ const { get } = require('../data-access/pool-manager')
           throw new Error(err.message);
         }
     });
-    router.put('/',async function(req,res){
+    router.put('/',checkAuthMiddleware,async function(req,res){
      const ItemCode = req.body.itemRowAll.ItemCode;
      let value = req.body.inputValue;
      const itemName = req.body.itemRowAll.name;
@@ -173,7 +174,7 @@ const { get } = require('../data-access/pool-manager')
         }
    });
 
-   router.post('/updatePriceList',async function(req,res){
+   router.post('/updatePriceList',checkAuthMiddleware,async function(req,res){
      try {
           const DepartName = req.body.itemRowAll.DepartName;
           const ItemCode = req.body.itemRowAll.ItemCode;

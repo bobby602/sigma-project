@@ -1,9 +1,13 @@
 import { productActions } from './product-slice';
 import axios from 'axios';
+import {useAxiosPrivate} from '../Util/useAxiosAPI';
+
+const API =useAxiosPrivate();
+
 export const fetchCartData = (e) => {
     return async (dispatch) => {
       const fetchData = async () => {
-        const res = await axios.post('http://1.0.169.153:9001/table',{e});
+        const res = await API.post('/table',{e});
         const actualData = await res.data.result;
         const actualData2 = await res.data.Data4;
         return {actualData,actualData2};
@@ -25,7 +29,9 @@ export const fetchCartData = (e) => {
     return async (dispatch) => {
       const fetchData = async () => {
         let err = null;
-        const res = await fetch(`http://1.0.169.153:9001/subTable?itemCode=${encodeURIComponent(e)}`);
+        const res = await API.get(`/subTable?itemCode=${encodeURIComponent(e)}`,{
+          headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
+        });
   
         if (!res.ok) {
           throw new Error('Could not fetch cart data!');
@@ -54,7 +60,7 @@ export const fetchCartData = (e) => {
     return async (dispatch) => {
       let err = null;
       const fetchData = async () => {
-        const res = axios.put(`http://1.0.169.153:9001/productList`,e);
+        const res = API.put(`/productList`,e);
         // return actualData.result.recordset;
       };
   
@@ -75,7 +81,7 @@ export const fetchCartData = (e) => {
     return async (dispatch) => {
       let err = null;
       const fetchData = async () => {
-        const res = await fetch('http://1.0.169.153:9001/priceList');
+        const res = await API.get('/priceList');
   
         if (!res.ok) {
           throw new Error('Could not fetch cart data!');
@@ -100,7 +106,7 @@ export const fetchCartData = (e) => {
     return async (dispatch) => {
       let err = null;
       const fetchData = async () => {
-        const res = axios.put(`http://1.0.169.153:9001/priceList`,e);
+        const res = API.put(`http://localhost:9001/priceList`,e);
         // return actualData.result.recordset;
       };
   
@@ -119,7 +125,7 @@ export const fetchCartData = (e) => {
     return async (dispatch) => {
       let err = null;
       const fetchData = async () => {
-        const res = axios.post(`http://1.0.169.153:9001/priceList/updatePriceList`,e);
+        const res = API.post(`/priceList/updatePriceList`,e);
         const actualData = await res;
 
         return actualData.data.departData.recordset;

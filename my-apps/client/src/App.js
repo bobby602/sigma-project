@@ -1,4 +1,4 @@
-import { BrowserRouter,Route ,Routes} from 'react-router-dom'
+import { BrowserRouter,Route ,Routes, redirect} from 'react-router-dom'
 import React,{ useState ,useEffect,useContext} from 'react';
 import LoginPage from './Pages/Login/LoginPage';
 import MainPage  from './Pages/Main/MainPage';
@@ -13,18 +13,46 @@ import Authorize from './Authenticate/Authorize';
 import CustomerPage from './Pages/Customer/CustomerPage';
 import SummaryPage from './Pages/SummarySale/SummaryPages';
 import CustPage from './Pages/CustCode/CustPages';
+import { ErrorBoundary } from "react-error-boundary";
+import ErrorPage from './ErorrHandle/ErrorPage';
+import { useSelector, useDispatch } from 'react-redux';
+import { tokenLoader ,checkAuthLoader} from './Util/auth';
+import  {LogoutApi}  from './Store/logoutApi';
+import { Link , Navigate ,Redirect  } from 'react-router-dom'
+
 
 function App() {
+  const dispatch = useDispatch();
+  const [checkTokenExpire,setcheckTokenExpire] = useState(false);
+  useEffect(()=>{
+    const interval = setInterval(()=>{
+      const token = tokenLoader();
+      if(token == 'EXPIRED'){
+        dispatch(LogoutApi());
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('accessToken');
+        sessionStorage.removeItem('refreshToken');
+        sessionStorage.clear();
+        setcheckTokenExpire(true);
+        location.reload();
+      }
+    },10000);
 
+    return ()=>clearInterval(interval);
+  },[]);
+ 
   const isDesktopOrLaptop = useMediaQuery({
     query: '(min-width: 1100px)'
   })
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1099px) and (min-width: 200px) ' })
  
   return (
-    <Fragment>
-        {isDesktopOrLaptop && 
-          <BrowserRouter>
+    <ErrorBoundary FallbackComponent={ErrorPage}>
+      <Fragment>
+          {isDesktopOrLaptop && 
+            <BrowserRouter>
+            {
+              checkTokenExpire==false?
               <Routes>
                 <Route path="/" element={<Auth />} >
                   {/* public route*/}
@@ -36,7 +64,7 @@ function App() {
                     <Route path="/SalesPage" element={<SalesPage />} />
                     <Route path="/PriceList" element={<PriceList />}
                   </Route> */}
-                   {/* <Route path="/SalesPage" element={<SalesPage />} /> */}
+                  {/* <Route path="/SalesPage" element={<SalesPage />} /> */}
                   {/* private route*/}
                   <Route element={<Authorize />}>
                     <Route path="/SalesPage" element={<SalesPage />} />
@@ -51,23 +79,28 @@ function App() {
                   </Route>  
                 </Route>  
                 <Route path="/Login" element={<LoginPage />} />
-              </Routes>
-          </BrowserRouter> 
-        }
-        {isTabletOrMobile && 
-          <BrowserRouter>
+            </Routes>
+            :
+            <Navigate to ="/Login"/>
+            }    
+            </BrowserRouter> 
+          }
+          {isTabletOrMobile && 
+            <BrowserRouter>
+                 {
+              checkTokenExpire==false?
               <Routes>
                 <Route path="/" element={<Auth />} >
                   {/* public route*/}
-                  {/* <Route path="/ProductList" element={<ProductList />} /> */}
-                  <Route path="/PriceList" element={<PriceList />} />
-
-                   {/* private route*/}
-                   {/* <Route element={<Authorize />}>
-                    <Route path="/SalesPage" element={<SalesPage />} />
+                    {/* <Route path="/ProductList" element={<ProductList />} /> */}
                     <Route path="/PriceList" element={<PriceList />} />
-                  </Route> */}
 
+                  {/* private route*/}
+                  {/* <Route element={<Authorize />}>
+                    <Route path="/SalesPage" element={<SalesPage />} />
+                    <Route path="/PriceList" element={<PriceList />}
+                  </Route> */}
+                  {/* <Route path="/SalesPage" element={<SalesPage />} /> */}
                   {/* private route*/}
                   <Route element={<Authorize />}>
                     <Route path="/SalesPage" element={<SalesPage />} />
@@ -82,10 +115,14 @@ function App() {
                   </Route>  
                 </Route>  
                 <Route path="/Login" element={<LoginPage />} />
-              </Routes>
-          </BrowserRouter> 
-        }
-    </Fragment>
+            </Routes>
+            :
+            <Navigate to ="/Login"/>
+            }    
+            </BrowserRouter> 
+          }
+      </Fragment>
+    </ErrorBoundary>  
   );
 }
 

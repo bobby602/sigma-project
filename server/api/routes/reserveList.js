@@ -8,7 +8,8 @@ const res = require('express/lib/response');
 const { resourceLimits } = require('worker_threads');
 const { request } = require('http');
 const { response } = require('../app');
-const { get } = require('../data-access/pool-manager')
+const { get } = require('../data-access/pool-manager');
+const checkAuthMiddleware = require('../util/auth')
   var app = express();
   const router = express.Router();
   router.use(session({
@@ -20,7 +21,7 @@ const { get } = require('../data-access/pool-manager')
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
 
-  router.post('/',async function(req,res){
+  router.post('/',checkAuthMiddleware,async function(req,res){
     let data1;
     const itemCode = req.body.e.ItemCode;
     const saleName = req.body.a;
@@ -64,7 +65,7 @@ const { get } = require('../data-access/pool-manager')
     res.status(status).send('ERORR')
   })
 
-  router.post('/deleteRecord',async function(req,res){
+  router.post('/deleteRecord',checkAuthMiddleware,async function(req,res){
     const id = req.body.a.e.id;
     const sql = " delete from DATASIGMA.dbo.ReserveProduct where id = @id";
     const pool = await get(db.Sigma);
@@ -86,7 +87,7 @@ const { get } = require('../data-access/pool-manager')
        }
    });
 
-   router.post('/insertRecord',async function(req,res){
+   router.post('/insertRecord',checkAuthMiddleware,async function(req,res){
     const price = req.body.a;
     const saleName = req.body.saleName;
     const itemCode = req.body.item.ItemCode;

@@ -4,16 +4,25 @@ var express = require('express');
 var session = require('express-session');
 var bodyParser = require('body-parser');
 const { get } = require('../data-access/pool-manager')
-
 const db = require('../database');
 const res = require('express/lib/response');
 const { resourceLimits } = require('worker_threads');
 const { request } = require('http');
 const { response } = require('../app');
-const dotenv = require('dotenv')
-const line = require('@line/bot-sdk')
-  var app = express();
-  const router = express.Router();
+const dotenv = require('dotenv');
+const bcrypt = require('bcrypt');
+const {jwtGenerate,jwtRefreshTokenGenerate} = require('./generateTokens');
+const checkAuthMiddleware = require('../util/auth')
+const saltRounds = 10;
+let jwt = require('jsonwebtoken');
+const { jwtDecode } = require('jwt-decode');
+const line = require('@line/bot-sdk');
+const { sign, verify } = require('jsonwebtoken');
+var app = express();
+const router = express.Router();
+const env = dotenv.config().parsed;
+const KEYRefresh = env.REFRESH_TOKEN_PRIVATE_KEY;
+
   router.use(session({
       secret: 'secret',
       resave:true,
@@ -22,46 +31,120 @@ const line = require('@line/bot-sdk')
 
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
+
+  router.post('/refresh',async(req,res)=>{
+    const refreshToken = req.body.token;
+    let new_access_token;
+    let new_refresh_token;
+   
+    var Login = req.body.username;
+    const command = 'select * from [DATASIGMA].[dbo].[Token] where user_id = @user;';
+    const sql = "update Token set token = @token, expire_date = @exp where user_id = @Login2;";
+    const pool = await get(db.Sigma);
+    await pool.connect()
+    const request = pool.request();
+    const result = await request
+                    .input('user',mssql.VarChar(50),Login)
+                    .query(command);
+    if(!refreshToken) return res.status(401).json("You are not authenticated!");
+    if((refreshToken != result.recordsets[0][0].token)){
+        return res.status(403).json("Refresh token is not valid!")
+    }
+    verify(refreshToken, KEYRefresh,async(err)=>{
+        err&& console.log(err);
+        new_access_token = jwtGenerate(Login);
+        new_refresh_token = jwtRefreshTokenGenerate(Login);
+        console.log(new_refresh_token  + Login);
+        const decoded = jwtDecode(refreshToken);
+           const update= await request
+                    .input('token',mssql.VarChar(200),new_refresh_token)
+                    .input('exp',mssql.Numeric(20),decoded.exp) 
+                    .input('Login2',mssql.VarChar(200),Login) 
+                    .query(sql);
+                    console.log(update);
+
+
+
+        res.status(200).json({accessToken:new_access_token,refreshToken:new_refresh_token});
+        
+        
+    });
+
+
+  })
+
+  router.post("/logout",async(req,res,next)=>{
+    const refreshToken = req.body.token;
+    var Login = req.body.username;
+    const sql = "update Token set token = null, expire_date = null where user_id = @Login2;";
+    const pool = await get(db.Sigma);
+    await pool.connect()
+    const request = pool.request();
+    request
+                    .input('Login2',mssql.VarChar(200),Login) 
+                    .query(sql) 
+    res.status(200).json("You Logged out Succesfully.");
+  })
   
-  router.get('/', async function(req,res){
+  router.get('/',checkAuthMiddleware, async(req,res,next)=>{
     const command = 'select * from [DATASIGMA].[dbo].[Users] ';
     const pool = await get(db.Sigma);
     await pool.connect()
     const request = pool.request();
     const result = await request.query(command);
     res.json({result})
+    await pool.close()
   });
 
     router.post('/',async function(req,res){
+        
         try {
             var Login = req.body.username;
             var password = req.body.password;
             let saleCode;
-            if(Login){
-                const pool = await get(db.Sigma);
-                await pool.connect()
-                const request = pool.request();
-                const pool2 = await get(db.SigmaOffice);
-                await pool2.connect()
-                const request2 = pool2.request();
-                request
+            const pool = await get(db.Sigma);
+            await pool.connect()
+            const request =  await pool.request();
+            const pool2 = await get(db.SigmaOffice);
+            await pool2.connect()
+            const request2 =  await pool2.request();
+            if(Login){          
+                await request
                 .input('Login',mssql.VarChar(50),Login)
                 .input('Password',mssql.VarChar(50),password)
-                .query('select Login,Name,StAdmin,SaleCode from [DATASIGMA].[dbo].[Users] where Login = @Login and Password = @Password',function(err,data,fields){
+                .query('select Login,Name,StAdmin,SaleCode from [DATASIGMA].[dbo].[Users] where Login = @Login and Password = @Password',async function(err,data,fields){
                     if(data.rowsAffected > 0){
+                        const access_token = jwtGenerate(data.recordsets[0][0]);
+                        const refresh_token = jwtRefreshTokenGenerate(data.recordsets[0][0]);
+    
                         if(data.recordsets[0][0].SaleCode != undefined && data.recordsets[0][0].SaleCode!=''){
                             saleCode = data.recordsets[0][0].SaleCode;
-                            request2
+                           await request2
                             .input('salecode',mssql.VarChar(50),saleCode)
                             .query('select Name,SurName from sale where Code = @salecode',function(err,Data2,fields){
                                 if(Data2.rowsAffected > 0){
                                     req.session.Login = Login;
-                                    res.json({result:data.recordsets,resultInfo:Data2.recordsets});
+                                    const decoded = jwtDecode(refresh_token);
+                                    const sql = "update Token set token = @token, expire_date = @exp where user_id = @Login2;";
+                                      request
+                                            .input('token',mssql.VarChar(200),refresh_token)
+                                            .input('exp',mssql.Numeric(20),decoded.exp) 
+                                            .input('Login2',mssql.VarChar(200),Login) 
+                                            .query(sql) 
+                                    res.json({access_token,refresh_token,result:data.recordsets,resultInfo:Data2.recordsets});
                                 }
                             });
                         }else{
                             req.session.Login = Login;
-                            res.json({result:data.recordsets});
+                            const decoded = jwtDecode(refresh_token);
+                                    const sql = "update Token set token = @token, expire_date = @exp where user_id = @Login2;";
+                                       await request
+                                            .input('token',mssql.VarChar(200),refresh_token)
+                                            .input('exp',mssql.Numeric(20),decoded.exp) 
+                                            .input('Login2',mssql.VarChar(200),Login) 
+                                            .query(sql) 
+                            res.json({access_token,refresh_token,result:data.recordsets});
+                            
                         }
                     }else{
                         res.status(400).send({
@@ -69,17 +152,29 @@ const line = require('@line/bot-sdk')
                         });
                     }
                 });
+              
 
             } else{
                 res.json('Please Fill Username and Password');
             }
+            
         } catch (error) {
             console.error(error);
             throw new Error(error);
-        } 
+        }
+        // } finally{
+        //     try {
+        //         console.log('test');
+        //          await pool.close();
+        //          await pool2.close();
+        //         console.log('Connection pool closed');
+        //       } catch (err) {
+        //         console.error('Error closing connection pool:', err);
+        //       }
+        // }
     });
 
-router.post('/table',async function(req,res){
+router.post('/table',checkAuthMiddleware,async function(req,res){
     const body = req.body.e;
     let valueSearch;
     let Str ='';
@@ -112,7 +207,17 @@ router.post('/table',async function(req,res){
                                                                 " From DATASIGMA.dbo.rptstock2   " +
                                                                 " Group by itemcode,name,pack ,Note   " +
                                                                 " )b on b.itemcode = itemDm.itemcode " +   
-                                                        " left join ( select itemCode,sum(QTY) as QTY from ReserveProduct  group by itemCode ) c on c.itemCode = ItemDm.ItemCode " +    
+                                                        " left join ( select case when tmp.code = '' then tmp.item else tmp.code end as itemCode , sum(tmp.QTY) as QTY,tmp.code,tmp.item " +
+                                                                    " from ( " +
+                                                                            " select itemCode as item,  QTY , '' as code " +
+                                                                            " from ReserveProduct " +
+                                                                            " union all " +
+                                                                            " select a.code as item,((a.QTY * b.QTY)/1000)  as QTY,a.ItemCode as code " +
+                                                                            " from BomSub a  " +
+                                                                            "left join ( " +
+                                                                                        " select itemCode , sum(QTY) as QTY from ReserveProduct group by itemcode " +
+                                                                                        ") b on b.itemCode = a.code where b.QTY is not null " +
+                                                                        " )tmp   group by tmp.code,tmp.item ) c on c.itemCode = ItemDm.ItemCode " +    
                                                                 " where itemdm.TyItemDm like '%['+@Type+']%' and  itemdm.StDispPrice <> '2'"+ 
                         " ) tmp " +
                         " order by tmp.num,tmp.rowNum,tmp.Name ASC;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(a.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(a.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA.dbo.QitemBom a ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA.dbo.bom; select DePartName from itemDm GROUP BY DePartName";
@@ -157,7 +262,7 @@ router.post('/table',async function(req,res){
         throw new Error(error);
     }
 });
-  router.get('/subTable',function(req,res){
+  router.get('/subTable',checkAuthMiddleware,function(req,res){
     // const sql = "Select *  from DATASIGMA.dbo.QitemBom where Code = @itemCode";
     const sql = "Select *  from DATASIGMA.dbo.QitemBom";
     const itemCode = req.query.itemCode;

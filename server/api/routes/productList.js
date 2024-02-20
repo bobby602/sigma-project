@@ -8,7 +8,8 @@ const res = require('express/lib/response');
 const { resourceLimits } = require('worker_threads');
 const { request } = require('http');
 const { response } = require('../app');
-const { get } = require('../data-access/pool-manager')
+const { get } = require('../data-access/pool-manager');
+const checkAuthMiddleware = require('../util/auth')
   var app = express();
   const router = express.Router();
   router.use(session({
@@ -19,7 +20,7 @@ const { get } = require('../data-access/pool-manager')
 
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
-  router.get('/',async function(req,res){
+  router.get('/',checkAuthMiddleware,async function(req,res){
     const sql = " select * from UNoGroup.dbo.Users ";
     const pool = await get(db.Unogroup);
      try {
@@ -33,7 +34,7 @@ const { get } = require('../data-access/pool-manager')
         }
     });
 
-  router.put('/',async function(req,res){
+  router.put('/',checkAuthMiddleware,async function(req,res){
      const TyItem = req.body.itemRowAll.TyItemDm;
      const value = req.body.inputValue;
      const item  = req.body.itemRowAll.itemcode;

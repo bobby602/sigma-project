@@ -8,8 +8,9 @@ import { userList } from './userList'
     return async (dispatch) => {
       const getUserData = async () => {
         
-      
-        const res = await axios.get('http://1.0.169.153:9001/customerList');
+        const res = await axios.get('http://1.0.169.153:9001/customerList',{
+          headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
+        });
         console.log(res.data.result.recordset)
         return res.data.result.recordset;
       };
@@ -29,7 +30,9 @@ import { userList } from './userList'
   
     return async (dispatch) => {
       const getSummaryUserbyDate = async () => {
-        const res = await axios.post(`http://1.0.169.153:9001/customerList/selectSummaryUser`,{input,saleCode});
+        const res = await axios.post(`http://1.0.169.153:9001/customerList/selectSummaryUser`,{input,saleCode},{
+          headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
+        });
         
         return res.data.finalResult;
       };
@@ -48,7 +51,9 @@ import { userList } from './userList'
   export const searchCustomer = () => {
     return async (dispatch) => {
       const getSearchData = async () => {
-        const res = await axios.get(`http://1.0.169.153:9001/customerList/custReg`);
+        const res = await axios.get(`http://1.0.169.153:9001/customerList/custReg`,{
+          headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
+        });
         console.log(res.data.result)
         return res.data.result.recordset;
       };
@@ -67,7 +72,9 @@ import { userList } from './userList'
   export const fetchCustomer = (date1,date2,code) => {
     return async (dispatch) => {
       const getCustomerData = async () => {
-        const res = await axios.get(`http://1.0.169.153:9001/customerList/custCode?custCode=${encodeURIComponent(code)}&date1=${encodeURIComponent(date1)}&date2=${encodeURIComponent(date2)}`);
+        const res = await axios.get(`http://1.0.169.153:9001/customerList/custCode?custCode=${encodeURIComponent(code)}&date1=${encodeURIComponent(date1)}&date2=${encodeURIComponent(date2)}`,{
+          headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
+        });
         console.log(res.data.finalResult)
         return res.data.finalResult;
       };

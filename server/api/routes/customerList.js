@@ -8,7 +8,8 @@ const res = require('express/lib/response');
 const { resourceLimits } = require('worker_threads');
 const { request } = require('http');
 const { response } = require('../app');
-const { get } = require('../data-access/pool-manager')
+const { get } = require('../data-access/pool-manager');
+const checkAuthMiddleware = require('../util/auth')
   var app = express();
   const router = express.Router();
   router.use(session({
@@ -20,7 +21,7 @@ const { get } = require('../data-access/pool-manager')
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
 
-  router.get('/',async function(req,res){
+  router.get('/',checkAuthMiddleware,async function(req,res){
     let data1;
    const sql = " select Code, Name, concat(ADDR1,' ' , ADDR2) as addr , Phone , cast(CONVERT(VARCHAR, CAST( ISNULL(MaxCr,'0') AS MONEY), 1) AS VARCHAR)   as MaxCr , CAST(ISNULL(CRTERM,0) AS DECIMAL(30,2)) as CRTERM from cust where substring(codeSale,1,2)='RE'";
    const pool = await get(db.SigmaOffice);
@@ -35,7 +36,7 @@ const { get } = require('../data-access/pool-manager')
        }
    });
 
-   router.post('/selectSummaryUser',async function(req,res){
+   router.post('/selectSummaryUser',checkAuthMiddleware,async function(req,res){
     let data1;
    const sql = " select  CustCode ,CustName ,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(NetAmt), 0.00) AS MONEY), 1) AS VARCHAR) as NetAmt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amt),0.00) AS MONEY), 1) AS VARCHAR)  as Amt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Cost),0.00) AS MONEY), 1) AS VARCHAR) as Cost, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(amtdiff),0.00) AS MONEY), 1) AS VARCHAR)  as amtdiff, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Coltd),0.00) AS MONEY), 1) AS VARCHAR)   as Coltd, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(CUMSSP),0.00) AS MONEY), 1) AS VARCHAR)  as CUMSSP, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(MS),0.00) AS MONEY), 1) AS VARCHAR)  as MS,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Comsale),0.00) AS MONEY), 1) AS VARCHAR)  as Comsale,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Target),0) AS int), 1) AS VARCHAR)  as Target from RptAR1G where DocDate between @date1 and @date2 AND saleCode = @salecode group by CustCode,CustName ";
    const pool = await get(db.SigmaOffice);
@@ -195,7 +196,7 @@ const { get } = require('../data-access/pool-manager')
          throw new Error(err.message);
        }
    });
-   router.get('/custReg',async function(req,res){
+   router.get('/custReg',checkAuthMiddleware,async function(req,res){
     let data1;
    const sql = " select * from custREG ";
    const pool = await get(db.SigmaOffice);
@@ -215,7 +216,7 @@ const { get } = require('../data-access/pool-manager')
     res.status(status).send('ERORR')
   })
 
-  router.get('/custCode',async function(req,res){
+  router.get('/custCode',checkAuthMiddleware,async function(req,res){
     let data1;
    const sql =  "select FORMAT(docdate ,'dd/MM/yyyy') as docdate, DocNo,ItemCode, ItemName,PackSale , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Price),'0.00') AS MONEY), 1) AS VARCHAR) as Price,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(priceSale),'0.00') AS MONEY), 1) AS VARCHAR)  as priceSale ,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(QtySale),'0.00') AS MONEY), 1) AS VARCHAR)  as QtySale , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amt),'0.00') AS MONEY), 1) AS VARCHAR)  as Amt , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amtdiff),'0.00') AS MONEY), 1) AS VARCHAR)   as Margin , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(NetAmt),'0.00') AS MONEY), 1) AS VARCHAR)   as NetAmt, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(QtyPackD),'0.00') AS MONEY), 1) AS VARCHAR)   as QtyPackD,Package,PackD  from RptAr1N  where DocDate between @date1 and @date2 and CustCode = @custCode  GROUP BY DocNo , ItemName ,Docdate ,PackSale,Package,PackD ,ItemCode";
    const pool = await get(db.SigmaOffice);

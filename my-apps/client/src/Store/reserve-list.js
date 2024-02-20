@@ -3,7 +3,9 @@ import { reserveActions } from './reserve-slice';
 export const fetchReserveData = (e,a,type) => {
   return async (dispatch) => {
     const fetchReserveData = async () => {
-      const res = await axios.post('http://1.0.169.153:9001/reserveList',{e,a,type});
+      const res = await axios.post('http://1.0.169.153:9001/reserveList',{e,a,type},{
+        headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
+      });
       const actualData = await res.data.result.recordset;
       return actualData;
     };
@@ -27,7 +29,9 @@ export const deleteReserveData = (e,a) => {
         if(a == "" || a== undefined){
           return false;
         }else{
-          const res = await axios.post('http://1.0.169.153:9001/reserveList/deleteRecord',{a});
+          const res = await axios.post('http://1.0.169.153:9001/reserveList/deleteRecord',{a},{
+            headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
+          });
           const actualData = await res.data.result.recordset;
           return true;
         }  
@@ -52,7 +56,9 @@ export const deleteReserveData = (e,a) => {
 export const insertReserveData = (e,a,item,saleName,type) => {
   return async (dispatch) => {
     const insertReserveRecord = async () => {
-      const res = await axios.post('http://1.0.169.153:9001/reserveList/insertRecord',{a,item,saleName,type});
+      const res = await axios.post('http://1.0.169.153:9001/reserveList/insertRecord',{a,item,saleName,type},{
+        headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
+      });
       const actualData = await res.data.result.recordset;
       return true;
     };
