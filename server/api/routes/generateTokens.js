@@ -6,7 +6,7 @@ const jwtGenerate = (user) => {
   const accessToken = jwt.sign(
     { name: user.Name, id: user.Login ,role: user.StAdmin, saleCode:user.saleCode},
     env.ACCESS_TOKEN_PRIVATE_KEY,
-    { expiresIn: "1m", algorithm: "HS256" }
+    { expiresIn: "1h", algorithm: "HS256" }
   )
 
   return accessToken
@@ -16,7 +16,7 @@ const jwtRefreshTokenGenerate = (user) => {
   const refreshToken = jwt.sign(
     { name: user.Name, id: user.Login ,role: user.StAdmin, saleCode:user.saleCode },
     env.REFRESH_TOKEN_PRIVATE_KEY,
-    { expiresIn: "2m", algorithm: "HS256" }
+    { expiresIn: "5h", algorithm: "HS256" }
   )
 
   return refreshToken

@@ -207,17 +207,28 @@ router.post('/table',checkAuthMiddleware,async function(req,res){
                                                                 " From DATASIGMA.dbo.rptstock2   " +
                                                                 " Group by itemcode,name,pack ,Note   " +
                                                                 " )b on b.itemcode = itemDm.itemcode " +   
-                                                        " left join ( select case when tmp.code = '' then tmp.item else tmp.code end as itemCode , sum(tmp.QTY) as QTY,tmp.code,tmp.item " +
+                                                        " left join ( " +
+                                                            " SELECT tmp.itemCode , SUM ( QTY ) AS Qty  FROM " +
+                                                            " ( " +
+                                                                " select case when tmp.code = '' then tmp.item else tmp.code end as itemCode , sum(tmp.QTY) as QTY,tmp.code,tmp.item,tmp.Num  " +
                                                                     " from ( " +
-                                                                            " select itemCode as item,  QTY , '' as code " +
+                                                                            " select 0 AS NUM,itemCode as item,  QTY , '' as code " +
                                                                             " from ReserveProduct " +
                                                                             " union all " +
-                                                                            " select a.code as item,((a.QTY * b.QTY)/1000)  as QTY,a.ItemCode as code " +
+                                                                            " select 1 AS NUM,a.code as item,((a.QTY * b.QTY)/1000)  as QTY,a.ItemCode as code " +
                                                                             " from BomSub a  " +
                                                                             "left join ( " +
                                                                                         " select itemCode , sum(QTY) as QTY from ReserveProduct group by itemcode " +
                                                                                         ") b on b.itemCode = a.code where b.QTY is not null " +
-                                                                        " )tmp   group by tmp.code,tmp.item ) c on c.itemCode = ItemDm.ItemCode " +    
+                                                                        " )tmp   " +
+                                                                        " LEFT JOIN ( SELECT itemcode, name, SUM ( qbal ) AS QBal, pack, SUM ( qbal ) - SUM ( QD ) - SUM ( QP1 ) - SUM ( qp2 ) - SUM ( QP3 ) - SUM ( QP4 ) + SUM ( Qs ) AS BAL, Note " +
+                                                                                     " FROM DATASIGMA.dbo.rptstock2 " +
+                                                                                     "GROUP BY itemcode, name, pack, Note " +
+                                                                                    " ) b ON b.itemcode = tmp.item " +
+                                                                        " WHERE tmp.NUM = CASE WHEN b.bal <= 0 THEN tmp.NUM ELSE 0 END " +
+                                                                        " GROUP BY tmp.code, tmp.item , tmp.Num " +
+                                                                    ") tmp "+
+                                                                " group by tmp.itemCode ) c on c.itemCode = ItemDm.ItemCode " +    
                                                                 " where itemdm.TyItemDm like '%['+@Type+']%' and  itemdm.StDispPrice <> '2'"+ 
                         " ) tmp " +
                         " order by tmp.num,tmp.rowNum,tmp.Name ASC;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(a.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(a.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA.dbo.QitemBom a ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA.dbo.bom; select DePartName from itemDm GROUP BY DePartName";

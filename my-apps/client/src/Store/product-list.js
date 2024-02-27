@@ -29,9 +29,7 @@ export const fetchCartData = (e) => {
     return async (dispatch) => {
       const fetchData = async () => {
         let err = null;
-        const res = await API.get(`/subTable?itemCode=${encodeURIComponent(e)}`,{
-          headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
-        });
+        const res = await API.get(`/subTable?itemCode=${encodeURIComponent(e)}`);
   
         if (!res.ok) {
           throw new Error('Could not fetch cart data!');
@@ -129,7 +127,7 @@ export const fetchCartData = (e) => {
         const actualData = await res;
 
         return actualData.data.departData.recordset;
-        // return actualData.result.recordset;
+
       };
   
       try {
