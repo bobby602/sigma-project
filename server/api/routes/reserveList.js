@@ -27,7 +27,7 @@ const checkAuthMiddleware = require('../util/auth')
     const saleName = req.body.a;
     const type = req.body.type;
     
-    const pool = await get(db.Sigma);
+    const pool = get(db.Sigma);
     try {
         if(type ==  'pricePage'){
           const NameFGS = req.body.e.NameFGS;
@@ -57,7 +57,14 @@ const checkAuthMiddleware = require('../util/auth')
        } catch (err) {
          // ... handle it locally
          throw new Error(err.message);
-       }
+       }finally{
+        try {
+             await pool.close();
+            console.log('Connection pool closed');
+          } catch (err) {
+            console.error('Error closing connection pool:', err);
+          }
+      }
    });
 
    router.use((err,req,res,next)=>{
@@ -68,7 +75,7 @@ const checkAuthMiddleware = require('../util/auth')
   router.post('/deleteRecord',checkAuthMiddleware,async function(req,res){
     const id = req.body.a.e.id;
     const sql = " delete from DATASIGMA.dbo.ReserveProduct where id = @id";
-    const pool = await get(db.Sigma);
+    const pool = get(db.Sigma);
     try {
           if(id === undefined || id ==""){
            const result = false;
@@ -84,7 +91,14 @@ const checkAuthMiddleware = require('../util/auth')
        } catch (err) {
          // ... handle it locally
          throw new Error(err.message);
-       }
+       }finally{
+        try {
+             await pool.close();
+            console.log('Connection pool closed');
+          } catch (err) {
+            console.error('Error closing connection pool:', err);
+          }
+      }
    });
 
    router.post('/insertRecord',checkAuthMiddleware,async function(req,res){
@@ -95,7 +109,7 @@ const checkAuthMiddleware = require('../util/auth')
     const code = req.body.item.code;
     const NameFGS = req.body.item.NameFGS;
     const type = req.body.type;
-    const pool = await get(db.Sigma);
+    const pool =  get(db.Sigma);
     try {
         if(type == 'pricePage'){
           const Pack = req.body.item.pack;
@@ -128,12 +142,18 @@ const checkAuthMiddleware = require('../util/auth')
           .query(sql);
           console.log('insert')
           res.json({result});
-          
         }
 
        } catch (err) {
          throw new Error(err.message);
-       }
+       }finally{
+        try {
+             await pool.close();
+            console.log('Connection pool closed');
+          } catch (err) {
+            console.error('Error closing connection pool:', err);
+          }
+      }
    });
 
    router.use((err,req,res,next)=>{

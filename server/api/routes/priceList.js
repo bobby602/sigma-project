@@ -21,8 +21,9 @@ const checkAuthMiddleware = require('../util/auth')
   router.use(express.urlencoded({extended:true}));
   router.use(bodyParser.json());
   router.get('/',checkAuthMiddleware,async function(req,res){
+     const pool = get(db.Sigma);
+     let data1;
      try {
-          let data1;
           const sql = " select  ROW_NUMBER ( ) OVER ( ORDER BY a.ItemCode DESC) as number ,cast(CONVERT(VARCHAR, CAST( ISNULL((b.BAL-ISNULL(d.QTY,0)),'0.00') AS MONEY), 1) AS VARCHAR) as bal ,b.pack,a.code,a.name,a.ItemCode,a.Rpack,a.PackR,a.RpackSale,a.PackD,a.PackSale,a.RPackRpt,concat(a.Rpack,' ',a.PackR,' x ',a.RpackSale) as containProduct,cast(CONVERT(VARCHAR, CAST( a.CU AS MONEY), 1) AS VARCHAR) as CU,cast(CONVERT(VARCHAR, CAST( a.CP AS MONEY), 1) AS VARCHAR) as CP,cast(CONVERT(VARCHAR, CAST( a.COP AS MONEY), 1) AS VARCHAR) as COP ,cast(CONVERT(VARCHAR, CAST( a.TOT AS MONEY), 1) AS VARCHAR) as TOT,  FORMAT(a.DateAdd ,'dd/MM/yyyy') as DateAdd ,a.DepartCode,a.DepartName,a.NameFG,a.NameFGS, " +
                       " cast(CONVERT(VARCHAR, CAST( ISNULL(a.Pricelist,'0.00') AS MONEY), 1) AS VARCHAR)  as priceList	,FORMAT(a.DatePriceList ,'dd/MM/yyyy') as datePriceList,ISNULL(a.NoteF,'') as NoteF " +
                          " ,cast(CONVERT(VARCHAR, CAST( a.Price10  AS MONEY), 1) AS VARCHAR) as Price10,  AmtF10,cast(CONVERT(VARCHAR, CAST( a.Price25  AS MONEY), 1) AS VARCHAR) as Price25, a.AmtF25,cast(CONVERT(VARCHAR, CAST( a.Price50  AS MONEY), 1) AS VARCHAR) as Price50, a.AmtF50,cast(CONVERT(VARCHAR, CAST( a.Price100  AS MONEY), 1) AS VARCHAR) as Price100, a.AmtF100 ,ISNULL(cast(CONVERT(VARCHAR, CAST( c.QTY  AS MONEY), 1) AS VARCHAR),'0.00')  as Reserve , FORMAT(DatePriceList ,'dd/MM/yyyy') as DatePriceList " +
@@ -32,7 +33,6 @@ const checkAuthMiddleware = require('../util/auth')
                                                   " left join ( select itemCode,sum(QTY) as QTY ,code ,NameFGS from ReserveProduct  group by itemCode,code,NameFGS ) c on c.itemCode = a.ItemCode and c.code = a.code and c.NameFGS = a.NameFGS  " + 
                                                   " left join ( select itemCode,sum(QTY) as QTY  from ReserveProduct  group by itemCode ) d on d.itemCode = a.ItemCode " +
                                                   " Order by departCode,NameFG ";
-        const pool = await get(db.Sigma);
         await pool.connect()
         const request = pool.request();
         const result = await request.query(sql);
@@ -40,6 +40,13 @@ const checkAuthMiddleware = require('../util/auth')
         } catch (err) {
           // ... handle it locally
           throw new Error(err.message);
+        }finally{
+          try {
+               await pool.close();
+              console.log('Connection pool closed');
+            } catch (err) {
+              console.error('Error closing connection pool:', err);
+            }
         }
     });
     router.put('/',checkAuthMiddleware,async function(req,res){
@@ -56,9 +63,9 @@ const checkAuthMiddleware = require('../util/auth')
      const type = req.body.columnInput;
      let date1 = new Date();
      let dateToday = '';
+     const pool = get(db.Sigma);
      try {
           dateToday = date1.getFullYear() +'-'+ ('0' + (date1.getMonth()+1)).slice(-2)+ '-'+ ('0' + date1.getDate()).slice(-2);
-          const pool = await get(db.Sigma);
           await pool.connect();
           const request = pool.request();
           if(type =='note'){
@@ -171,10 +178,18 @@ const checkAuthMiddleware = require('../util/auth')
         } catch (err) {
           // ... handle it locally
           throw new Error(err.message);
+        }finally{
+          try {
+               await pool.close();
+              console.log('Connection pool closed');
+            } catch (err) {
+              console.error('Error closing connection pool:', err);
+            }
         }
    });
 
    router.post('/updatePriceList',checkAuthMiddleware,async function(req,res){
+     const pool = get(db.Sigma);
      try {
           const DepartName = req.body.itemRowAll.DepartName;
           const ItemCode = req.body.itemRowAll.ItemCode;
@@ -191,7 +206,6 @@ const checkAuthMiddleware = require('../util/auth')
          let date1 = new Date();
          let dateToday = '';
          dateToday = date1.getFullYear() +'-'+ ('0' + (date1.getMonth()+1)).slice(-2)+ '-'+ ('0' + date1.getDate()).slice(-2);
-         const pool = await get(db.Sigma);
          await pool.connect();
          const request = pool.request();
          if (type =='priceList'){
@@ -238,7 +252,6 @@ const checkAuthMiddleware = require('../util/auth')
           .input('NameFGS',mssql.VarChar(200),NameFGS) 
           .input('code',mssql.VarChar(200),code) 
           .query(sql) 
-          console.log('test')
           const dataCheck = await request.query(checkInsert);
           let [arrRecord] = dataCheck.recordset;
               if(arrRecord.DocDate != dateToday ){
@@ -309,6 +322,13 @@ const checkAuthMiddleware = require('../util/auth')
         } catch (err) {
           // ... handle it locally
           throw new Error(err.message);
+        }finally{
+          try {
+               await pool.close();
+              console.log('Connection pool closed');
+            } catch (err) {
+              console.error('Error closing connection pool:', err);
+            }
         }
   });
  

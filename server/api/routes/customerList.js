@@ -24,7 +24,7 @@ const checkAuthMiddleware = require('../util/auth')
   router.get('/',checkAuthMiddleware,async function(req,res){
     let data1;
    const sql = " select Code, Name, concat(ADDR1,' ' , ADDR2) as addr , Phone , cast(CONVERT(VARCHAR, CAST( ISNULL(MaxCr,'0') AS MONEY), 1) AS VARCHAR)   as MaxCr , CAST(ISNULL(CRTERM,0) AS DECIMAL(30,2)) as CRTERM from cust where substring(codeSale,1,2)='RE'";
-   const pool = await get(db.SigmaOffice);
+   const pool = get(db.SigmaOffice);
     try {
          await pool.connect()
          const request = pool.request();
@@ -33,13 +33,20 @@ const checkAuthMiddleware = require('../util/auth')
        } catch (err) {
          // ... handle it locally
          throw new Error(err.message);
-       }
+       }finally{
+        try {
+             await pool.close();
+            console.log('Connection pool closed');
+          } catch (err) {
+            console.error('Error closing connection pool:', err);
+          }
+    }
    });
 
    router.post('/selectSummaryUser',checkAuthMiddleware,async function(req,res){
     let data1;
    const sql = " select  CustCode ,CustName ,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(NetAmt), 0.00) AS MONEY), 1) AS VARCHAR) as NetAmt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amt),0.00) AS MONEY), 1) AS VARCHAR)  as Amt,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Cost),0.00) AS MONEY), 1) AS VARCHAR) as Cost, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(amtdiff),0.00) AS MONEY), 1) AS VARCHAR)  as amtdiff, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Coltd),0.00) AS MONEY), 1) AS VARCHAR)   as Coltd, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(CUMSSP),0.00) AS MONEY), 1) AS VARCHAR)  as CUMSSP, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(MS),0.00) AS MONEY), 1) AS VARCHAR)  as MS,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Comsale),0.00) AS MONEY), 1) AS VARCHAR)  as Comsale,cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Target),0) AS int), 1) AS VARCHAR)  as Target from RptAR1G where DocDate between @date1 and @date2 AND saleCode = @salecode group by CustCode,CustName ";
-   const pool = await get(db.SigmaOffice);
+   const pool = get(db.SigmaOffice);
    let date1 = new Date();
    let date1Query;
    let date2Query;
@@ -150,8 +157,6 @@ const checkAuthMiddleware = require('../util/auth')
         }else{
           sumCUMSSP = '0.00';
         }
-
-
         if(sumColtd != null){
           sumColtd= sumColtd.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }else{
@@ -194,7 +199,14 @@ const checkAuthMiddleware = require('../util/auth')
        } catch (err) {
          // ... handle it locally
          throw new Error(err.message);
-       }
+       }finally{
+        try {
+             await pool.close();
+            console.log('Connection pool closed');
+          } catch (err) {
+            console.error('Error closing connection pool:', err);
+          }
+    }
    });
    router.get('/custReg',checkAuthMiddleware,async function(req,res){
     let data1;
@@ -219,7 +231,7 @@ const checkAuthMiddleware = require('../util/auth')
   router.get('/custCode',checkAuthMiddleware,async function(req,res){
     let data1;
    const sql =  "select FORMAT(docdate ,'dd/MM/yyyy') as docdate, DocNo,ItemCode, ItemName,PackSale , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Price),'0.00') AS MONEY), 1) AS VARCHAR) as Price,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(priceSale),'0.00') AS MONEY), 1) AS VARCHAR)  as priceSale ,  cast(CONVERT(VARCHAR, CAST( ISNULL(sum(QtySale),'0.00') AS MONEY), 1) AS VARCHAR)  as QtySale , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amt),'0.00') AS MONEY), 1) AS VARCHAR)  as Amt , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(Amtdiff),'0.00') AS MONEY), 1) AS VARCHAR)   as Margin , cast(CONVERT(VARCHAR, CAST( ISNULL(sum(NetAmt),'0.00') AS MONEY), 1) AS VARCHAR)   as NetAmt, cast(CONVERT(VARCHAR, CAST( ISNULL(sum(QtyPackD),'0.00') AS MONEY), 1) AS VARCHAR)   as QtyPackD,Package,PackD  from RptAr1N  where DocDate between @date1 and @date2 and CustCode = @custCode  GROUP BY DocNo , ItemName ,Docdate ,PackSale,Package,PackD ,ItemCode";
-   const pool = await get(db.SigmaOffice);
+   const pool = get(db.SigmaOffice);
    let date1 = new Date();
     try {
         let custCode = req.query.custCode;
@@ -351,7 +363,14 @@ const checkAuthMiddleware = require('../util/auth')
          // ... handle it locally
          throw new Error(err.message);
          console.log(err.message)
-       }
+       }finally{
+        try {
+             await pool.close();
+            console.log('Connection pool closed');
+          } catch (err) {
+            console.error('Error closing connection pool:', err);
+          }
+    }
    });
 
 

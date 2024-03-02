@@ -80,13 +80,9 @@ export const fetchCartData = (e) => {
       let err = null;
       const fetchData = async () => {
         const res = await API.get('/priceList');
-  
-        if (!res.ok) {
-          throw new Error('Could not fetch cart data!');
-        }
-  
-        const actualData = await res.json();
-        return actualData.result.recordset;
+        const actualData = await res.data.result.recordset;
+        console.log(actualData)
+        return actualData;
       };
   
       try {
@@ -104,7 +100,7 @@ export const fetchCartData = (e) => {
     return async (dispatch) => {
       let err = null;
       const fetchData = async () => {
-        const res = API.put(`http://localhost:9001/priceList`,e);
+        const res = API.put(`/priceList`,e);
         // return actualData.result.recordset;
       };
   

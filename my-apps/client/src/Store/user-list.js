@@ -1,6 +1,9 @@
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
-import { userList } from './userList'
+import { userList } from './userList';
+import {useAxiosPrivate} from '../Util/useAxiosAPI';
+
+const API =useAxiosPrivate();
 
 
   export const fetchData = () => {
@@ -8,9 +11,7 @@ import { userList } from './userList'
     return async (dispatch) => {
       const getUserData = async () => {
         
-        const res = await axios.get('http://1.0.169.153:9001/customerList',{
-          headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
-        });
+        const res = await API.get('/customerList');
         console.log(res.data.result.recordset)
         return res.data.result.recordset;
       };
@@ -30,9 +31,7 @@ import { userList } from './userList'
   
     return async (dispatch) => {
       const getSummaryUserbyDate = async () => {
-        const res = await axios.post(`http://1.0.169.153:9001/customerList/selectSummaryUser`,{input,saleCode},{
-          headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
-        });
+        const res = await API.post(`/customerList/selectSummaryUser`,{input,saleCode});
         
         return res.data.finalResult;
       };
@@ -51,9 +50,7 @@ import { userList } from './userList'
   export const searchCustomer = () => {
     return async (dispatch) => {
       const getSearchData = async () => {
-        const res = await axios.get(`http://1.0.169.153:9001/customerList/custReg`,{
-          headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
-        });
+        const res = await API.get(`/customerList/custReg`);
         console.log(res.data.result)
         return res.data.result.recordset;
       };
@@ -72,9 +69,7 @@ import { userList } from './userList'
   export const fetchCustomer = (date1,date2,code) => {
     return async (dispatch) => {
       const getCustomerData = async () => {
-        const res = await axios.get(`http://1.0.169.153:9001/customerList/custCode?custCode=${encodeURIComponent(code)}&date1=${encodeURIComponent(date1)}&date2=${encodeURIComponent(date2)}`,{
-          headers:{ Authorization: "Bearer "+JSON.parse(sessionStorage.getItem('accessToken'))}
-        });
+        const res = await API.get(`/customerList/custCode?custCode=${encodeURIComponent(code)}&date1=${encodeURIComponent(date1)}&date2=${encodeURIComponent(date2)}`);
         console.log(res.data.finalResult)
         return res.data.finalResult;
       };

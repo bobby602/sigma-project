@@ -29,7 +29,6 @@ const checkAuthMiddleware = require('../util/auth')
           const result = await request.query(sql);
           res.json({result});
         } catch (err) {
-          // ... handle it locally
           throw new Error(err.message);
         }
     });
@@ -41,6 +40,7 @@ const checkAuthMiddleware = require('../util/auth')
      const itemName = req.body.itemRowAll.Name;
      const pack = req.body.itemRowAll.Pack;
      const type = req.body.columnInput;
+     const pool =  get(db.Sigma);
      let date1 = new Date();
      let dateToday = '';
      dateToday = date1.getFullYear() +'-'+ ('0' + (date1.getMonth()+1)).slice(-2)+ '-'+ ('0' + date1.getDate()).slice(-2);
@@ -55,7 +55,7 @@ const checkAuthMiddleware = require('../util/auth')
       Type = 'SF';
      }
      try {   
-     const pool = await get(db.Sigma);
+
      await pool.connect();
      const request = pool.request();
      if(type =='cost'){
@@ -301,7 +301,14 @@ const checkAuthMiddleware = require('../util/auth')
         } catch (err) {
           // ... handle it locally
           throw new Error(err.message);
-        }
+        }finally{
+          try {
+               await pool.close();
+              console.log('Connection pool closed');
+            } catch (err) {
+              console.error('Error closing connection pool:', err);
+            }
+      }
   });
 
   router.use((err,req,res,next)=>{
