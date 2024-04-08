@@ -51,22 +51,26 @@ const KEYRefresh = env.REFRESH_TOKEN_PRIVATE_KEY;
         return res.status(403).json("Refresh token is not valid!")
     }
     verify(refreshToken, KEYRefresh,async(err)=>{
-        err&& console.log(err);
-        new_access_token = jwtGenerate(Login);
-        new_refresh_token = jwtRefreshTokenGenerate(Login);
-        console.log(new_refresh_token  + Login);
-        const decoded = jwtDecode(refreshToken);
-           const update= await request
-                    .input('token',mssql.VarChar(200),new_refresh_token)
-                    .input('exp',mssql.Numeric(20),decoded.exp) 
-                    .input('Login2',mssql.VarChar(200),Login) 
-                    .query(sql);
-                    console.log(update);
+        try {
+            
+            new_access_token = jwtGenerate(Login);
+            new_refresh_token = jwtRefreshTokenGenerate(Login);
+            console.log(new_refresh_token  + Login);
+            const decoded = jwtDecode(refreshToken);
+            const update= await request
+                        .input('token',mssql.VarChar(200),new_refresh_token)
+                        .input('exp',mssql.Numeric(20),decoded.exp) 
+                        .input('Login2',mssql.VarChar(200),Login) 
+                        .query(sql);
+                        console.log(update);
 
-
-
-        res.status(200).json({accessToken:new_access_token,refreshToken:new_refresh_token});
-        
+            res.status(200).json({accessToken:new_access_token,refreshToken:new_refresh_token});
+        } catch (err) {
+            console.error(err);
+            res.status(500).send({
+                result: "Token Invalid"
+            });
+        }
         
     });
 
@@ -185,7 +189,7 @@ router.post('/table',checkAuthMiddleware,async function(req,res){
                 " from ( " +
                         " select  0 as rowNum ,'' as codem ,'' as PriceOffer, '' as  ItemCode , DepartName as Name , '' as Barcode ,  DepartName, '' as Pack, '' as minPrice, '' as maxPrice , '' as TyItemDm , '' as Reserve, '' as QBal , '' as BAL , '' as CostN , '' as DateCn , '' as costNew , '' as price, '' as PriceRE , '' as datePrice , '' as datePriceRe, ROW_NUMBER ( ) OVER ( ORDER BY DepartName ASC) as num  from DATASIGMA.dbo.ItemDm  where itemdm.TyItemDm like '%['+@Type+']%' group by DePartName " +
                         " union all " +
-                        " Select 1 as rowNum ,itemdm.codem,itemDm.PriceOffer,itemDm.ItemCode,itemdm.Name,itemDm.Barcode,itemdm.DePartName, itemdm.Pack,cast(CONVERT(VARCHAR, CAST(a.p1 AS MONEY), 1) AS VARCHAR) as minPrice , cast(CONVERT(VARCHAR, CAST(a.p2 AS MONEY), 1) AS VARCHAR) as  maxPrice,itemdm.TyItemDm,cast(CONVERT(VARCHAR, CAST(ISNULL(c.QTY,'0.00') AS MONEY), 1) AS VARCHAR) as Reserve,cast(CONVERT(VARCHAR, CAST(ISNULL(b.BAL,'0.00') AS MONEY), 1) AS VARCHAR) as QBal ,cast(CONVERT(VARCHAR, CAST(ISNULL((b.BAL-ISNULL(QTY,0)),'0.00') AS MONEY), 1) AS VARCHAR)  as BAL,  " +
+                        " Select 1 as rowNum ,itemdm.codem,itemDm.PriceOffer,itemDm.ItemCode,itemdm.Name,itemDm.Barcode,itemdm.DePartName, itemdm.Pack,cast(CONVERT(VARCHAR, CAST(a.p1 AS MONEY), 1) AS VARCHAR) as minPrice , cast(CONVERT(VARCHAR, CAST(a.p2 AS MONEY), 1) AS VARCHAR) as  maxPrice,itemdm.TyItemDm,cast(CONVERT(VARCHAR, CAST(ISNULL(c.calBal,'0.00') AS MONEY), 1) AS VARCHAR) as Reserve,cast(CONVERT(VARCHAR, CAST(ISNULL(b.QBAL,'0.00') AS MONEY), 1) AS VARCHAR) as QBal ,cast(CONVERT(VARCHAR, CAST(ISNULL((b.BAL-ISNULL(c.calBal,0)),'0.00') AS MONEY), 1) AS VARCHAR)  as BAL,  " +
                                                         " cast(CONVERT(VARCHAR, CAST(COSTN AS MONEY), 1) AS VARCHAR)  as CostN , FORMAT(DateCN ,'dd/MM/yyyy') as DateCn , case when (CAST(DateAddI AS DATETIME)>CAST(DateAddE AS DATETIME) OR  DateAddE is null ) and DateAddI is not null then cast(CONVERT(VARCHAR, CAST(CostI AS MONEY), 1) AS VARCHAR) "+
                                                         " when (CAST(DateAddE AS DATETIME)>CAST(DateAddI AS DATETIME) or DateAddI is null) and DateAddE  is not null  then cast(CONVERT(VARCHAR, CAST(CostE AS MONEY), 1) AS VARCHAR) " +
                                                         " else '0.00'  " +
@@ -203,27 +207,30 @@ router.post('/table',checkAuthMiddleware,async function(req,res){
                                                                 " Group by itemcode,name,pack ,Note   " +
                                                                 " )b on b.itemcode = itemDm.itemcode " +   
                                                         " left join ( " +
-                                                            " SELECT tmp.itemCode , SUM ( QTY ) AS Qty  FROM " +
-                                                            " ( " +
-                                                                " select case when tmp.code = '' then tmp.item else tmp.code end as itemCode , sum(tmp.QTY) as QTY,tmp.code,tmp.item,tmp.Num  " +
-                                                                    " from ( " +
-                                                                            " select 0 AS NUM,itemCode as item,  QTY , '' as code " +
-                                                                            " from ReserveProduct " +
-                                                                            " union all " +
-                                                                            " select 1 AS NUM,a.code as item,((a.QTY * b.QTY)/1000)  as QTY,a.ItemCode as code " +
-                                                                            " from BomSub a  " +
-                                                                            "left join ( " +
-                                                                                        " select itemCode , sum(QTY) as QTY from ReserveProduct group by itemcode " +
-                                                                                        ") b on b.itemCode = a.code where b.QTY is not null " +
-                                                                        " )tmp   " +
-                                                                        " LEFT JOIN ( SELECT itemcode, name, SUM ( qbal ) AS QBal, pack, SUM ( qbal ) - SUM ( QD ) - SUM ( QP1 ) - SUM ( qp2 ) - SUM ( QP3 ) - SUM ( QP4 ) + SUM ( Qs ) AS BAL, Note " +
-                                                                                     " FROM DATASIGMA.dbo.rptstock2 " +
-                                                                                     "GROUP BY itemcode, name, pack, Note " +
-                                                                                    " ) b ON b.itemcode = tmp.item " +
-                                                                        " WHERE tmp.NUM = CASE WHEN b.bal <= 0 THEN tmp.NUM ELSE 0 END " +
-                                                                        " GROUP BY tmp.code, tmp.item , tmp.Num " +
-                                                                    ") tmp "+
-                                                                " group by tmp.itemCode ) c on c.itemCode = ItemDm.ItemCode " +    
+                                                                    " select tmp.itemCode , sum(calBal) as calBal " +
+                                                                    " FROM ( " +
+                                                                            " SELECT  tmp.itemCode ,b.bal,tmp.BomQTY,tmp.ReserveQTY,tmp.num,case when tmp.num = 1 then ((tmp.BomQTY * ABS((b.bal - tmp.ReserveQTY)))/1000) else  ABS(tmp.ReserveQTY) end as calBal " +
+                                                                            " FROM ( select case when tmp.code = '' then tmp.item else tmp.code end as itemCode , tmp.BomQTY , tmp.ReserveQTY,tmp.code,tmp.item,tmp.Num "+
+                                                                                     " from ( select 0 AS NUM,itemCode as item,   sum(QTY) as BomQTY , sum(QTY) as ReserveQTY, '' as code " +
+                                                                                            " from ReserveProduct group by itemCode " +
+                                                                                            " union all " +
+                                                                                            " select 1 AS NUM,a.code as item,a.QTY  as BomSubQTY, b.QTY as ReserveQTY,a.ItemCode as code " +
+                                                                                            " from BomSub a " +
+                                                                                                    " left join ( select a.itemCode ,  sum(QTY) as QTY " +
+                                                                                                                " from ReserveProduct a " +
+                                                                                                                " GROUP BY a.itemcode " +
+                                                                                                                " ) b on b.itemCode = a.code " +
+                                                                                                                " where b.QTY is not null " +
+                                                                                           " )tmp " +   
+                                                                                    ") tmp " + 
+                                                                                    " left join ( Select  name,sum(qbal) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs)  as BAL ,Note, a.itemCode " +
+                                                                                                 " From DATASIGMA.dbo.rptstock2 a  " +
+                                                                                                 " Group by a.itemCode,a.name,a.pack ,a.Note,a.itemCode " +
+                                                                                                 " )b on b.itemCode = tmp.item " +
+                                                                                    " WHERE tmp.NUM = CASE WHEN (b.bal - tmp.ReserveQTY) < 0 THEN tmp.NUM ELSE 0 END  " +
+                                                                        " )Tmp " +
+                                                                        " group by itemCode " +
+                                                                        ") c on c.itemCode = ItemDm.ItemCode " +      
                                                                 " where itemdm.TyItemDm like '%['+@Type+']%' and  itemdm.StDispPrice <> '2'"+ 
                         " ) tmp " +
                         " order by tmp.num,tmp.rowNum,tmp.Name ASC;Select a.Code,a.ItemCode,a.ItemName,a.Qty,a.Pack,cast(CONVERT(VARCHAR, CAST(a.cost AS MONEY), 1) AS VARCHAR) as Cost ,cast(CONVERT(VARCHAR, CAST(a.costn AS MONEY), 1) AS VARCHAR) as CostN from DATASIGMA.dbo.QitemBom a ; select Code ,cast(CONVERT(VARCHAR, CAST(AmtDM AS MONEY), 1) AS VARCHAR) as  AmtDM,AmtEXP ,cast(CONVERT(VARCHAR, CAST(AmtCost AS MONEY), 1) AS VARCHAR) as AmtCost,DateCN from DATASIGMA.dbo.bom; select DePartName from itemDm GROUP BY DePartName";

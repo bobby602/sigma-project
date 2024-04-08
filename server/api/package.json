@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "nodemon ./bin/www",
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "build": "del dist | babel lib -d dist/lib | babel helper -d dist/helper",
+    "serve": "node dist/lib/index.js"
   },
   "dependencies": {
     "@line/bot-sdk": "^7.5.0",

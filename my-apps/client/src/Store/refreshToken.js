@@ -8,7 +8,7 @@ import {useContext, useEffect} from 'react';
   
     try {
       console.log(JSON.parse(sessionStorage.getItem('token')).Login);
-      const res = await axios.post('http://localhost:9001/refresh',{username:JSON.parse(sessionStorage.getItem('token')).Login,token:JSON.parse(sessionStorage.getItem('refreshToken'))});
+      const res = await axios.post('http://1.0.169.153:9001/refresh',{username:JSON.parse(sessionStorage.getItem('token')).Login,token:JSON.parse(sessionStorage.getItem('refreshToken'))});
 
       return res.data;
       
