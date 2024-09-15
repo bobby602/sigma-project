@@ -56,6 +56,9 @@ const checkAuthMiddleware = require('../util/auth')
         }
        } catch (err) {
          // ... handle it locally
+         res.status(500).send({
+          result: "Error"
+      });
          throw new Error(err.message);
        }finally{
         try {
@@ -63,6 +66,9 @@ const checkAuthMiddleware = require('../util/auth')
             console.log('Connection pool closed');
           } catch (err) {
             console.error('Error closing connection pool:', err);
+            res.status(500).send({
+              result: "Error"
+          });
           }
       }
    });
@@ -90,6 +96,9 @@ const checkAuthMiddleware = require('../util/auth')
           }
        } catch (err) {
          // ... handle it locally
+         res.status(500).send({
+          result: "Error"
+        });
          throw new Error(err.message);
        }finally{
         try {
@@ -97,6 +106,9 @@ const checkAuthMiddleware = require('../util/auth')
             console.log('Connection pool closed');
           } catch (err) {
             console.error('Error closing connection pool:', err);
+            res.status(500).send({
+              result: "Error"
+          });
           }
       }
    });
@@ -152,6 +164,9 @@ const checkAuthMiddleware = require('../util/auth')
             console.log('Connection pool closed');
           } catch (err) {
             console.error('Error closing connection pool:', err);
+            res.status(500).send({
+              result: "Error"
+          });
           }
       }
    });

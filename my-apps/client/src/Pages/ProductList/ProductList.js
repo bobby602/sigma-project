@@ -39,7 +39,11 @@ const ProductList = ()=>{
  
     
     useEffect (()=>{
-        dispatch(fetchCartData(value));
+        if(value==''){
+            console.log("test");
+        }else{
+            dispatch(fetchCartData(value));
+        }
     },[value]);
 
     const handleOnChange = (e)=>{

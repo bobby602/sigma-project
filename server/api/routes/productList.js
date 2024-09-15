@@ -29,6 +29,9 @@ const checkAuthMiddleware = require('../util/auth')
           const result = await request.query(sql);
           res.json({result});
         } catch (err) {
+          res.status(500).send({
+               result: "Error"
+           });
           throw new Error(err.message);
         }
     });
@@ -299,6 +302,9 @@ const checkAuthMiddleware = require('../util/auth')
           res.json({result:data});
      }
         } catch (err) {
+          res.status(500).send({
+               result: "Error"
+           });
           // ... handle it locally
           throw new Error(err.message);
         }finally{
@@ -307,6 +313,9 @@ const checkAuthMiddleware = require('../util/auth')
               console.log('Connection pool closed');
             } catch (err) {
               console.error('Error closing connection pool:', err);
+              res.status(500).send({
+               result: "Error"
+           });
             }
       }
   });

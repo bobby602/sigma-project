@@ -72,6 +72,12 @@ const PriceTable = (data)=>{
                 {e.NameFG}
             </td>
             <td  className="px-6 py-4">
+                {e.point}
+            </td>
+            <td  className="px-6 py-4">
+                {e.RateSP}
+            </td>
+            <td  className="px-6 py-4">
                 {e.containProduct}
             </td>
             <td  className="px-6 py-4">
@@ -244,6 +250,12 @@ const PriceTable = (data)=>{
             <td  className="px-6 py-4">
                 {e.NameFG}
             </td>
+            <td  className="px-6 py-4">
+                {e.point}
+            </td>
+            <td  className="px-6 py-4">
+                {e.RateSP}
+            </td>
             <td  className=" text-blue-400 px-6 py-4">
                 {e.containProduct}
             </td>
@@ -316,6 +328,12 @@ const PriceTable = (data)=>{
                 <th scope="col" className={`px-6 py-3`}>
                   ชื่อผลิตภัณฑ์
                 </th>
+                <th scope="col" className={`px-6 py-3`}>
+                    Point
+                </th>
+                <th scope="col" className={`px-6 py-3`}>
+                    RateSP
+                </th>
                 <th scope="col" className="px-6 py-3">
                   ขนาดบรรจุ
                 </th>
@@ -380,6 +398,12 @@ const PriceTable = (data)=>{
                   </th>
                   <th scope="col" className={`px-6 py-3`}>
                     ชื่อผลิตภัณฑ์
+                  </th>
+                  <th scope="col" className={`px-6 py-3`}>
+                    Point
+                  </th>
+                  <th scope="col" className={`px-6 py-3`}>
+                    RateSP
                   </th>
                   <th scope="col" className="px-6 py-3">
                     ขนาดบรรจุ
