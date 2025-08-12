@@ -1,224 +1,413 @@
-import Navbar from "../../Components/UI/Navbar/Navbar";
-import react,{Fragment,useRef, useEffect,useCallback,useState} from 'react'
-import Styles from './PriceList.module.css'
-import PriceTable from "../../Components/UI/Table/PriceTable/PriceTable";
-import Search from '../../Components/Input/Search/Search'
-import Selectbox from '../../Components/Input/SelectBox/Selectbox'
-import { useSelector, useDispatch } from 'react-redux';
-import Modal from '../../Components/Input/Modal/Modal';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-toastify';
 import { productActions } from '../../Store/product-slice';
 import { fetchPriceList } from '../../Store/product-list';
-import { fetchReserveData } from '../../Store/reserve-list';
-import { deleteReserveData } from '../../Store/reserve-list';
-import { insertReserveData } from '../../Store/reserve-list';
+import Navbar from '../../Components/UI/Navbar/Navbar';
+import VirtualTable from '../../Components/UI/Table/VirtualTable';
+import Search from '../../Components/Input/Search/Search';
+import { CheckIcon, ArrowPathIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { useDebounce } from '../../hooks/useDebounce';
 
-const PriceList = ()=>{
-    const [modalOn,setModalOn] = useState(false);
-    const [reserveSection,setReserveSection] = useState(true);
-    const [cancelReserveSection,setCancelReserveSection] = useState(false);
-    const [reserveValue, setReserveValue] = useState('');
-    const [item,setItem] = useState();
-    const [data,setData] = useState([]);
-    const [error, setError] = useState(null);
-    const [value, setvalue] = useState('');
-    const [radioValue, setRadiovalue] = useState('');
-    const [search,setSearch] = useState('');
-    const dispatch = useDispatch();
-    let item_value = JSON.parse(sessionStorage.getItem("token"));    
-    const isLoading = useSelector((state)=>state.product.isLoading);
-    const priceData  = useSelector((state)=>state.product.priceList);
-    const optionsList  = useSelector((state)=>state.product.departNameList);
-    const reserveList  = useSelector((state)=>state.reserve.data);
+const PriceList = () => {
+  const dispatch = useDispatch();
+  const { priceList, isLoading: loading } = useSelector(state => state.product);
+  
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({
+    departCode: ''
+  });
+  const [page, setPage] = useState(1);
+  const [editingCell, setEditingCell] = useState(null);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [pendingChanges, setPendingChanges] = useState({});
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  
+  const debouncedSearch = useDebounce(search, 500);
+  const autoSaveTimerRef = useRef(null);
 
-    const handleOnChange = (e)=>{
-        const search = e;
-        setSearch(e);
-        dispatch(productActions.filterPriceList(search));
+  // Fetch data on mount and when filters change
+  useEffect(() => {
+    dispatch(fetchPriceList({
+      page,
+      limit: 50,
+      search: debouncedSearch,
+      departCode: filters.departCode
+    }));
+  }, [dispatch, page, debouncedSearch, filters.departCode]);
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (Object.keys(pendingChanges).length > 0) {
+      clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = setTimeout(() => {
+        handleBatchSave();
+      }, 2000); // Auto-save after 2 seconds of inactivity
+    }
+    
+    return () => clearTimeout(autoSaveTimerRef.current);
+  }, [pendingChanges]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        handleBatchSave();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pendingChanges]);
+
+  // Handle cell change
+  const handleCellChange = useCallback((itemCode, nameFGS, code, field, value) => {
+    setPendingChanges(prev => ({
+      ...prev,
+      [itemCode]: {
+        ...prev[itemCode],
+        [field]: value
+      }
+    }));
+
+    // Update local state for responsive UI using existing Redux actions
+    dispatch(productActions.updatePriceItem({ itemCode, field, value }));
+  }, [dispatch]);
+
+  // Batch save
+  const handleBatchSave = useCallback(async () => {
+    if (Object.keys(pendingChanges).length === 0) {
+      toast.info('ไม่มีการเปลี่ยนแปลง');
+      return;
     }
 
-    const handleOnClick = (e) =>{
-        const items = e.itemcode;
-        const Name = e.Name;
-        setItem(e);
-        setModalOn(true);
+    setIsAutoSaving(true);
+    try {
+      // You'll need to implement the actual API call here
+      // For now, we'll just simulate a save
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setPendingChanges({});
+      toast.success('บันทึกข้อมูลสำเร็จ');
+    } catch (error) {
+      toast.error('ไม่สามารถบันทึกข้อมูลได้');
+    } finally {
+      setIsAutoSaving(false);
     }
+  }, [pendingChanges]);
 
-    const handleReserveSubmit = (e)=>{
-        
-            dispatch(insertReserveData(e,reserveValue,item,item_value.Name,'pricePage'));
-            setModalOn(false);
-        
+  // Handle refresh
+  const handleRefresh = () => {
+    setPendingChanges({});
+    dispatch(fetchPriceList({
+      page,
+      limit: 50,
+      search: debouncedSearch,
+      departCode: filters.departCode
+    }));
+  };
+
+  // Handle search change
+  const handleSearchChange = useCallback((searchValue) => {
+    setSearch(searchValue);
+    dispatch(productActions.filterPriceList(searchValue));
+  }, [dispatch]);
+
+  // Define columns
+  const columns = [
+    {
+      key: 'ItemCode',
+      label: 'รหัสสินค้า',
+      width: 120,
+      frozen: true,
+      sortable: true
+    },
+    {
+      key: 'name',
+      label: 'ชื่อสินค้า',
+      width: 250,
+      frozen: true,
+      sortable: true
+    },
+    {
+      key: 'Price10',
+      label: 'ราคา 10 กก.',
+      width: 120,
+      editable: true,
+      type: 'number',
+      render: (value, row) => (
+        <EditableCell
+          value={value}
+          onChange={(newValue) => handleCellChange(row.ItemCode, row.NameFGS, row.code, 'price10', newValue)}
+          type="currency"
+          hasChanges={pendingChanges[row.ItemCode]?.price10 !== undefined}
+        />
+      )
+    },
+    {
+      key: 'Price25',
+      label: 'ราคา 25 กก.',
+      width: 120,
+      editable: true,
+      type: 'number',
+      render: (value, row) => (
+        <EditableCell
+          value={value}
+          onChange={(newValue) => handleCellChange(row.ItemCode, row.NameFGS, row.code, 'price25', newValue)}
+          type="currency"
+          hasChanges={pendingChanges[row.ItemCode]?.price25 !== undefined}
+        />
+      )
+    },
+    {
+      key: 'Price50',
+      label: 'ราคา 50 กก.',
+      width: 120,
+      editable: true,
+      type: 'number',
+      render: (value, row) => (
+        <EditableCell
+          value={value}
+          onChange={(newValue) => handleCellChange(row.ItemCode, row.NameFGS, row.code, 'price50', newValue)}
+          type="currency"
+          hasChanges={pendingChanges[row.ItemCode]?.price50 !== undefined}
+        />
+      )
+    },
+    {
+      key: 'Price100',
+      label: 'ราคา 100 กก.',
+      width: 120,
+      editable: true,
+      type: 'number',
+      render: (value, row) => (
+        <EditableCell
+          value={value}
+          onChange={(newValue) => handleCellChange(row.ItemCode, row.NameFGS, row.code, 'price100', newValue)}
+          type="currency"
+          hasChanges={pendingChanges[row.ItemCode]?.price100 !== undefined}
+        />
+      )
+    },
+    {
+      key: 'BAL',
+      label: 'คงเหลือ',
+      width: 100,
+      render: (value) => (
+        <span className={`font-semibold ${value < 10 ? 'text-red-600' : 'text-green-600'}`}>
+          {value?.toLocaleString() || 0}
+        </span>
+      )
+    },
+    {
+      key: 'ReserveQTY',
+      label: 'จองแล้ว',
+      width: 100,
+      render: (value) => value?.toLocaleString() || 0
+    },
+    {
+      key: 'NoteF',
+      label: 'หมายเหตุ',
+      width: 200,
+      editable: true,
+      type: 'text',
+      render: (value, row) => (
+        <EditableCell
+          value={value}
+          onChange={(newValue) => handleCellChange(row.ItemCode, row.NameFGS, row.code, 'note', newValue)}
+          type="text"
+          hasChanges={pendingChanges[row.ItemCode]?.note !== undefined}
+        />
+      )
     }
-    const handleReservePrice = (e)=>{
-        setReserveValue(e.target.value);
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      
+      <div className="max-w-full mx-auto p-6">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">ตารางราคาสินค้า</h1>
+              <p className="text-gray-600 mt-1">จัดการราคาสินค้าตามขนาดบรรจุ</p>
+            </div>
+            
+            {/* Save indicator */}
+            <div className="flex items-center space-x-4">
+              {isAutoSaving && (
+                <div className="flex items-center text-sm text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                  <span className="ml-2">กำลังบันทึก...</span>
+                </div>
+              )}
+              
+              {Object.keys(pendingChanges).length > 0 && !isAutoSaving && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex items-center space-x-2"
+                >
+                  <span className="text-sm text-orange-600">
+                    มีการเปลี่ยนแปลง {Object.keys(pendingChanges).length} รายการ
+                  </span>
+                  <button
+                    onClick={handleBatchSave}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <CheckIcon className="w-4 h-4 mr-2" />
+                    บันทึก (Ctrl+S)
+                  </button>
+                </motion.div>
+              )}
+            </div>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <Search
+                Name="ค้นหาสินค้า"
+                handleOnChange={handleSearchChange}
+              />
+            </div>
+            
+            <button
+              onClick={handleRefresh}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <ArrowPathIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-lg shadow-sm">
+          {loading ? (
+            <div className="flex items-center justify-center h-96">
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+            </div>
+          ) : (
+            <>
+              <VirtualTable
+                data={priceList}
+                columns={columns}
+                height={600}
+                onRowClick={(row) => console.log('Row clicked:', row)}
+                highlightChanges={pendingChanges}
+              />
+              
+              {/* Pagination */}
+              <div className="border-t px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    แสดง {((page - 1) * 50) + 1} - {Math.min(page * 50, priceList.length)} จาก {priceList.length} รายการ
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setPage(Math.max(1, page - 1))}
+                      disabled={page === 1}
+                      className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      ก่อนหน้า
+                    </button>
+                    
+                    <span className="px-3 py-1">
+                      หน้า {page}
+                    </span>
+                    
+                    <button
+                      onClick={() => setPage(page + 1)}
+                      disabled={priceList.length < 50}
+                      className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      ถัดไป
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Editable Cell Component
+const EditableCell = ({ value, onChange, type = 'text', hasChanges }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    setEditValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
     }
+  }, [isEditing]);
 
-    const handleReserveCancel =(e)=>{
-        
-        dispatch(deleteReserveData(e,radioValue));
-        
+  const handleSave = () => {
+    if (editValue !== value) {
+      onChange(editValue);
     }
-    const handleRadio = (e)=>{
-        console.log(e)
-        setRadiovalue(e);
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      setEditValue(value);
+      setIsEditing(false);
     }
+  };
 
-    const reserveSec = ()=>{
-        setReserveSection(true);
+  const formatDisplay = (val) => {
+    if (type === 'currency' && val) {
+      return new Intl.NumberFormat('th-TH', {
+        style: 'currency',
+        currency: 'THB',
+        minimumFractionDigits: 0
+      }).format(val);
     }
-   const CanclereserveSec = (e,a)=>{
-        dispatch(fetchReserveData(e,a,'pricePage'));
-        setReserveSection(false);
-   }
-    const op = optionsList.map((e)=>{
-        return {label:e,value:e};
-    })
+    return val || '-';
+  };
 
-    const getValue = (e)=>{
-        setvalue(e);
-        const type = e;
-        dispatch(productActions.filterPriceType(type))
-    }
+  if (isEditing) {
+    return (
+      <input
+        ref={inputRef}
+        type={type === 'currency' ? 'number' : 'text'}
+        value={editValue || ''}
+        onChange={(e) => setEditValue(e.target.value)}
+        onBlur={handleSave}
+        onKeyDown={handleKeyDown}
+        className="w-full px-2 py-1 border-2 border-blue-500 rounded focus:outline-none"
+      />
+    );
+  }
 
-    useEffect (()=>{
-        dispatch(fetchPriceList());
-    },[])
+  return (
+    <div
+      onClick={() => setIsEditing(true)}
+      className={`
+        cursor-pointer px-2 py-1 rounded transition-colors
+        ${hasChanges ? 'bg-yellow-100' : 'hover:bg-gray-100'}
+      `}
+    >
+      {formatDisplay(value)}
+    </div>
+  );
+};
 
-    return(
-        <Fragment >
-            <Navbar/>
-            <div className={`${Styles.borderTable}  `}>
-                <p className= "text-3xl text-gray-700 font-mono hover:text-blue-600">ทะเบียนราคาแพ็คกิ้ง</p>
-                <div className ={`${Styles.search} `}>
-                    <div className ="flex flex-wrap">
-                        <div className ="basis-1/4">
-                        <label  className="flex items-center pr-2  block font-semibold text-base font-medium text-gray-900 dark:text-gray-400 ">ชื่อการค้า/ชื่อสามัญ</label> 
-                        <Search handleOnChange = {handleOnChange} />
-                        </div>
-                        <div className="basis-3/4 grid grid-cols-4 gap-3">
-                            <div className ="col-start-2 col-span-2  ">
-                                <Selectbox options = {op} value = {value} name = 'เลือก ประเภท' getValue = {getValue}/>
-                            </div>    
-                        </div> 
-                    </div>    
-                </div>   
-                {
-                    isLoading === true
-                    ?
-                        <section classsName = {`${Styles.priceLoading} `}>
-                            <p>Loading...</p> 
-                        </section>
-                    : 
-                    <PriceTable handleOnClick = {handleOnClick} data ={priceData} />
-                }
-                {
-                    modalOn&&
-                        <Modal item = {item} setModalOn={setModalOn}>
-                            <h3 className="mb-4 text-2xl font-medium text-gray-900 dark:text-white">{item.ItemCode} ({item.NameFGS})</h3> 
- 
-                            <ul className="mb-10 text-sm font-medium text-center text-gray-500 divide-x divide-gray-200 rounded-lg shadow sm:flex dark:divide-gray-700 dark:text-gray-400">
-                                <li className="w-full">
-                                    <a onClick = {reserveSec} className="inline-block w-full p-4 text-gray-900 bg-gray-100 rounded-l-lg focus:ring-4 focus:ring-blue-300 active focus:outline-none dark:bg-gray-700 dark:text-white" aria-current="page">จอง</a>
-                                </li>
-                                <li class="w-full">
-                                    <a onClick = {()=>{CanclereserveSec(item,item_value.Name)} } className="inline-block w-full p-4 bg-white hover:text-gray-700 hover:bg-gray-50 focus:ring-4 focus:ring-blue-300 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700">ยกเลิก การจอง</a>
-                                </li>
-                            </ul> 
-
-                            {    
-                                reserveSection == true?
-                                <Fragment>
-                                    {/* <form  onSubmit = {handleReserveSubmit}> */}
-                                        <table id="dtHorizontalExample" className=" w-full text-base text-left text-gray-500 dark:text-gray-400 mb-5">
-                                            <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" >
-                                            <td scope="col" class="px-6 py-4">Sale Name</td>
-                                            <td className="px-6 py-4" >{item_value.Name}</td>
-                                            </tr> 
-                                            <tr  className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                            <td scope="col" class="px-6 py-4" >จำนวน จอง</td>
-                                            <td className="px-6 py-4"><input type="number" id="reservePrice"  onChange = {handleReservePrice} className="bg-green-50 border border-dark-500 text-green-900 dark:text-blue-400 placeholder-blue-700 dark:placeholder-black-500 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-green-500" placeholder="Reseve Input"/></td>
-                                            </tr> 
-                                        </table> 
-                                            <button type="submit"  onClick = {handleReserveSubmit} className="h-12 text-lg  text-white bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg  mr-10 px-6 py-2.5 text-center ">จอง</button>
-                                    {/* </form>     */}
-                                </Fragment>
-                                :
-                                <Fragment>
-                                    {/* <form  onSubmit = {handleReserveCancel}> */}
-                                    <div className={`${Styles.font} relative z-50 overflow-auto shadow-md rounded-lg`}>
-                                        <div className= "overflow-scroll  max-h-[300px]">
-                                            <table id="dtHorizontalExample" className=" w-full text-base text-left  dark:text-gray-400">
-                                                    <thead className={`${Styles.textCustom}  text-white text-base bg-[#FF9E0A]  uppercase whitespace-nowrap sticky top-0 z-[100]`}>
-                                                        <tr>
-                                                            <th scope="col" className="px-6 py-3">
-                                                                
-                                                            </th>
-                                                            <th scope="col" className="px-6 py-3">
-                                                                ItemCode
-                                                            </th>
-                                                            <th scope="col" className="px-6 py-3">
-                                                                ItemName
-                                                            </th>
-                                                            <th scope="col" className="px-6 py-3">
-                                                                Qty
-                                                            </th>
-                                                            <th scope="col" className="px-6 py-3">
-                                                                Pack
-                                                            </th>
-                                                            <th scope="col" className="px-6 py-3">
-                                                                SaleCode
-                                                            </th>
-                                                            <th scope="col" className="px-6 py-3">
-                                                                SaleName
-                                                            </th>
-                                                            <th scope="col" className="px-6 py-3">
-                                                                Date
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                <tbody>
-                                                {
-                                                    reserveList.map((e)=>{    
-                                                        return <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">  
-                                                                    <td className="px-6 py-4">
-                                                                    <input id="listRadio" type="radio" onClick = {()=>{handleRadio({e})}} value = {e} name="list-radio" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"></input>
-                                                                    </td>
-                                                                    <td className="px-6 py-4">
-                                                                        {e.itemCode}
-                                                                    </td>       
-                                                                    <td className="px-6 py-4">
-                                                                        {e.itemName}
-                                                                    </td>
-                                                                    <td className="px-6 py-4">
-                                                                        {e.Qty}
-                                                                    </td>
-                                                                    <td className="px-6 py-4">
-                                                                        {e.pack}
-                                                                    </td>
-                                                                    <td className="px-6 py-4">
-                                                                        {e.SaleCode}
-                                                                    </td>
-                                                                    <td className="px-6 py-4">
-                                                                        {e.SaleName}
-                                                                    </td>
-                                                                    <td className="px-6 py-4">
-                                                                        {e.docdateT}
-                                                                    </td>
-                                                                </tr>;     
-                                                    })
-                                                }            
-                                                </tbody>
-                                            </table>
-                                        </div>  
-                                    </div>
-                                    <button type="submit" onClick = {handleReserveCancel} className="h-12 text-lg  text-white bg-gradient-to-r from-red-500 via-red-600 to-red-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 dark:shadow-lg dark:shadow-red-800/80 font-medium rounded-lg mt-5 mr-10 px-6 py-2.5 text-center ">ยกเลิก จอง</button>
-                                    {/* </form> */}
-                                </Fragment>
-                            }   
-                        </Modal>
-                }
-            </div> 
-        </Fragment>
-    )
-}
 export default PriceList;

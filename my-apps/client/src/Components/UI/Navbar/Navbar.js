@@ -1,144 +1,220 @@
-import { Fragment ,useRef,useEffect,useState,useCallback,useContext} from 'react'
-import styles from './Navbar.module.css'
-import { menuItems } from "./MenuItem/MenuItems";
-import { Link , useNavigate  } from 'react-router-dom'
-// import MenuItems from "./MenuItem/MenuItems";
-import { useSelector, useDispatch } from 'react-redux';
+import React, { Fragment, useState, useContext } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import AuthContext from '../../../Store/auth-context';
-import  {LogoutApi}  from '../../../Store/logoutApi';
+import { LogoutApi } from '../../../Store/logoutApi';
+import { useNavigation } from '../../../hooks/useNavigation';
+import { useUserInfo } from '../../../hooks/useUserInfo';
+import {
+  PowerIcon,
+  Bars3Icon,
+  XMarkIcon
+} from '@heroicons/react/24/outline';
 
-const Navbar = ()=>{
+const Navbar = () => {
   const navigate = useNavigate();
-  const authCtx = useContext(AuthContext); 
+  const authCtx = useContext(AuthContext);
   const dispatch = useDispatch();
+  const [isOpen, setIsOpen] = useState(false);
   
-  const handelOnClick = ()=>{
-    dispatch(LogoutApi())
+  // Custom hooks สำหรับ logic
+  const { navigationItems, homePage } = useNavigation();
+  const { userInfo, userRole } = useUserInfo();
+  console.log('🔧 Component userInfo:', userInfo);
+  console.log('🔧 Component userRole:', userRole);
+
+  const handleLogout = () => {
+    dispatch(LogoutApi());
     authCtx.onLogOut();
     navigate("/Login");
-  }
+  };
 
-  let token = sessionStorage.getItem('token');
-  let jsonToken = JSON.parse(token);
-  let checkpage;
-  if(jsonToken.StAdmin =='1'){
-    checkpage= "/MainPage";
-  }else if(jsonToken.StAdmin =='2'){
-    checkpage= "/SalesPage";
-  }else{
-    checkpage= "/PriceLsit";
-  }
-  // const ref = useRef(null);
-  // const [y, setY] = useState(window.scrollY);
-  // const [height, setHeight] = useState(0);
-  //  const handleNavigation = useCallback(
-  //   (e) => {
+  return (
+    <Fragment>
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/20 shadow-lg"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo Section */}
+            <LogoSection homePage={homePage} userRole={userRole} />
 
-  //     const window = e.currentTarget;
-  //     if (y > 50) {
-  //       console.log(ref.current); 
-  //       // setHeight(ref.current.clientHeight)
-  //       console.log("scrolling up");
-  //     } else {
-  //       console.log("scrolling down");
-  //     }
-  //     setY(window.scrollY);
-  //   },
-  //   [y]
-  // );
-  //   const getHeight = ()=>{
-  //     setHeight(ref.current.offsetHeight);
-  //   }
-  //   useEffect(() => {
-  //   window.addEventListener("scroll", (e) => handleNavigation(e));
+            {/* Desktop Navigation */}
+            <DesktopNavigation navigationItems={navigationItems} />
 
-  //   return () => { // return a cleanup function to unregister our function since its gonna run multiple times
-  //       window.removeEventListener("scroll", (e) => handleNavigation(e));
-  //   };
-  //   }, [y]);
-  // useEffect(() => {
-  //       // console.log(height);
-  //       getHeight();
-  //       console.log(height);
-  // },[y]);
-  
-    return (
-          <Fragment> 
-              {/* <nav class="navbar navbar-expand-lg shadow-lg py-2 bg-gray-50 relative flex items-center w-full justify-between">
-                <div class="px-6">
-                  <button class="navbar-toggler border-0 py-3 lg:hidden leading-none text-xl bg-transparent text-gray-600 hover:text-gray-700 focus:text-gray-700 transition-shadow duration-150 ease-in-out" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContentX" aria-controls="navbarSupportedContentX" aria-expanded="false" aria-label="Toggle navigation">
-                    <svg aria-hidden="true" focusable="false" data-prefix="fas" class="w-5" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                      <path fill="currentColor" d="M16 132h416c8.837 0 16-7.163 16-16V76c0-8.837-7.163-16-16-16H16C7.163 60 0 67.163 0 76v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16z"></path>
-                    </svg>
-                  </button>
-                <div class="navbar-collapse collapse grow items-center" id="navbarSupportedContentX">
-                  <ul class="navbar-nav mr-auto flex flex-row">
-                    <li class="nav-item">
-                      <a class="nav-link block pr-2 lg:px-2 py-2 text-gray-600 hover:text-gray-700 focus:text-gray-700 transition duration-150 ease-in-out" href="#!" data-mdb-ripple="true" data-mdb-ripple-color="light">Regular link</a>
-                    </li>
-                    <li class="nav-item dropdown static">
-                      <a class="nav-link block pr-2 lg:px-2 py-2 text-gray-600 hover:text-gray-700 focus:text-gray-700 transition duration-150 ease-in-out dropdown-toggle flex items-center whitespace-nowrap" href="#" data-mdb-ripple="true" data-mdb-ripple-color="light" type="button" id="dropdownMenuButtonX" data-bs-toggle="dropdown"
-                      aria-expanded="false">Mega menu
-                        <svg  aria-hidden="true" focusable="false" data-prefix="fas" data-icon="caret-down" class="w-2 ml-2" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-                          <path fill="currentColor" d="M31.3 192h257.3c17.8 0 26.7 21.5 14.1 34.1L174.1 354.8c-7.8 7.8-20.5 7.8-28.3 0L17.2 226.1C4.6 213.5 13.5 192 31.3 192z"></path>
-                        </svg>
-                      </a>
-                      <div class="dropdown-menu w-32 mt-0 hidden shadow-lg bg-white absolute  top-full" aria-labelledby="dropdownMenuButtonX">
+            {/* User Actions */}
+            <UserActions 
+              userInfo={userInfo}
+              onLogout={handleLogout}
+              onToggleMenu={() => setIsOpen(!isOpen)}
+              isMenuOpen={isOpen}
+            />
+          </div>
+        </div>
 
-                            <div class="bg-white text-gray-600">
-                              <a href="#!" aria-current="true" class="block px-6 py-2 border-b border-gray-200 w-full hover:bg-gray-50 hover:text-gray-700 transition duration-150 ease-in-out">Lorem ipsum</a>
-                              <a href="#!" aria-current="true" class="block px-6 py-2 border-b border-gray-200 w-full hover:bg-gray-50 hover:text-gray-700 transition duration-150 ease-in-out">Dolor sit</a>
-                              <a href="#!" aria-current="true" class="block px-6 py-2 border-b border-gray-200 w-full hover:bg-gray-50 hover:text-gray-700 transition duration-150 ease-in-out">Amet consectetur</a>
-                              <a href="#!" aria-current="true" class="block px-6 py-2 border-b border-gray-200 w-full hover:bg-gray-50 hover:text-gray-700 transition duration-150 ease-in-out">Cras justo odio</a>
-                              <a href="#!" aria-current="true" class="block px-6 py-2 w-full hover:bg-gray-50 hover:text-gray-700 transition duration-150 ease-in-out">Adipisicing elit</a>
-                            </div>
-                      </div>
-                    </li>
-                  </ul>
+        {/* Mobile Navigation */}
+        <MobileNavigation 
+          isOpen={isOpen}
+          navigationItems={navigationItems}
+          userInfo={userInfo}
+          userRole={userRole}
+          onClose={() => setIsOpen(false)}
+        />
+      </motion.nav>
+    </Fragment>
+  );
+};
+
+// แยก Component ย่อยออกมา
+const LogoSection = ({ homePage, userRole }) => (
+  <motion.div
+    whileHover={{ scale: 1.05 }}
+    className="flex items-center space-x-3"
+  >
+    <Link to={homePage} className="flex items-center space-x-3">
+      <div className="relative">
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+          <img 
+            src={process.env.PUBLIC_URL + "/icons/a-icon-chemical.png"} 
+            className="w-6 h-6 filter brightness-0 invert" 
+            alt="Sigma"
+          />
+        </div>
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+      </div>
+      <div className="hidden sm:block">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Sigma System
+        </h1>
+        <p className="text-xs text-gray-500 -mt-1">{userRole}</p>
+      </div>
+    </Link>
+  </motion.div>
+);
+
+const DesktopNavigation = ({ navigationItems }) => (
+  <div className="hidden md:block">
+    <div className="ml-10 flex items-baseline space-x-1">
+      {navigationItems.map((item) => (
+        <Link
+          key={item.name}
+          to={item.href}
+          className={`
+            px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2
+            ${item.current
+              ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80'
+            }
+          `}
+        >
+          <item.icon className="w-4 h-4" />
+          <span>{item.name}</span>
+        </Link>
+      ))}
+    </div>
+  </div>
+);
+
+const UserActions = ({ userInfo, onLogout, onToggleMenu, isMenuOpen }) => (
+  <div className="flex items-center space-x-4">
+    {/* User Profile */}
+    {userInfo.name && (
+      <UserProfile userInfo={userInfo} />
+    )}
+
+    {/* Logout Button */}
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onLogout}
+      className="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+    >
+      <PowerIcon className="w-4 h-4" />
+      <span className="hidden sm:inline">ออกจากระบบ</span>
+    </motion.button>
+
+    {/* Mobile menu button */}
+    <button
+      onClick={onToggleMenu}
+      className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+    >
+      {isMenuOpen ? (
+        <XMarkIcon className="w-6 h-6" />
+      ) : (
+        <Bars3Icon className="w-6 h-6" />
+      )}
+    </button>
+  </div>
+);
+
+const UserProfile = ({ userInfo }) => (
+  <div className="hidden sm:block">
+    <div className="flex items-center space-x-3 bg-gray-50 rounded-lg px-3 py-2">
+      <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+        <span className="text-white text-sm font-medium">
+          {userInfo.name.charAt(0)}
+        </span>
+      </div>
+      <div className="text-sm">
+        <div className="font-medium text-gray-900">{userInfo.name}</div>
+      </div>
+    </div>
+  </div>
+);
+
+const MobileNavigation = ({ isOpen, navigationItems, userInfo, userRole, onClose }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.2 }}
+        className="md:hidden bg-white/95 backdrop-blur-md border-t border-gray-200/20"
+      >
+        <div className="px-2 pt-2 pb-3 space-y-1">
+          {navigationItems.map((item) => (
+            <Link
+              key={item.name}
+              to={item.href}
+              onClick={onClose}
+              className={`
+                flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors
+                ${item.current
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }
+              `}
+            >
+              <item.icon className="w-5 h-5" />
+              <span>{item.name}</span>
+            </Link>
+          ))}
+          
+          {/* Mobile User Info */}
+          {userInfo.name && (
+            <div className="border-t border-gray-200 pt-3 mt-3">
+              <div className="flex items-center space-x-3 px-3 py-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-medium">
+                    {userInfo.name.charAt(0)}
+                  </span>
+                </div>
+                <div>
+                  <div className="font-medium text-gray-900">{userInfo.name}</div>
+                  <div className="text-sm text-gray-500">{userRole}</div>
                 </div>
               </div>
-            </nav> */}
-               
-              <div className ={`${styles.content} sticky top-0 z-[200] bg-[#3F83F8] `}>   
-                <nav className={` bg-[#3F83F8] border-gray-100 px-1 sm:px-3 py-2 pr-4 pl-3  `}>
-                  <div className=" flex flex-wrap  flex justify-between content-center  mx-auto ">
-                    <a href={checkpage} className="flex content-center items-center">
-                      <img src={process.env.PUBLIC_URL + "/icons/a-icon-chemical.png"} className="mr-3 h-6 sm:h-9 "  />
-                      <span className={`${styles.textCustom} text-xl font-semibold whitespace-nowrap text-white`}>Sigma</span>
-                    </a>
-                    
-                    <button type="button"  onClick = {handelOnClick} className="text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg shadow-purple-500/50 dark:shadow-lg dark:shadow-purple-800/80 font-medium rounded-lg  mr-10 px-5 py-2.5 text-center ">Log Out</button>
-                      {/* <ul class="navbar-nav mr-auto flex flex-row">
-                        <li class="nav-item">
-                          <a class="nav-link block pr-2 lg:px-2 py-2 text-gray-600 hover:text-gray-700 focus:text-gray-700 transition duration-150 ease-in-out" href="#!" data-mdb-ripple="true" data-mdb-ripple-color="light">Regular link</a>
-                        </li>
-                        <li class="nav-item dropdown static">
-                          <a class=" block pr-2 lg:px-2 py-2 text-white transition duration-150 ease-in-out dropdown-toggle flex items-center whitespace-nowrap" href="#" data-mdb-ripple="true" data-mdb-ripple-color="light"  id="dropdownMenuButtonX" data-bs-toggle="dropdown"
-                          aria-expanded="false">Mega menu
-                            <svg  aria-hidden="true" focusable="false" data-prefix="fas" data-icon="caret-down" class="w-2 ml-2" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-                              <path fill="currentColor" d="M31.3 192h257.3c17.8 0 26.7 21.5 14.1 34.1L174.1 354.8c-7.8 7.8-20.5 7.8-28.3 0L17.2 226.1C4.6 213.5 13.5 192 31.3 192z"></path>
-                            </svg>
-                          </a>
-                          <div className={`dropdown-menu w-40 mt-2 hidden shadow-lg bg-white top-full"`} aria-labelledby="dropdownMenuButtonX"> */}
-                            {/* <div class="px-6 lg:px-8 py-5">
-                              <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6"> */}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
 
-                                {/* <div class=" bg-white  text-gray-600" >
-                                  <a href="#!" aria-current="true" class="block px-6 py-2 border-b border-gray-200 w-full hover:bg-gray-50 hover:text-gray-700 transition duration-150 ease-in-out">Lorem ipsum</a>
-                                  <a href="#!" aria-current="true" class="block px-6 py-2 border-b border-gray-200 w-full hover:bg-gray-50 hover:text-gray-700 transition duration-150 ease-in-out">Dolor sit</a>
-                                  <a href="#!" aria-current="true" class="block px-6 py-2 border-b border-gray-200 w-full hover:bg-gray-50 hover:text-gray-700 transition duration-150 ease-in-out">Amet consectetur</a>
-                                  <a href="#!" aria-current="true" class="block px-6 py-2 border-b border-gray-200 w-full hover:bg-gray-50 hover:text-gray-700 transition duration-150 ease-in-out">Cras justo odio</a>
-                                  <a href="#!" aria-current="true" class="block px-6 py-2 w-full hover:bg-gray-50 hover:text-gray-700 transition duration-150 ease-in-out">Adipisicing elit</a>
-                                </div> */}
-                              {/* </div>  
-                            </div>   */}
-                          {/* </div> */}
-                        {/* </li>
-                      </ul>   */}
-                  </div>
-                </nav>
-              </div>   
-        </Fragment>  
-            )
-}
 export default Navbar;

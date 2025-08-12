@@ -1,341 +1,296 @@
-var mysql = require('mysql');
-var mssql = require("mssql");
-var express = require('express');
-var session = require('express-session');
-var bodyParser = require('body-parser');
-const db = require('../database');
-const res = require('express/lib/response');
-const { resourceLimits } = require('worker_threads');
-const { request } = require('http');
-const { response } = require('../app');
-const { get } = require('../data-access/pool-manager');
-const checkAuthMiddleware = require('../util/auth')
-  var app = express();
-  const router = express.Router();
-  router.use(session({
-      secret: 'secret',
-      resave:true,
-      saveUninitialized:true
-  }));
+// server/api/routes/priceList.js
+const express = require('express');
+const router = express.Router();
+const db = require('../config/database');
+const cache = require('../config/cache');
+const verifyToken = require('../middleware/auth');
 
-  router.use(express.urlencoded({extended:true}));
-  router.use(bodyParser.json());
-  router.get('/',checkAuthMiddleware,async function(req,res){
-     const pool = get(db.Sigma);
-     let data1;
-     try {
-          const sql = " select  ROW_NUMBER ( ) OVER ( ORDER BY a.ItemCode DESC) as number ,cast(CONVERT(VARCHAR, CAST( ISNULL((b.BAL-ISNULL(d.QTY,0)),'0.00') AS MONEY), 1) AS VARCHAR) as bal ,b.pack,a.code,a.name,a.ItemCode,a.Rpack,a.PackR,a.RpackSale,a.PackD,a.PackSale,a.RPackRpt,concat(a.Rpack,' ',a.PackR,' x ',a.RpackSale) as containProduct,cast(CONVERT(VARCHAR, CAST( a.CU AS MONEY), 1) AS VARCHAR) as CU,cast(CONVERT(VARCHAR, CAST( a.CP AS MONEY), 1) AS VARCHAR) as CP,cast(CONVERT(VARCHAR, CAST( a.COP AS MONEY), 1) AS VARCHAR) as COP ,cast(CONVERT(VARCHAR, CAST( a.TOT AS MONEY), 1) AS VARCHAR) as TOT,  FORMAT(a.DateAdd ,'dd/MM/yyyy') as DateAdd ,a.DepartCode,a.DepartName,a.NameFG,a.NameFGS, " +
-                      " cast(CONVERT(VARCHAR, CAST( ISNULL(a.Pricelist,'0.00') AS MONEY), 1) AS VARCHAR)  as priceList	,FORMAT(a.DatePriceList ,'dd/MM/yyyy') as datePriceList,ISNULL(a.NoteF,'') as NoteF " +
-                         " ,cast(CONVERT(VARCHAR, CAST( a.Price10  AS MONEY), 1) AS VARCHAR) as Price10,  AmtF10,cast(CONVERT(VARCHAR, CAST( a.Price25  AS MONEY), 1) AS VARCHAR) as Price25, a.AmtF25,cast(CONVERT(VARCHAR, CAST( a.Price50  AS MONEY), 1) AS VARCHAR) as Price50, a.AmtF50,cast(CONVERT(VARCHAR, CAST( a.Price100  AS MONEY), 1) AS VARCHAR) as Price100, a.AmtF100 ,ISNULL(cast(CONVERT(VARCHAR, CAST( c.QTY  AS MONEY), 1) AS VARCHAR),'0.00')  as Reserve , FORMAT(DatePriceList ,'dd/MM/yyyy') as DatePriceList, CAST( ISNULL(a.point ,0) AS VARCHAR) as point ,a.RateSP " +
-                         " From ItemF a inner join (Select  itemcode,name,sum(qbal ) as QBal,pack, sum(qbal) - sum(QD) - sum(QP1) - sum(qp2) - Sum(QP3) - Sum(QP4)  + Sum(Qs)  as BAL,Note " +
-                                                  " From DATASIGMA.dbo.rptstock2 " +  
-                                                  " Group by itemcode,name,pack ,Note ) b on b.itemcode = a.ItemCode " +
-                                                  " left join ( select itemCode,sum(QTY) as QTY ,code ,NameFGS from ReserveProduct  group by itemCode,code,NameFGS ) c on c.itemCode = a.ItemCode and c.code = a.code and c.NameFGS = a.NameFGS  " + 
-                                                  " left join ( select itemCode,sum(QTY) as QTY  from ReserveProduct  group by itemCode ) d on d.itemCode = a.ItemCode " +
-                                                  " Order by departCode,NameFG ";
-        await pool.connect()
-        const request = pool.request();
-        const result = await request.query(sql);
-        res.json({result});
-        } catch (err) {
-          // ... handle it locally
-          throw new Error(err.message);
-        }finally{
-          try {
-               await pool.close();
-              console.log('Connection pool closed');
-            } catch (err) {
-              console.error('Error closing connection pool:', err);
-            }
-        }
-    });
-    router.put('/',checkAuthMiddleware,async function(req,res){
-     const ItemCode = req.body.itemRowAll.ItemCode;
-     let value = req.body.inputValue;
-     const itemName = req.body.itemRowAll.name;
-     const DepartCode = req.body.itemRowAll.DepartCode;
-     const RpackSale = req.body.itemRowAll.RpackSale;
-     const PackR = req.body.itemRowAll.PackR;
-     const Rpack = req.body.itemRowAll.Rpack;
-     const NameFGS = req.body.itemRowAll.NameFGS;
-     const NameFG = req.body.itemRowAll.NameFG;
-     const code = req.body.itemRowAll.code;
-     const type = req.body.columnInput;
-     let date1 = new Date();
-     let dateToday = '';
-     const pool = get(db.Sigma);
-     try {
-          dateToday = date1.getFullYear() +'-'+ ('0' + (date1.getMonth()+1)).slice(-2)+ '-'+ ('0' + date1.getDate()).slice(-2);
-          await pool.connect();
-          const request = pool.request();
-          if(type =='note'){
-               const sql = "update DATASIGMA.dbo.itemF " +
-                         " set NoteF = @value  " +
-                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-               const data = await request
-                              .input('value',mssql.VarChar(50),value)
-                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                              .input('code',mssql.VarChar(200),code) 
-                              .query(sql) 
-               res.json({result:data});               
-          }else if(type =='price10'){
-               const sql = "update DATASIGMA.dbo.itemF " +
-                         " set Price10 = Round(@value,0)  " +
-                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-               const data = await request
-                              .input('value',mssql.VarChar(50),value)
-                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                              .input('code',mssql.VarChar(200),code) 
-                              .query(sql) 
-               res.json({result:data});               
-          }else if(type =='AmtF10'){
-               if(value=='-'){
-                    value = '0'
-               }
-               const sql = "update DATASIGMA.dbo.itemF " +
-                         " set AmtF10 = @value  " +
-                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-               const data = await request
-                              .input('value',mssql.VarChar(50),value)
-                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                              .input('code',mssql.VarChar(200),code) 
-                              .query(sql) 
-               res.json({result:data});               
-          }else if(type =='price25'){
-               const sql = "update DATASIGMA.dbo.itemF " +
-                         " set Price25 = Round(@value,0)  " +
-                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-               const data = await request
-                              .input('value',mssql.VarChar(50),value)
-                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                              .input('code',mssql.VarChar(200),code) 
-                              .query(sql) 
-               res.json({result:data});               
-          }else if(type =='AmtF25'){
-               const sql = "update DATASIGMA.dbo.itemF " +
-                         " set AmtF25 = @value  " +
-                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-                         console.log('test')
-               const data = await request
-                              .input('value',mssql.VarChar(50),value)
-                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                              .input('code',mssql.VarChar(200),code) 
-                              .query(sql) 
-               res.json({result:data});               
-          }else if(type =='price50'){
-               const sql = "update DATASIGMA.dbo.itemF " +
-                         " set Price50 = Round(@value,0)  " +
-                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-                         console.log('test')
-               const data = await request
-                              .input('value',mssql.VarChar(50),value)
-                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                              .input('code',mssql.VarChar(200),code) 
-                              .query(sql) 
-               res.json({result:data});               
-          }else if(type =='AmtF50'){
-               const sql = "update DATASIGMA.dbo.itemF " +
-                         " set AmtF50 = @value  " +
-                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
+// Get price list with pagination and caching
+router.get('/list', verifyToken, async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 50, 
+      search = '', 
+      departCode = '',
+      sortBy = 'departCode',
+      sortOrder = 'ASC' 
+    } = req.query;
 
-               const data = await request
-                              .input('value',mssql.VarChar(50),value)
-                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                              .input('code',mssql.VarChar(200),code) 
-                              .query(sql) 
-               res.json({result:data});               
-          }else if(type =='price100'){
-               const sql = "update DATASIGMA.dbo.itemF " +
-                         " set Price100 = Round(@value,0)  " +
-                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-                         console.log('testq')
-               const data = await request
-                              .input('value',mssql.VarChar(50),value)
-                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                              .input('code',mssql.VarChar(200),code) 
-                              .query(sql) 
-               res.json({result:data});               
-          }else if(type =='AmtF100'){
-               const sql = "update DATASIGMA.dbo.itemF " +
-                         " set AmtF100 = @value  " +
-                         " where ItemCode = @ItemCode and NameFGS = @NameFGS and Code = @code ";
-               const data = await request
-                              .input('value',mssql.VarChar(50),value)
-                              .input('ItemCode',mssql.VarChar(50),ItemCode) 
-                              .input('NameFGS',mssql.VarChar(200),NameFGS) 
-                              .input('code',mssql.VarChar(200),code) 
-                              .query(sql) 
-               res.json({result:data});               
+    const offset = (page - 1) * limit;
+
+    // Check cache first
+    const cacheKey = `prices:${page}:${limit}:${search}:${departCode}:${sortBy}:${sortOrder}`;
+    const cached = await cache.get(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+
+    // Build WHERE clause
+    let whereConditions = ['1=1'];
+    const queryParams = {
+      offset: parseInt(offset),
+      limit: parseInt(limit)
+    };
+
+    if (search) {
+      whereConditions.push(`(a.ItemCode LIKE @search OR a.name LIKE @search)`);
+      queryParams.search = `%${search}%`;
+    }
+
+    if (departCode) {
+      whereConditions.push(`a.DepartCode = @departCode`);
+      queryParams.departCode = departCode;
+    }
+
+    // Optimized query with CTEs
+    const query = `
+      WITH StockSummary AS (
+        SELECT 
+          itemcode,
+          name,
+          pack,
+          SUM(BAL) as BAL,
+          MAX(Note) as Note
+        FROM DATASIGMA.dbo.rptstock2 WITH (NOLOCK)
+        GROUP BY itemcode, name, pack
+      ),
+      ReserveByCust AS (
+        SELECT 
+          itemCode,
+          code,
+          NameFGS,
+          SUM(QTY) as QTY
+        FROM DATASIGMA.dbo.ReserveProduct WITH (NOLOCK)
+        GROUP BY itemCode, code, NameFGS
+      ),
+      ReserveTotal AS (
+        SELECT 
+          itemCode,
+          SUM(QTY) as TotalQTY
+        FROM DATASIGMA.dbo.ReserveProduct WITH (NOLOCK)
+        GROUP BY itemCode
+      ),
+      FilteredData AS (
+        SELECT 
+          a.*,
+          ISNULL(b.BAL, 0) as BAL,
+          b.Note,
+          ISNULL(c.QTY, 0) as ReserveQTYbyCust,
+          ISNULL(d.TotalQTY, 0) as ReserveQTY,
+          ROW_NUMBER() OVER (ORDER BY ${sortBy} ${sortOrder}) as RowNum,
+          COUNT(*) OVER() as TotalCount
+        FROM DATASIGMA.dbo.itemF a WITH (NOLOCK)
+        LEFT JOIN StockSummary b ON b.itemcode = a.ItemCode
+        LEFT JOIN ReserveByCust c ON c.itemCode = a.ItemCode 
+          AND c.code = a.code 
+          AND c.NameFGS = a.NameFGS
+        LEFT JOIN ReserveTotal d ON d.itemCode = a.ItemCode
+        WHERE ${whereConditions.join(' AND ')}
+      )
+      SELECT * FROM FilteredData
+      WHERE RowNum > @offset AND RowNum <= (@offset + @limit)
+      ORDER BY RowNum
+    `;
+
+    const result = await db.query(query, queryParams);
+
+    const response = {
+      data: result.recordset,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: result.recordset[0]?.TotalCount || 0,
+        totalPages: Math.ceil((result.recordset[0]?.TotalCount || 0) / limit)
+      }
+    };
+
+    // Cache for 1 minute
+    await cache.set(cacheKey, response, 60);
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('Error fetching price list:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Update price with transaction
+router.put('/update', verifyToken, async (req, res) => {
+  try {
+    const { itemCode, nameFGS, code, updates } = req.body;
+
+    if (!itemCode || !updates || Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: 'Invalid request data' });
+    }
+
+    await db.transaction(async (transaction) => {
+      const request = transaction.request();
+      
+      // Build dynamic UPDATE statement
+      const updateFields = [];
+      const params = {
+        ItemCode: itemCode,
+        NameFGS: nameFGS,
+        Code: code
+      };
+
+      // Map field names to SQL columns
+      const fieldMap = {
+        price10: 'Price10',
+        price25: 'Price25',
+        price50: 'Price50',
+        price100: 'Price100',
+        amtF10: 'AmtF10',
+        amtF25: 'AmtF25',
+        amtF50: 'AmtF50',
+        amtF100: 'AmtF100',
+        note: 'NoteF'
+      };
+
+      for (const [field, value] of Object.entries(updates)) {
+        if (fieldMap[field]) {
+          const column = fieldMap[field];
+          if (field.startsWith('price')) {
+            updateFields.push(`${column} = ROUND(@${column}, 0)`);
+          } else {
+            updateFields.push(`${column} = @${column}`);
           }
-        } catch (err) {
-          // ... handle it locally
-          throw new Error(err.message);
-        }finally{
-          try {
-               await pool.close();
-              console.log('Connection pool closed');
-            } catch (err) {
-              console.error('Error closing connection pool:', err);
-            }
+          params[column] = value;
         }
-   });
+      }
 
-   router.post('/updatePriceList',checkAuthMiddleware,async function(req,res){
-     const pool = get(db.Sigma);
-     try {
-          const DepartName = req.body.itemRowAll.DepartName;
-          const ItemCode = req.body.itemRowAll.ItemCode;
-         const value = req.body.inputValue;
-         const itemName = req.body.itemRowAll.name;
-         const DepartCode = req.body.itemRowAll.DepartCode;
-         const RpackSale = req.body.itemRowAll.RpackSale;
-         const PackR = req.body.itemRowAll.PackR;
-         const Rpack = req.body.itemRowAll.Rpack;
-         const NameFGS = req.body.itemRowAll.NameFGS;
-         const NameFG = req.body.itemRowAll.NameFG;
-         const code = req.body.itemRowAll.code;
-         const type = req.body.columnInput;
-         let date1 = new Date();
-         let dateToday = '';
-         dateToday = date1.getFullYear() +'-'+ ('0' + (date1.getMonth()+1)).slice(-2)+ '-'+ ('0' + date1.getDate()).slice(-2);
-         await pool.connect();
-         const request = pool.request();
-         if (type =='priceList'){
-             const sqlRes =  "select * from DATASIGMA.dbo.Depart  where Name = @DepartName ";
-             const sql = "update a " +
-                      " set a.Pricelist = @value,  " +
-                              " a.DatePriceList  = GETDATE(),  " +
-                              " a.Price10 = Round((@value - (@value * Disc10/100)),0) , " +
-                              " a.Price25 = Round((@value - (@value * Disc25/100)),0) , " +
-                              " a.Price50 = Round((@value - (@value * Disc50/100)),0) , " +
-                              " a.Price100 = Round((@value - (@value * Disc100/100)),0) , " +
-                              " a.AmtF10 = b.AmtF10, " +
-                              " a.AmtF25 = b.AmtF25, " +
-                              " a.AmtF50 = b.AmtF50, " +
-                              " a.AmtF100 = b.AmtF100 " +
-                         " from 	DATASIGMA.dbo.itemF a inner join 	 DATASIGMA.dbo.Depart b on b.Name = a.DePartName " +
-                         " where a.ItemCode = @ItemCode and a.NameFGS = @NameFGS and a.Code = @code " ;
-          const checkInsert = " select  TOP 1 FORMAT(DocDate,'yyyy-MM-dd') as DocDate ,DocNo " +
-          " from DATASIGMA.dbo.ItemPricePack " +
-          " where Month(DocDate) = MONTH(GETDATE()) and  " +
-          " YEAR(DocDate) = YEAR(GETDATE()) "+
-          " order by right(DocNo,4) DESC " ;
-          const insertSub = "insert into DATASIGMA.dbo.ItemPricePackSub(DocNo,IDNO,ItemCode,Code,NameFG,NameFGS,Package,DepartCode,GrItem,Pricepack,DatePricePack,Name) " +  
-                             "values " + 
-                             "( " +
-                             "@docNo, " + 
-                             "(select COALESCE (str((select TOP 1  IDNo " + 
-                             "from DATASIGMA.dbo.ItemPricePackSub " +  
-                             " where DocNo = @docNo order by IDNo DESC )+1 ),'1') ), " + 
-                             " @ItemCode2, " +
-                             "@code2, " +
-                             "@NameFG, " +
-                             "@NameFGS2," +
-                             "concat( @Rpack , @PackR,'X',@RpackSale), " +
-                             "@DepartCode, " +
-                             "@DepartCode, " +
-                             "@values, " +
-                             "GETDATE(), " + 
-                             "@itemName " +
-                             " ) " ;                         
-          const data = await request
-          .input('value',mssql.VarChar(50),value)
-          .input('ItemCode',mssql.VarChar(50),ItemCode) 
-          .input('NameFGS',mssql.VarChar(200),NameFGS) 
-          .input('code',mssql.VarChar(200),code) 
-          .query(sql) 
-          const dataCheck = await request.query(checkInsert);
-          let [arrRecord] = dataCheck.recordset;
-              if(arrRecord.DocDate != dateToday ){
-                   const insertDocNO = "insert into DATASIGMA.dbo.ItemPricePack (DocNo,QNo,DocDate,EmpCode,MonthCal,GrItem) " +
-                                       "VALUES  " +
-                                       "( " +
-                                       "(select concat('PAC','-', right(FORMAT(GETDATE() ,'yyyy') +543,2), " +
-                                                 "format(GETDATE(),'MM'), " +
-                                                 "( " +
-                                                      "select FORMAT( " +
-                                                                     "COALESCE " +
-                                                                               "( " +
-                                                                                    "(                       " +
-                                                                                    "select max(b.DocNo) as DocNo " +
-                                                                                    "from( " +
-                                                                                              "select right(DocNo,4) as DocNo  " +
-                                                                                              "from DATASIGMA.dbo.ItemPricePack a  " +
-                                                                                              "where Month(DocDate) = MONTH(GETDATE()) and  " +
-                                                                                                   "YEAR(DocDate) = YEAR(GETDATE()) " +
-                                                                                         ")b " +
-                                                                                    "),'0001' " +
-                                                                               ")+1 , '0000') as r  " +
-                                                      ") " +
-                                                 ") " +
-                                       "), " +
-                                       "( " +
-                                       "select COALESCE( " +
-                                                      "( " +
-                                                      "select max(b.DocNo) as DocNo " +
-                                                      "from( " +
-                                                           "select right(DocNo,4) as DocNo  " +
-                                                           "from DATASIGMA.dbo.ItemPricePack a  " +
-                                                           "where Month(DocDate) = MONTH(GETDATE()) and  " +
-                                                                "YEAR(DocDate) = YEAR(GETDATE()) " +
-                                                           ")b     " +
-                                                      ")+1 ,'0001' " +
-                                                      ")  " +
-                                       "), " +
-                                       "GETDATE(), " +
-                                       " 'ADMIN', " +
-                                       "MONTH(getDATE()), " +
-                                       " @TypeMain " +
-                                  ") " ;
-                   const insertMain = await request 
-                                   .input('TypeMain',mssql.VarChar(50),DepartCode) 
-                                   .query(insertDocNO) 
-                   const dataCheck2 = await request.query(checkInsert);
-                   [arrRecord] = dataCheck2.recordset;        
-              }
-          const insert = await request
-          .input('docNo',mssql.VarChar(50),arrRecord.DocNo)
-          .input('ItemCode2',mssql.VarChar(50),ItemCode) 
-          .input('code2',mssql.VarChar(200),code) 
-          .input('NameFG',mssql.VarChar(200),NameFG) 
-          .input('NameFGS2',mssql.VarChar(200),NameFGS) 
-          .input('Rpack',mssql.Numeric,Rpack)
-          .input('PackR',mssql.VarChar(50),PackR)
-          .input('RpackSale',mssql.Numeric,RpackSale)
-          .input('DepartCode',mssql.VarChar(50),DepartCode)
-          .input('values',mssql.VarChar(50),value)
-          .input('itemName',mssql.VarChar(200),itemName)
-          .query(insertSub);
-          const  departData = await request
-          .input('DepartName',mssql.VarChar(50),DepartName)
-          .query(sqlRes)
-          res.json({result:data,departData});
-         }
-        } catch (err) {
-          // ... handle it locally
-          throw new Error(err.message);
-        }finally{
-          try {
-               await pool.close();
-              console.log('Connection pool closed');
-            } catch (err) {
-              console.error('Error closing connection pool:', err);
-            }
+      if (updateFields.length === 0) {
+        throw new Error('No valid fields to update');
+      }
+
+      // Update query
+      const updateQuery = `
+        UPDATE DATASIGMA.dbo.itemF 
+        SET ${updateFields.join(', ')}
+        WHERE ItemCode = @ItemCode 
+        AND NameFGS = @NameFGS 
+        AND Code = @Code
+      `;
+
+      // Add parameters
+      Object.entries(params).forEach(([key, value]) => {
+        request.input(key, value);
+      });
+
+      const result = await request.query(updateQuery);
+
+      if (result.rowsAffected[0] === 0) {
+        throw new Error('No records updated');
+      }
+
+      // Clear cache
+      await cache.del('prices:*');
+
+      return result;
+    });
+
+    res.json({ success: true, message: 'Price updated successfully' });
+
+  } catch (error) {
+    console.error('Error updating price:', error);
+    res.status(500).json({ message: error.message || 'Internal server error' });
+  }
+});
+
+// Bulk update prices
+router.put('/bulk-update', verifyToken, async (req, res) => {
+  try {
+    const { updates } = req.body;
+
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({ message: 'Invalid updates array' });
+    }
+
+    let updatedCount = 0;
+
+    await db.transaction(async (transaction) => {
+      for (const update of updates) {
+        const { itemCode, nameFGS, code, changes } = update;
+        
+        const request = transaction.request();
+        const updateFields = [];
+        
+        // Build update fields
+        for (const [field, value] of Object.entries(changes)) {
+          switch (field) {
+            case 'price10':
+              updateFields.push('Price10 = ROUND(@Price10, 0)');
+              request.input('Price10', value);
+              break;
+            case 'price25':
+              updateFields.push('Price25 = ROUND(@Price25, 0)');
+              request.input('Price25', value);
+              break;
+            case 'price50':
+              updateFields.push('Price50 = ROUND(@Price50, 0)');
+              request.input('Price50', value);
+              break;
+            case 'price100':
+              updateFields.push('Price100 = ROUND(@Price100, 0)');
+              request.input('Price100', value);
+              break;
+            case 'amtF10':
+              updateFields.push('AmtF10 = @AmtF10');
+              request.input('AmtF10', value);
+              break;
+            case 'amtF25':
+              updateFields.push('AmtF25 = @AmtF25');
+              request.input('AmtF25', value);
+              break;
+            case 'amtF50':
+              updateFields.push('AmtF50 = @AmtF50');
+              request.input('AmtF50', value);
+              break;
+            case 'amtF100':
+              updateFields.push('AmtF100 = @AmtF100');
+              request.input('AmtF100', value);
+              break;
+            case 'note':
+              updateFields.push('NoteF = @NoteF');
+              request.input('NoteF', value);
+              break;
+          }
         }
-  });
- 
- 
-router.use((err,req,res,next)=>{
-      const {status = 500} =err
-      res.status(status).send('ERORR')
-  })
- 
-  module.exports = router;  
+
+        if (updateFields.length > 0) {
+          const query = `
+            UPDATE DATASIGMA.dbo.itemF 
+            SET ${updateFields.join(', ')}
+            WHERE ItemCode = @ItemCode 
+            AND NameFGS = @NameFGS 
+            AND Code = @Code
+          `;
+
+          request.input('ItemCode', itemCode);
+          request.input('NameFGS', nameFGS);
+          request.input('Code', code);
+
+          const result = await request.query(query);
+          updatedCount += result.rowsAffected[0];
+        }
+      }
+    });
+
+    // Clear cache
+    await cache.del('prices:*');
+
+    res.json({ 
+      success: true, 
+      message: `Updated ${updatedCount} records successfully` 
+    });
+
+  } catch (error) {
+    console.error('Error in bulk update:', error);
+    res.status(500).json({ message: error.message || 'Internal server error' });
+  }
+});
+
+module.exports = router;

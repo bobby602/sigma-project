@@ -25,4 +25,4 @@ const get = (options) => {
 
 module.exports = {
     get
-};
+}
