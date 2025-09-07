@@ -9,7 +9,6 @@ import  { searchCustomer } from '../../Store/user-list'
 import { userList } from '../../Store/userList'
 import Search from "../../Components/Input/Search/Search";
 
-// 🔍 Logger ที่เก็บใน localStorage
 const logger = {
     log: (message, data = null) => {
         const timestamp = new Date().toISOString();
@@ -97,19 +96,16 @@ const CustomerPage = () => {
         }
     }
 
-    // 🔍 Enhanced useEffect with persistent logging
     useEffect(() => {
         const initializePage = async () => {
             try {
                 logger.log('CustomerPage initializing...');
                 
-                // 1. Debug tokens
                 const tokenInfo = debugTokens();
                 
                 if (!tokenInfo.hasAccessToken) {
                     logger.error('No access token found - should redirect to login');
                     
-                    // เก็บ logs ก่อน redirect
                     logger.log('About to redirect to login - saving logs');
                     
                     setError('No access token - redirecting...');
@@ -181,7 +177,6 @@ const CustomerPage = () => {
                 }
             }
         };
-
         initializePage();
     }, [dispatch]);
 
@@ -192,7 +187,6 @@ const CustomerPage = () => {
         return (
             <Fragment>
                 <Navbar/>
-                {/* Error Page สวยๆ */}
                 <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-50 p-6">
                     <div className="max-w-4xl mx-auto pt-20">
                         <div className="bg-white rounded-3xl shadow-xl border border-red-100 p-8">
@@ -254,7 +248,6 @@ const CustomerPage = () => {
                                 </button>
                             </div>
 
-                            {/* Debug Section สวยๆ */}
                             {showDebugLogs && (
                                 <div className="border-t border-gray-200 pt-8">
                                     <h3 className="text-lg font-semibold text-gray-800 mb-4">Debug Information</h3>
@@ -362,15 +355,15 @@ const CustomerPage = () => {
         <Fragment>
             <Navbar/>
             
-            {/* Main Content สวยๆ */}
+           
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
                 <div className="max-w-7xl mx-auto p-6">
                     
-                    {/* Header Section สวยๆ */}
+                   
                     <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 mb-8">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                             
-                            {/* Title Section */}
+                            
                             <div className="flex items-center space-x-4">
                                 <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
                                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -385,7 +378,7 @@ const CustomerPage = () => {
                                 </div>
                             </div>
 
-                            {/* Debug Controls (ใน Development เท่านั้น) */}
+                           
                             {process.env.NODE_ENV === 'development' && (
                                 <div className="flex items-center space-x-3 pl-6 border-l border-gray-200">
                                     <button 
@@ -408,7 +401,7 @@ const CustomerPage = () => {
                         </div>
                     </div>
 
-                    {/* Search Section สวยๆ */}
+                   
                     <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 mb-8">
                         <div className="mb-6">
                             <h2 className="text-xl font-semibold text-gray-800 mb-2">ค้นหาข้อมูลลูกค้า</h2>
@@ -436,7 +429,7 @@ const CustomerPage = () => {
                         </div>
                     </div>
 
-                    {/* Table Section สวยๆ */}
+                   
                     <div className="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
                         <div className="px-8 py-6 bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
                             <div className="flex items-center justify-between">

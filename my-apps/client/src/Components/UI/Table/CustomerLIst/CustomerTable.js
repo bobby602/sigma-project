@@ -1,4 +1,4 @@
-import { Fragment, useRef, useEffect, useState, useCallback } from 'react'
+import { Fragment, useRef, useEffect, useState, useCallback, useMemo } from 'react'
 import Table from '../../../Input/Table/Table';
 import Styles from './CustomerTable.module.css';
 import Modal from '../../../Input/Modal/Modal';
@@ -17,20 +17,30 @@ const CustomerTable = (data) => {
     const [inputValue, setInputValue] = useState();
     const custDataByCustCode = useSelector((state) => state.user.CustRegDataByCustCode);
     const dispatch = useDispatch();
-    let token = sessionStorage.getItem('token');
-    let jsonToken = JSON.parse(token);
-    console.log(custDataByCustCode)
+    
+  
+    const jsonToken = useMemo(() => {
+        try {
+            const token = sessionStorage.getItem('token');
+            return token ? JSON.parse(token) : null;
+        } catch (error) {
+            console.error('Token parse error:', error);
+            return null;
+        }
+    }, []); // ✅ Empty dependency = parse once only
+    
+    console.log('CustomerTable data:', data);
+    console.log('custDataByCustCode:', custDataByCustCode);
+    console.log('custDataByCustCode length:', custDataByCustCode?.length || 0);
 
     const handleOnClick = (e) => {
         const items = e.Code;
         const Name = e.Name;
         setItem(e);
-        console.log(e.Code)
+        console.log('Selected customer code:', e.Code);
         dispatch(userList.getCustRegByCustCode(items));
         setModalOn(true);
     }
-
-    console.log(custDataByCustCode.length);
 
     const formatDate = (date) => {
         var d = new Date(date),
@@ -46,10 +56,17 @@ const CustomerTable = (data) => {
         return [day, month, year].join('/');
     }
 
-    if (data.data) {
+    // ✅ แก้ไข: เพิ่ม key prop และ error handling
+    if (data.data && Array.isArray(data.data)) {
         dataTable = data.data.map((e, index) => {
+            // ✅ สร้าง unique key ที่ปลอดภัย
+            const uniqueKey = e.Code ? `customer-${e.Code}-${index}` : `customer-index-${index}`;
+            
             return (
-                <tr key={e.number} className="group bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 border-b border-gray-100 hover:shadow-md">
+                <tr 
+                    key={uniqueKey} // ✅ เพิ่ม unique key
+                    className="group bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 border-b border-gray-100 hover:shadow-md"
+                >
                     <td className="px-6 py-4">
                         <button
                             onClick={() => handleOnClick(e)}
@@ -59,7 +76,7 @@ const CustomerTable = (data) => {
                                 <svg className="w-4 h-4 opacity-60 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                 </svg>
-                                <span>{e.Code}</span>
+                                <span>{e.Code || 'N/A'}</span>
                             </span>
                         </button>
                     </td>
@@ -69,8 +86,8 @@ const CustomerTable = (data) => {
                                 {e.Name ? e.Name.charAt(0).toUpperCase() : '?'}
                             </div>
                             <div>
-                                <div className="font-medium text-gray-900">{e.Name}</div>
-                                <div className="text-sm text-gray-500">รหัส: {e.Code}</div>
+                                <div className="font-medium text-gray-900">{e.Name || 'ไม่ระบุชื่อ'}</div>
+                                <div className="text-sm text-gray-500">รหัส: {e.Code || 'N/A'}</div>
                             </div>
                         </div>
                     </td>
@@ -163,12 +180,17 @@ const CustomerTable = (data) => {
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {dataTable || (
-                            <tr>
+                            <tr key="no-customer-data"> {/* ✅ เพิ่ม key */}
                                 <td colSpan="5" className="px-6 py-12 text-center">
                                     <div className="flex flex-col items-center space-y-4">
                                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
                                             <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                                <path 
+                                                    strokeLinecap="round" 
+                                                    strokeLinejoin="round" 
+                                                    strokeWidth={2} 
+                                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" 
+                                                />
                                             </svg>
                                         </div>
                                         <div className="text-gray-500">
@@ -203,7 +225,7 @@ const CustomerTable = (data) => {
                             <div className="max-h-96 overflow-y-auto">
                                 <table className="w-full text-sm">
                                     <thead className="bg-gradient-to-r from-orange-400 to-yellow-500 text-white sticky top-0 z-10">
-                                        {custDataByCustCode.length === 0 ? (
+                                        {(!custDataByCustCode || custDataByCustCode.length === 0) ? (
                                             <tr>
                                                 <th scope="col" className="text-center px-6 py-4 font-semibold">
                                                     <div className="flex items-center justify-center space-x-2">
@@ -253,8 +275,8 @@ const CustomerTable = (data) => {
                                     </thead>
 
                                     <tbody className="divide-y divide-gray-100">
-                                        {custDataByCustCode.length === 0 ? (
-                                            <tr>
+                                        {(!custDataByCustCode || custDataByCustCode.length === 0) ? (
+                                            <tr key="no-registration-data"> {/* ✅ เพิ่ม key */}
                                                 <td className="px-6 py-12">
                                                     <div className="flex flex-col items-center justify-center space-y-4 text-center">
                                                         <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center">
@@ -273,9 +295,12 @@ const CustomerTable = (data) => {
                                             </tr>
                                         ) : (
                                             custDataByCustCode.map((e, index) => {
+                                                // ✅ สร้าง unique key ที่ปลอดภัย
+                                                const uniqueKey = e.RegNo ? `registration-${e.RegNo}-${index}` : `registration-index-${index}`;
                                                 const isExpired = new Date(e.DateExp) < new Date();
+                                                
                                                 return (
-                                                    <tr key={index} className="hover:bg-gray-50 transition-colors duration-200">
+                                                    <tr key={uniqueKey} className="hover:bg-gray-50 transition-colors duration-200">
                                                         <td className="px-6 py-4">
                                                             <div className="flex items-center space-x-3">
                                                                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -283,16 +308,16 @@ const CustomerTable = (data) => {
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                                                                     </svg>
                                                                 </div>
-                                                                <span className="font-medium text-gray-900">{e.ItemName}</span>
+                                                                <span className="font-medium text-gray-900">{e.ItemName || 'ไม่ระบุ'}</span>
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4">
-                                                            <span className="text-gray-700">{e.ItemNameS}</span>
+                                                            <span className="text-gray-700">{e.ItemNameS || 'ไม่ระบุ'}</span>
                                                         </td>
                                                         <td className="px-6 py-4">
                                                             <div className="flex items-center space-x-2">
                                                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                                <span className="font-mono text-sm text-gray-700">{e.RegNo}</span>
+                                                                <span className="font-mono text-sm text-gray-700">{e.RegNo || 'ไม่ระบุ'}</span>
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4">
@@ -306,7 +331,7 @@ const CustomerTable = (data) => {
                                                                         <svg className={`w-3 h-3 ${isExpired ? 'text-red-500' : 'text-green-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2" />
                                                                         </svg>
-                                                                        <span>{formatDate(Date.parse(e.DateExp))}</span>
+                                                                        <span>{e.DateExp ? formatDate(Date.parse(e.DateExp)) : 'ไม่ระบุ'}</span>
                                                                     </div>
                                                                 </div>
                                                             </div>

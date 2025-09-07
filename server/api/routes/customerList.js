@@ -1,322 +1,321 @@
-// server/api/routes/customerList.js - รองรับทั้ง legacy และ new API ใน URL เดียว
+// server/api/routes/customerList.js
+// ✅ ใช้ DatabaseManager เพียว ๆ (db.queryDB) — ไม่ใช้ pool-manager อีก
 const express = require('express');
-const router = express.Router();
 const db = require('../config/database');
-const cache = require('../config/cache');
-const verifyToken = require('../middleware/auth');
+const { verifyToken } = require('../middleware/globalAuth');
 
-// ===== Helper function สำหรับตรวจสอบ auth =====
-const optionalAuth = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if (token) {
-    // มี token = ใช้ auth middleware
-    verifyToken(req, res, next);
-  } else {
-    // ไม่มี token = ไม่ auth (legacy mode)
-    console.log('🔓 No token provided - using legacy mode');
-    next();
-  }
-};
+const router = express.Router();
 
-// ===== LEGACY + NEW API ENDPOINTS =====
+// ถ้า app หลัก parse JSON/URL-Encoded อยู่แล้ว สามารถลบบรรทัดสองบรรทัดนี้ได้
+router.use(express.urlencoded({ extended: true }));
+router.use(express.json());
 
-// Legacy: GET /api/customers (เดิม: /customerList)
-// New: GET /api/customers/search
-router.get('/', async (req, res) => {
+console.log('🧭 customerList router (DBManager-only) initialized');
+
+function parseDDMMYYYY(str) {
+  // "dd/MM/yyyy" -> "yyyy-MM-dd"; อินพุตผิดรูปแบบให้คืนค่าว่าง
+  if (!str || typeof str !== 'string') return '';
+  const [dd, mm, yyyy] = str.split('/');
+  if (!dd || !mm || !yyyy) return '';
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function toMoney(n) {
+  // แสดงทศนิยม 2 หลัก + คอมม่าพัน
+  return Number(n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function toIntString(n) {
+  return String(Math.round(Number(n || 0))).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/* =========================================================================
+ * GET /api/customers/  — รายชื่อลูกค้าหลัก
+ * ========================================================================= */
+router.get('/', verifyToken, async (req, res) => {
+  console.log('📞 API: GET /api/customers/ - Main customer list');
+  console.log('🔐 Authenticated user:', req.user?.name);
+
+  const sql = `
+    SELECT 
+      Code, 
+      Name, 
+      CONCAT(ADDR1, ' ', ADDR2) AS addr, 
+      Phone, 
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(MaxCr, '0') AS MONEY), 1) AS VARCHAR) AS MaxCr, 
+      CAST(ISNULL(CRTERM, 0) AS DECIMAL(30,2)) AS CRTERM 
+    FROM cust 
+    WHERE SUBSTRING(codeSale, 1, 2) = 'RE'
+    ORDER BY Name ASC
+  `;
+
   try {
-    console.log('📞 API called: GET /api/customers (legacy format)');
-    
-    const query = `
-      SELECT TOP 100
-        Code,
-        Name,
-        Phone,
-        addr,
-        MaxCr,
-        ISNULL(IsActive, 1) as IsActive
-      FROM DATASIGMA.dbo.Customer WITH (NOLOCK)
-      WHERE ISNULL(IsActive, 1) = 1
-      ORDER BY Name ASC
-    `;
-
-    const result = await db.query(query);
-
-    // ส่งในรูปแบบ legacy ที่ client คาดหวัง
+    const result = await db.queryDB('SigmaOffice', sql);
     res.json({
-      result: {
-        recordset: result.recordset || []
-      }
+      result: { recordset: result.recordset || [] },
+      success: true,
+      authenticatedUser: req.user?.name,
+      timestamp: new Date().toISOString(),
     });
-
-    console.log(`✅ Legacy format: Returned ${result.recordset?.length || 0} customers`);
-
-  } catch (error) {
-    console.error('❌ Customer list error:', error);
+    console.log(`✅ Returned ${result.recordset?.length || 0} customers to user: ${req.user?.name}`);
+  } catch (err) {
+    console.error('❌ Customer list error:', err);
     res.status(500).json({
-      result: {
-        recordset: []
-      },
-      error: error.message
+      result: { recordset: [] },
+      success: false,
+      error: err.message,
+      timestamp: new Date().toISOString(),
     });
   }
 });
 
-// New API: Search customers with pagination (ต้อง auth)
-router.get('/search', verifyToken, async (req, res) => {
+/* =========================================================================
+ * POST /api/customers/selectSummaryUser  — สรุปยอดตาม saleCode + ช่วงวันที่
+ * body: { input: { date1Val: 'dd/MM/yyyy', date2Val: 'dd/MM/yyyy' }, saleCode: 'RE007' }
+ * ========================================================================= */
+router.post('/selectSummaryUser', verifyToken, async (req, res) => {
+  console.log('📞 API: POST /api/customers/selectSummaryUser', req.body);
+  console.log('🔐 Authenticated user:', req.user?.name);
+
+  const sql = `
+    SELECT  
+      CustCode,
+      CustName,
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(NetAmt), 0.00) AS MONEY), 1) AS VARCHAR) AS NetAmt,  
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Amt), 0.00) AS MONEY), 1) AS VARCHAR) AS Amt,  
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Cost), 0.00) AS MONEY), 1) AS VARCHAR) AS Cost, 
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(amtdiff), 0.00) AS MONEY), 1) AS VARCHAR) AS amtdiff, 
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Coltd), 0.00) AS MONEY), 1) AS VARCHAR) AS Coltd, 
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(CUMSSP), 0.00) AS MONEY), 1) AS VARCHAR) AS CUMSSP, 
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(MS), 0.00) AS MONEY), 1) AS VARCHAR) AS MS,
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Comsale), 0.00) AS MONEY), 1) AS VARCHAR) AS Comsale,
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Target), 0) AS INT), 1) AS VARCHAR) AS Target 
+    FROM RptAR1G 
+    WHERE DocDate BETWEEN @date1 AND @date2 AND saleCode = @salecode 
+    GROUP BY CustCode, CustName
+    ORDER BY CustName ASC
+  `;
+
   try {
-    const { 
-      q = '', 
-      page = 1, 
-      limit = 20,
-      sortBy = 'Name',
-      sortOrder = 'ASC',
-      maxCredit,
-      isActive = true
-    } = req.query;
+    const date1 = parseDDMMYYYY(req.body?.input?.date1Val);
+    const date2 = parseDDMMYYYY(req.body?.input?.date2Val);
+    const saleCode = String(req.body?.saleCode || '').trim();
 
-    const offset = (page - 1) * limit;
-
-    // Build WHERE conditions
-    const whereConditions = ['1=1'];
-    const queryParams = {
-      offset: parseInt(offset),
-      limit: parseInt(limit)
-    };
-
-    if (q) {
-      whereConditions.push(`
-        (Code LIKE @searchTerm 
-        OR Name LIKE @searchTerm 
-        OR Phone LIKE @searchTerm 
-        OR addr LIKE @searchTerm)
-      `);
-      queryParams.searchTerm = `%${q}%`;
-    }
-
-    if (maxCredit) {
-      whereConditions.push('MaxCr >= @maxCredit');
-      queryParams.maxCredit = parseInt(maxCredit);
-    }
-
-    if (isActive !== undefined) {
-      whereConditions.push('IsActive = @isActive');
-      queryParams.isActive = isActive === 'true' ? 1 : 0;
-    }
-
-    // Query with pagination
-    const query = `
-      WITH CustomerData AS (
-        SELECT 
-          Code,
-          Name,
-          Phone,
-          addr,
-          MaxCr,
-          IsActive,
-          ROW_NUMBER() OVER (ORDER BY ${sortBy} ${sortOrder}) as RowNum,
-          COUNT(*) OVER() as TotalCount
-        FROM DATASIGMA.dbo.Customer WITH (NOLOCK)
-        WHERE ${whereConditions.join(' AND ')}
-      )
-      SELECT * FROM CustomerData
-      WHERE RowNum > @offset AND RowNum <= (@offset + @limit)
-    `;
-
-    const result = await db.query(query, queryParams);
-
-    res.json({
-      data: result.recordset,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total: result.recordset[0]?.TotalCount || 0,
-        totalPages: Math.ceil((result.recordset[0]?.TotalCount || 0) / limit)
-      }
-    });
-
-  } catch (error) {
-    console.error('Error searching customers:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// Legacy: GET /api/customers/custReg (เดิม: /customerList/custReg)
-router.get('/custReg', async (req, res) => {
-  try {
-    console.log('📞 API called: GET /api/customers/custReg (legacy format)');
-    
-    const query = `
-      SELECT TOP 50
-        a.*,
-        FORMAT(a.DocDate, 'dd/MM/yyyy') as DocDateFormatted
-      FROM DATASIGMA.dbo.CustReg a WITH (NOLOCK)
-      ORDER BY a.DocDate DESC
-    `;
-
-    const result = await db.query(query);
-
-    res.json({
-      result: {
-        recordset: result.recordset || []
-      }
-    });
-
-    console.log(`✅ Legacy format: Returned ${result.recordset?.length || 0} customer registrations`);
-
-  } catch (error) {
-    console.error('❌ Customer reg error:', error);
-    res.status(500).json({
-      result: {
-        recordset: []
-      },
-      error: error.message
-    });
-  }
-});
-
-// Legacy: POST /api/customers/selectSummaryUser (เดิม: /customerList/selectSummaryUser)
-router.post('/selectSummaryUser', async (req, res) => {
-  try {
-    console.log('📞 API called: POST /api/customers/selectSummaryUser (legacy format)', req.body);
-    
-    const { input, saleCode } = req.body;
-    
-    let query = `
-      SELECT 
-        Code as CustCode,
-        Name as CustName,
-        MaxCr as NetAmt,
-        MaxCr as Target
-      FROM DATASIGMA.dbo.Customer WITH (NOLOCK)
-      WHERE ISNULL(IsActive, 1) = 1
-    `;
-
-    const queryParams = {};
-
-    if (saleCode) {
-      query += ` AND SaleCode = @saleCode`;
-      queryParams.saleCode = saleCode;
-    }
-
-    query += ` ORDER BY MaxCr DESC`;
-
-    const result = await db.query(query, queryParams);
-
-    res.json({
-      finalResult: result.recordset || []
-    });
-
-    console.log(`✅ Legacy format: Returned ${result.recordset?.length || 0} summary records`);
-
-  } catch (error) {
-    console.error('❌ Summary error:', error);
-    res.status(500).json({
-      finalResult: [],
-      error: error.message
-    });
-  }
-});
-
-// Legacy: GET /api/customers/custCode (เดิม: /customerList/custCode)
-router.get('/custCode', async (req, res) => {
-  try {
-    console.log('📞 API called: GET /api/customers/custCode (legacy format)', req.query);
-    
-    const { custCode, date1, date2 } = req.query;
-    
-    if (!custCode) {
-      return res.status(400).json({
+    if (!date1 || !date2 || !saleCode) {
+      // ยึดพฤติกรรมเดิม: ถ้าไม่ครบ ให้คืนว่าง (หรือจะ 400 ก็ได้)
+      return res.json({
         finalResult: [],
-        error: 'custCode is required'
+        success: true,
+        authenticatedUser: req.user?.name,
+        timestamp: new Date().toISOString(),
       });
     }
 
-    const query = `
-      SELECT 
-        c.*,
-        FORMAT(GETDATE(), 'dd/MM/yyyy') as RegDateFormatted
-      FROM DATASIGMA.dbo.Customer c WITH (NOLOCK)
-      WHERE c.Code = @custCode
-    `;
+    const result = await db.queryDB('SigmaOffice', sql, {
+      date1,
+      date2,
+      salecode: saleCode,
+    });
 
-    const result = await db.query(query, { custCode });
+    // รวมยอดจากผลลัพธ์ (แปลง string เงินกลับเป็น number)
+    const totals = {
+      sumNetAmt: 0, sumAmt: 0, sumCost: 0, sumamtdiff: 0,
+      sumColtd: 0, sumCUMSSP: 0, sumMS: 0, sumComsale: 0, sumTarget: 0,
+    };
+
+    const rows = result.recordset || [];
+    const parseNum = (v) => (v ? parseFloat(String(v).replaceAll(',', '')) : 0);
+
+    rows.forEach((r) => {
+      totals.sumNetAmt  += parseNum(r.NetAmt);
+      totals.sumAmt     += parseNum(r.Amt);
+      totals.sumCost    += parseNum(r.Cost);
+      totals.sumamtdiff += parseNum(r.amtdiff);
+      totals.sumColtd   += parseNum(r.Coltd);
+      totals.sumCUMSSP  += parseNum(r.CUMSSP);
+      totals.sumMS      += parseNum(r.MS);
+      totals.sumComsale += parseNum(r.Comsale);
+      totals.sumTarget  += parseNum(r.Target);
+    });
+
+    // จัดรูปผลลัพธ์ให้มีรายการ "รวม" ต่อท้าย (key '110' ตามโค้ดเดิมของคุณ)
+    const finalResult = {
+      ...rows,
+      '110': {
+        CustCode: 'รวม',
+        NetAmt:  toMoney(totals.sumNetAmt),
+        Amt:     toMoney(totals.sumAmt),
+        Cost:    toMoney(totals.sumCost),
+        amtdiff: toMoney(totals.sumamtdiff),
+        Coltd:   toMoney(totals.sumColtd),
+        CUMSSP:  toMoney(totals.sumCUMSSP),
+        MS:      toMoney(totals.sumMS),
+        Comsale: toMoney(totals.sumComsale),
+        Target:  toIntString(totals.sumTarget),
+      },
+    };
 
     res.json({
-      finalResult: result.recordset || []
+      finalResult,
+      success: true,
+      authenticatedUser: req.user?.name,
+      timestamp: new Date().toISOString(),
     });
 
-    console.log(`✅ Legacy format: Returned customer details for ${custCode}`);
-
-  } catch (error) {
-    console.error('❌ Customer details error:', error);
+    console.log(`✅ Summary returned for sale code: ${saleCode}, user: ${req.user?.name}`);
+  } catch (err) {
+    console.error('❌ Summary error:', err);
     res.status(500).json({
       finalResult: [],
-      error: error.message
+      success: false,
+      error: err.message,
+      timestamp: new Date().toISOString(),
     });
   }
 });
 
-// New API: Get customer by code (ต้อง auth)
-router.get('/:code', verifyToken, async (req, res) => {
+/* =========================================================================
+ * GET /api/customers/custReg  — ตาราง custREG
+ * ========================================================================= */
+router.get('/custReg', verifyToken, async (req, res) => {
+  console.log('📞 API: GET /api/customers/custReg');
+  console.log('🔐 Authenticated user:', req.user?.name);
+
+  const sql = 'SELECT * FROM custREG ORDER BY DocDate DESC';
+
   try {
-    const { code } = req.params;
-
-    // Check cache
-    const cacheKey = `customer:${code}`;
-    const cached = await cache.get(cacheKey);
-    
-    if (cached) {
-      return res.json(cached);
-    }
-
-    const query = `
-      SELECT * FROM DATASIGMA.dbo.Customer 
-      WHERE Code = @code
-    `;
-
-    const result = await db.query(query, { code });
-
-    if (result.recordset.length === 0) {
-      return res.status(404).json({ message: 'Customer not found' });
-    }
-
-    const customer = result.recordset[0];
-
-    // Cache for 5 minutes
-    await cache.set(cacheKey, customer, 300);
-
-    res.json(customer);
-
-  } catch (error) {
-    console.error('Error fetching customer:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    const result = await db.queryDB('SigmaOffice', sql);
+    res.json({
+      result: { recordset: result.recordset || [] },
+      success: true,
+      authenticatedUser: req.user?.name,
+      timestamp: new Date().toISOString(),
+    });
+    console.log(`✅ Customer registration returned: ${result.recordset?.length || 0} records`);
+  } catch (err) {
+    console.error('❌ Customer registration error:', err);
+    res.status(500).json({
+      result: { recordset: [] },
+      success: false,
+      error: err.message,
+      timestamp: new Date().toISOString(),
+    });
   }
 });
 
-// New API: Get customer registration data (ต้อง auth)
-router.get('/:code/registration', verifyToken, async (req, res) => {
+/* =========================================================================
+ * GET /api/customers/custCode?custCode=XXX&date1=dd/MM/yyyy&date2=dd/MM/yyyy
+ * ========================================================================= */
+router.get('/custCode', verifyToken, async (req, res) => {
+  console.log('📞 API: GET /api/customers/custCode', req.query);
+  console.log('🔐 Authenticated user:', req.user?.name);
+
+  const sql = `
+    SELECT 
+      FORMAT(docdate, 'dd/MM/yyyy') AS docdate, 
+      DocNo,
+      ItemCode, 
+      ItemName,
+      PackSale, 
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Price), '0.00') AS MONEY), 1) AS VARCHAR) AS Price,  
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(priceSale), '0.00') AS MONEY), 1) AS VARCHAR) AS priceSale,  
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(QtySale), '0.00') AS MONEY), 1) AS VARCHAR) AS QtySale, 
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Amt), '0.00') AS MONEY), 1) AS VARCHAR) AS Amt, 
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Amtdiff), '0.00') AS MONEY), 1) AS VARCHAR) AS Margin, 
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(NetAmt), '0.00') AS MONEY), 1) AS VARCHAR) AS NetAmt, 
+      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(QtyPackD), '0.00') AS MONEY), 1) AS VARCHAR) AS QtyPackD,
+      Package,
+      PackD  
+    FROM RptAr1N  
+    WHERE DocDate BETWEEN @date1 AND @date2 AND CustCode = @custCode  
+    GROUP BY DocNo, ItemName, Docdate, PackSale, Package, PackD, ItemCode
+    ORDER BY docdate DESC, DocNo ASC
+  `;
+
   try {
-    const { code } = req.params;
+    let { custCode, date1, date2 } = req.query;
+    const date1Query = parseDDMMYYYY(date1);
+    const date2Query = parseDDMMYYYY(date2);
+    custCode = String(custCode || '').trim();
 
-    const query = `
-      SELECT 
-        a.*,
-        FORMAT(a.DocDate, 'dd/MM/yyyy') as DocDateFormatted
-      FROM DATASIGMA.dbo.CustReg a
-      WHERE a.CustCode = @code
-      ORDER BY a.DocDate DESC
-    `;
+    if (!custCode || !date1Query || !date2Query) {
+      // พฤติกรรมเดิมของคุณคือคืนผลว่างเมื่อพารามิเตอร์ไม่ครบ
+      return res.json({
+        finalResult: [],
+        success: true,
+        authenticatedUser: req.user?.name,
+        timestamp: new Date().toISOString(),
+      });
+    }
 
-    const result = await db.query(query, { code });
+    const result = await db.queryDB('SigmaOffice', sql, {
+      date1: date1Query,
+      date2: date2Query,
+      custCode,
+    });
 
-    res.json(result.recordset);
+    const rows = result.recordset || [];
+    const parseNum = (v) => (v ? parseFloat(String(v).replaceAll(',', '')) : 0);
 
-  } catch (error) {
-    console.error('Error fetching registration data:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    const totals = {
+      sumPrice: 0, sumPriceSale: 0, sumQtySale: 0, sumAmt: 0,
+      sumMargin: 0, sumNetAmt: 0, sumQtyPackD: 0,
+    };
+
+    rows.forEach((r) => {
+      totals.sumPrice     += parseNum(r.Price);
+      totals.sumPriceSale += parseNum(r.priceSale);
+      totals.sumQtySale   += parseNum(r.QtySale);
+      totals.sumAmt       += parseNum(r.Amt);
+      totals.sumMargin    += parseNum(r.Margin);
+      totals.sumNetAmt    += parseNum(r.NetAmt);
+      totals.sumQtyPackD  += parseNum(r.QtyPackD);
+    });
+
+    const finalResult = {
+      ...rows,
+      '110': {
+        DocNo:   'รวม',
+        Price:   toMoney(totals.sumPrice),
+        priceSale: toMoney(totals.sumPriceSale),
+        QtySale: toMoney(totals.sumQtySale),
+        Amt:     toMoney(totals.sumAmt),
+        Margin:  toMoney(totals.sumMargin),
+        NetAmt:  toMoney(totals.sumNetAmt),
+        QtyPackD: toMoney(totals.sumQtyPackD),
+      },
+    };
+
+    res.json({
+      finalResult,
+      success: true,
+      authenticatedUser: req.user?.name,
+      timestamp: new Date().toISOString(),
+    });
+
+    console.log(`✅ Customer details returned for: ${custCode}, user: ${req.user?.name}`);
+  } catch (err) {
+    console.error('❌ Customer details error:', err);
+    res.status(500).json({
+      finalResult: [],
+      success: false,
+      error: err.message,
+      timestamp: new Date().toISOString(),
+    });
   }
+});
+
+/* =========================================================================
+ * Error handler ของ router
+ * ========================================================================= */
+router.use((err, req, res, next) => {
+  console.error('❌ Router error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: 'Internal server error',
+    error: err.message,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 module.exports = router;

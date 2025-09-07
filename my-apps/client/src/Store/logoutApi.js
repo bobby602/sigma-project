@@ -1,48 +1,100 @@
+import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import API_CONFIG from '../config/api';
 
-export const LogoutApi = () => {
-  return async (dispatch) => {
-    const performLogout = async () => {
-      try {
-        // ตรวจสอบว่ามีข้อมูลใน sessionStorage หรือไม่
-        const storedToken = sessionStorage.getItem('token');
-        const storedRefreshToken = sessionStorage.getItem('refreshToken');
-        
-        if (!storedToken || !storedRefreshToken) {
-          console.warn('No token found for logout');
-          return;
-        }
+// Flag to prevent multiple logout calls
+let isLoggingOut = false;
 
-        const userToken = JSON.parse(storedToken);
-        const refreshTokenValue = JSON.parse(storedRefreshToken);
-        
-        console.log('🚪 Logging out user:', userToken.Login);
-        
-        // ✅ ใช้ API_CONFIG และ path ที่ถูกต้อง
-        const res = await axios.post(`${API_CONFIG.BASE_URL}/api/auth/logout`, {
-          username: userToken.Login,
-          token: refreshTokenValue
-        });
-        
-        console.log('✅ Logout successful:', res.data);
-        return res.data;
-        
-      } catch (error) {
-        console.error('❌ Error during logout:', error);
-        // แม้ logout API ล้มเหลว ก็ยังต้อง clear session
-      } finally {
-        // ทำความสะอาด session storage เสมอ
-        sessionStorage.clear();
-      }
-    };
+// Use unique action type to avoid conflict
+export const LogoutApi = createAsyncThunk(
+  'auth/logoutApi',  // Changed from 'auth/logout' to avoid conflict
+  async (_, { rejectWithValue, getState }) => {
+    // Prevent multiple calls
+    if (isLoggingOut) {
+      console.log('Logout already in progress, skipping...');
+      return { success: true, message: 'Already logging out' };
+    }
 
     try {
-      await performLogout();
+      isLoggingOut = true;
+      
+      // Get user info from Redux state or sessionStorage
+      const state = getState();
+      let userInfo = null;
+      
+      if (state.auth?.user) {
+        userInfo = state.auth.user;
+      } else {
+        try {
+          const storedToken = sessionStorage.getItem('token');
+          if (storedToken) {
+            userInfo = JSON.parse(storedToken);
+          }
+        } catch (parseError) {
+          console.warn('Token parse error during logout:', parseError);
+        }
+      }
+
+      console.log('Logging out user:', userInfo?.Login || userInfo?.Name || 'Unknown');
+
+      // Call server logout API (if available)
+      try {
+        const storedRefreshToken = sessionStorage.getItem('refreshToken');
+        if (storedRefreshToken && userInfo) {
+          const refreshTokenValue = JSON.parse(storedRefreshToken);
+          
+          await axios.post(`${API_CONFIG.BASE_URL}/api/auth/logout`, {
+            username: userInfo.Login,
+            token: refreshTokenValue
+          });
+          console.log('Server logout successful');
+        }
+      } catch (apiError) {
+        console.warn('Server logout failed (continuing with local logout):', apiError.message);
+        // Don't throw error because local logout is more important
+      }
+
+      // Clear storage safely
+      const keysToRemove = [
+        'token',
+        'accessToken', 
+        'refreshToken',
+        'token2'
+      ];
+      
+      keysToRemove.forEach(key => {
+        sessionStorage.removeItem(key);
+        localStorage.removeItem(key);
+      });
+
+      console.log('Session storage cleared successfully');
+
+      return {
+        success: true,
+        user: userInfo?.Login || userInfo?.Name || 'Unknown',
+        timestamp: new Date().toISOString()
+      };
+
     } catch (error) {
-      console.error('Logout process failed:', error);
-      // แม้เกิด error ก็ยัง clear session
-      sessionStorage.clear();
+      console.error('Logout process error:', error);
+      
+      // Even if error occurs, still clear session for security
+      const keysToRemove = ['token', 'accessToken', 'refreshToken', 'token2'];
+      keysToRemove.forEach(key => {
+        sessionStorage.removeItem(key);
+        localStorage.removeItem(key);
+      });
+
+      return rejectWithValue({
+        message: error.message || 'Logout failed',
+        timestamp: new Date().toISOString()
+      });
+
+    } finally {
+      // Reset flag after process completes
+      setTimeout(() => {
+        isLoggingOut = false;
+      }, 1000);
     }
-  };
-};
+  }
+);

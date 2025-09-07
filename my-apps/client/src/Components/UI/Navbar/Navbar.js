@@ -3,31 +3,54 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import AuthContext from '../../../Store/auth-context';
-import { LogoutApi } from '../../../Store/logoutApi';
 import { useNavigation } from '../../../hooks/useNavigation';
 import { useUserInfo } from '../../../hooks/useUserInfo';
 import {
-  PowerIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
+import { logout } from '../../../Store/authSlice';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const authCtx = useContext(AuthContext);
+  const authCtx = useContext(AuthContext); // ถ้าจะใช้ต่อได้เลย ตอนนี้ยังไม่ได้ใช้
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
-  
+
   // Custom hooks สำหรับ logic
   const { navigationItems, homePage } = useNavigation();
   const { userInfo, userRole } = useUserInfo();
   console.log('🔧 Component userInfo:', userInfo);
   console.log('🔧 Component userRole:', userRole);
 
-  const handleLogout = () => {
-    dispatch(LogoutApi());
-    authCtx.onLogOut();
-    navigate("/Login");
+  const handleLogout = async () => {
+    try {
+      console.log('🚪 User clicked logout');
+
+      // Method 1: ใช้ Redux logout (ถ้าเป็น async thunk)
+      if (typeof logout === 'function') {
+        await dispatch(logout(navigate)).unwrap?.();
+      } else {
+        // Method 2: Manual logout
+        dispatch({ type: 'auth/manualLogout' });
+        sessionStorage.clear();
+        localStorage.clear();
+        navigate('/Login');
+      }
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+      // Fallback: Force logout
+      sessionStorage.clear();
+      localStorage.clear();
+      window.location.href = '/Login';
+    }
+  };
+
+  const handleQuickLogout = () => {
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.href = '/Login';
   };
 
   return (
@@ -47,9 +70,9 @@ const Navbar = () => {
             <DesktopNavigation navigationItems={navigationItems} />
 
             {/* User Actions */}
-            <UserActions 
+            <UserActions
               userInfo={userInfo}
-              onLogout={handleLogout}
+              onLogout={handleQuickLogout} // <<— ใช้ quick logout ตรงนี้ (หรือจะส่ง handleLogout ก็ได้)
               onToggleMenu={() => setIsOpen(!isOpen)}
               isMenuOpen={isOpen}
             />
@@ -57,7 +80,7 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <MobileNavigation 
+        <MobileNavigation
           isOpen={isOpen}
           navigationItems={navigationItems}
           userInfo={userInfo}
@@ -71,16 +94,13 @@ const Navbar = () => {
 
 // แยก Component ย่อยออกมา
 const LogoSection = ({ homePage, userRole }) => (
-  <motion.div
-    whileHover={{ scale: 1.05 }}
-    className="flex items-center space-x-3"
-  >
+  <motion.div whileHover={{ scale: 1.05 }} className="flex items-center space-x-3">
     <Link to={homePage} className="flex items-center space-x-3">
       <div className="relative">
         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-          <img 
-            src={process.env.PUBLIC_URL + "/icons/a-icon-chemical.png"} 
-            className="w-6 h-6 filter brightness-0 invert" 
+          <img
+            src={process.env.PUBLIC_URL + '/icons/a-icon-chemical.png'}
+            className="w-6 h-6 filter brightness-0 invert"
             alt="Sigma"
           />
         </div>
@@ -105,9 +125,10 @@ const DesktopNavigation = ({ navigationItems }) => (
           to={item.href}
           className={`
             px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2
-            ${item.current
-              ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80'
+            ${
+              item.current
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80'
             }
           `}
         >
@@ -122,31 +143,25 @@ const DesktopNavigation = ({ navigationItems }) => (
 const UserActions = ({ userInfo, onLogout, onToggleMenu, isMenuOpen }) => (
   <div className="flex items-center space-x-4">
     {/* User Profile */}
-    {userInfo.name && (
-      <UserProfile userInfo={userInfo} />
-    )}
+    {userInfo?.name && <UserProfile userInfo={userInfo} />}
 
     {/* Logout Button */}
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={onLogout}
-      className="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
-    >
-      <PowerIcon className="w-4 h-4" />
-      <span className="hidden sm:inline">ออกจากระบบ</span>
-    </motion.button>
+    <div className="px-4">
+      <button
+        onClick={onLogout} // <<— แก้จาก handleQuickLogout เป็น onLogout (พร็อพ)
+        className="w-full flex items-center justify-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors"
+      >
+        <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
+        ออกจากระบบ
+      </button>
+    </div>
 
     {/* Mobile menu button */}
     <button
       onClick={onToggleMenu}
       className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
     >
-      {isMenuOpen ? (
-        <XMarkIcon className="w-6 h-6" />
-      ) : (
-        <Bars3Icon className="w-6 h-6" />
-      )}
+      {isMenuOpen ? <XMarkIcon className="w-6 h-6" /> : <Bars3Icon className="w-6 h-6" />}
     </button>
   </div>
 );
@@ -155,9 +170,7 @@ const UserProfile = ({ userInfo }) => (
   <div className="hidden sm:block">
     <div className="flex items-center space-x-3 bg-gray-50 rounded-lg px-3 py-2">
       <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-        <span className="text-white text-sm font-medium">
-          {userInfo.name.charAt(0)}
-        </span>
+        <span className="text-white text-sm font-medium">{userInfo.name.charAt(0)}</span>
       </div>
       <div className="text-sm">
         <div className="font-medium text-gray-900">{userInfo.name}</div>
@@ -184,9 +197,10 @@ const MobileNavigation = ({ isOpen, navigationItems, userInfo, userRole, onClose
               onClick={onClose}
               className={`
                 flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors
-                ${item.current
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ${
+                  item.current
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }
               `}
             >
@@ -194,15 +208,13 @@ const MobileNavigation = ({ isOpen, navigationItems, userInfo, userRole, onClose
               <span>{item.name}</span>
             </Link>
           ))}
-          
+
           {/* Mobile User Info */}
-          {userInfo.name && (
+          {userInfo?.name && (
             <div className="border-t border-gray-200 pt-3 mt-3">
               <div className="flex items-center space-x-3 px-3 py-2">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-medium">
-                    {userInfo.name.charAt(0)}
-                  </span>
+                  <span className="text-white font-medium">{userInfo.name.charAt(0)}</span>
                 </div>
                 <div>
                   <div className="font-medium text-gray-900">{userInfo.name}</div>

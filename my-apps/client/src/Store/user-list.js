@@ -3,7 +3,6 @@ import axios from 'axios';
 import { userList } from './userList';
 import axiosPrivate from '../Util/useAxiosAPI'; // ← เปลี่ยนเป็น import ธรรมดา
 
-// ✅ ไม่เรียก useAxiosPrivate() แล้ว
 const API = axiosPrivate;
 
 export const fetchData = () => {
@@ -11,8 +10,6 @@ export const fetchData = () => {
     const getUserData = async () => {
       try {
         console.log('🔄 Fetching customer data...');
-        
-        // ✅ เรียก API เดียว
         try {
           const res = await API.get('/api/customers'); // Legacy format
           console.log('✅ Customer list data:', res.data);
@@ -22,7 +19,6 @@ export const fetchData = () => {
             status: error.response?.status
           });
           
-          // ลอง new API format
           const res = await API.get('/api/customers/search', {
             params: {
               page: 1,
@@ -36,10 +32,8 @@ export const fetchData = () => {
       } catch (error) {
         console.error('❌ Error fetching customer data:', error);
         
-        // ไม่ auto-redirect แล้ว ให้ useAxiosPrivate จัดการ
         if (error.response?.status === 404) {
           console.log('📍 Customer API endpoint not found - check server configuration');
-          // Return empty array แทนการ throw error
           return [];
         }
         
@@ -54,7 +48,6 @@ export const fetchData = () => {
       );
     } catch (error) {
       console.error('Error in fetchData dispatch:', error);
-      // ไม่ throw error ต่อ เพื่อไม่ให้ component crash
     }
   };
 };
@@ -65,7 +58,6 @@ export const fetchSummaryUserbyDate = (input, saleCode) => {
       try {
         console.log('🔄 Fetching summary user data...', { input, saleCode });
         
-        // ✅ ใช้ legacy endpoint (ยังไม่มี API ใหม่)
         const res = await API.post(`/customerList/selectSummaryUser`, { input, saleCode });
         console.log('✅ Summary user data:', res.data);
         return res.data.finalResult;
@@ -98,10 +90,8 @@ export const searchCustomer = (searchTerm = '') => {
     const getSearchData = async () => {
       try {
         console.log('🔍 Searching customer...', searchTerm);
-        
-        // ✅ เรียก API เดียว
         try {
-          const res = await API.get('/api/customers/custReg'); // Legacy format
+          const res = await API.get('/api/customers/custReg'); 
           console.log('✅ Search results:', res.data);
           return res.data.result?.recordset || [];
         } catch (error) {
@@ -109,7 +99,6 @@ export const searchCustomer = (searchTerm = '') => {
             status: error.response?.status
           });
           
-          // ลอง new API format
           const res = await API.get('/api/customers/search', {
             params: {
               q: searchTerm,
@@ -149,8 +138,6 @@ export const fetchCustomer = (date1, date2, code) => {
     const getCustomerData = async () => {
       try {
         console.log('🔄 Fetching customer details...', { date1, date2, code });
-        
-        // ✅ เรียก API เดียว
         try {
           const res = await API.get(`/api/customers/custCode?custCode=${encodeURIComponent(code)}&date1=${encodeURIComponent(date1)}&date2=${encodeURIComponent(date2)}`);
           console.log('✅ Customer details:', res.data);
@@ -159,8 +146,6 @@ export const fetchCustomer = (date1, date2, code) => {
           console.log('⚠️ Customer details API failed, trying new format...', {
             status: error.response?.status
           });
-          
-          // ลอง new API format
           const res = await API.get(`/api/customers/${encodeURIComponent(code)}`, {
             params: {
               startDate: date1,
@@ -194,13 +179,11 @@ export const fetchCustomer = (date1, date2, code) => {
   };
 };
 
-// ✅ แก้ไข checkAuthStatus ให้ไม่ redirect เมื่อ 404
 export const checkAuthStatus = () => {
   return async (dispatch) => {
     try {
       console.log('🔐 Checking auth status...');
       
-      // เช็ค token ก่อน
       const accessToken = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
       const refreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
       
@@ -215,7 +198,6 @@ export const checkAuthStatus = () => {
         throw new Error('No access token available');
       }
       
-      // ลองเรียก API /me ก่อน
       try {
         const res = await API.get('/api/auth/me');
         console.log('✅ Auth Status OK:', res.data);
@@ -227,21 +209,18 @@ export const checkAuthStatus = () => {
           data: meError.response?.data
         });
         
-        // ถ้าเป็น 404 = endpoint ไม่มี (ไม่ใช่ auth problem)
         if (meError.response?.status === 404) {
           console.log('📍 Auth endpoint not found, but token exists - assuming valid');
-          return true; // ให้ผ่านไปก่อน
+          return true;
         }
         
-        // ถ้าเป็น 401/403 = auth problem จริงๆ
         if (meError.response?.status === 401 || meError.response?.status === 403) {
           console.log('🔐 Auth check failed - invalid token');
           return false;
         }
         
-        // ลอง endpoint อื่น
         try {
-          const res = await API.get('/api/auth/'); // GET users endpoint
+          const res = await API.get('/api/auth/'); 
           console.log('✅ Auth Status OK (alternative):', res.data);
           return true;
         } catch (alternativeError) {
@@ -249,7 +228,6 @@ export const checkAuthStatus = () => {
             status: alternativeError.response?.status
           });
           
-          // ถ้า 404 ทั้งหมด = server ยังไม่ setup auth endpoints
           if (alternativeError.response?.status === 404) {
             console.log('📍 No auth endpoints available, but token exists - assuming valid');
             return true;
@@ -267,7 +245,6 @@ export const checkAuthStatus = () => {
         data: error.response?.data
       });
       
-      // เก็บ error details ใน localStorage สำหรับ debug
       const errorDetails = {
         timestamp: new Date().toISOString(),
         message: error.message,
