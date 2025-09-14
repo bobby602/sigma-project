@@ -4,7 +4,7 @@ import Styles from './CustomerPage.module.css'
 import CustomerList from '../../Components/UI/Table/CustomerLIst/CustomerTable'
 import { useSelector, useDispatch } from 'react-redux';
 import { user } from '../../Store'
-import  { fetchData, checkAuthStatus } from '../../Store/user-list'
+import  { fetchData, checkAuthStatus,fetchCustomersPage } from '../../Store/user-list'
 import  { searchCustomer } from '../../Store/user-list'
 import { userList } from '../../Store/userList'
 import Search from "../../Components/Input/Search/Search";
@@ -51,6 +51,7 @@ const logger = {
         return JSON.parse(localStorage.getItem('debug_logs') || '[]');
     }
 };
+const DEFAULT_LIMIT = 20;
 
 const CustomerPage = () => {
     const [data, setData] = useState([]);
@@ -62,7 +63,12 @@ const CustomerPage = () => {
     const [showDebugLogs, setShowDebugLogs] = useState(false);
     
     const dispatch = useDispatch();
-    const userData = useSelector((state) => state.user.filterData);
+
+
+     // ⬇️ หน้า/ข้อมูลปัจจุบันมาจาก Redux (ที่เราเพิ่งเพิ่ม pagination)
+    const pageData     = useSelector((state) => state.user.userData || []);
+    const pagination   = useSelector((state) => state.user.pagination || { page:1, limit:DEFAULT_LIMIT, total:0, totalPages:1 });
+    const filterData   = useSelector((state) => state.user.filterData || []); // ใช้กับกล่องค้นหา (คงไว้)
     
     // 🔍 Debug function
     const debugTokens = () => {
@@ -149,7 +155,7 @@ const CustomerPage = () => {
                 // เพิ่ม delay เพื่อให้ auth settle
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
-                await dispatch(fetchData());
+                await dispatch(fetchCustomersPage(1, DEFAULT_LIMIT));
                 logger.log('Customer data fetched successfully');
                 
                 // 4. Fetch search data
@@ -179,6 +185,12 @@ const CustomerPage = () => {
         };
         initializePage();
     }, [dispatch]);
+
+     const handlePageChange = useCallback((newPage) => {
+        logger.log('Changing page', { from: pagination.page, to: newPage });
+        dispatch(fetchCustomersPage(newPage, pagination.limit || DEFAULT_LIMIT));
+        // จะ scrollTop หรือใส่ loading ของปุ่มก็ได้ตามต้องการ
+    }, [dispatch, pagination.page, pagination.limit]);
 
     // 🔍 Render debug info if there's an error
     if (error) {
@@ -436,7 +448,7 @@ const CustomerPage = () => {
                                 <div>
                                     <h3 className="text-xl font-semibold text-gray-800">รายการลูกค้าทั้งหมด</h3>
                                     <p className="text-sm text-gray-600 mt-1">
-                                        แสดงข้อมูล {userData?.length || 0} รายการ
+                                        แสดงข้อมูลทั้งหมด {pagination?.total || 0} รายการ
                                     </p>
                                 </div>
                                 <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -449,7 +461,11 @@ const CustomerPage = () => {
                         </div>
                         
                         <div className="overflow-x-auto">
-                            <CustomerList data={userData} />
+                            <CustomerList
+                                data={pageData}
+                                pagination={pagination}
+                                onPageChange={handlePageChange}
+                            />
                         </div>
                     </div>
 

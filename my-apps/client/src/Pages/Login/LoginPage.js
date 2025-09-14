@@ -12,10 +12,28 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [localError, setLocalError] = useState(''); // ✅ เพิ่ม local error state
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, isAuthenticated, user } = useSelector(state => state.auth);
+  
+  // ✅ เพิ่ม fallback กรณีที่ auth state ไม่พร้อม
+  const authState = useSelector(state => state.auth || {});
+  const { 
+    loading = false, 
+    error = null, 
+    isAuthenticated = false, 
+    user = null 
+  } = authState;
+  
+  // // ✅ Debug log เพื่อดูค่า error
+  // console.log('🔍 LoginPage Debug:', { 
+  //   error, 
+  //   localError,
+  //   authState, 
+  //   hasError: !!(error || localError),
+  //   errorType: typeof error 
+  // });
   
   // Use ref to prevent multiple navigation calls
   const hasNavigated = useRef(false);
@@ -38,13 +56,14 @@ const LoginPage = () => {
     }
   }, [isAuthenticated, user, navigate]);
 
-  // Error handling with cleanup
+  // Error handling with cleanup - ปรับปรุงให้ไม่ clear error ทันที
   useEffect(() => {
     if (error) {
-      toast.error(error);
-      dispatch(clearError());
+      // แสดง error message แต่ไม่ clear ทันที
+      console.log('Auth error:', error);
+      setLocalError(error); // ✅ เก็บ error ใน local state ด้วย
     }
-  }, [error, dispatch]);
+  }, [error]);
 
   // Reset navigation flag when component unmounts
   useEffect(() => {
@@ -62,10 +81,19 @@ const LoginPage = () => {
     }
 
     try {
-      await dispatch(login({ username, password })).unwrap();
-      toast.success('เข้าสู่ระบบสำเร็จ');
+      // ✅ เพิ่ม fallback กรณีที่ login action ไม่พร้อม
+      if (typeof login === 'function') {
+        setLocalError(''); // ✅ เคลียร์ error ก่อน submit
+        await dispatch(login({ username, password })).unwrap();
+        toast.success('เข้าสู่ระบบสำเร็จ');
+      } else {
+        const errorMsg = 'ระบบ login ไม่พร้อม กรุณาลองใหม่อีกครั้ง';
+        setLocalError(errorMsg);
+        toast.error(errorMsg);
+      }
     } catch (err) {
       console.error('Login failed:', err);
+      setLocalError(err.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ'); // ✅ เก็บ error ใน local state
       // Error is handled by the useEffect above
     }
   };
@@ -144,6 +172,23 @@ const LoginPage = () => {
           <p className="text-gray-500 text-sm">กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ</p>
         </div>
 
+        {/* ✅ เพิ่ม Error Message Display - ใช้ทั้ง Redux และ Local Error */}
+        {(error || localError) && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6"
+          >
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm font-medium">{error || localError}</span>
+            </div>
+          </motion.div>
+        )}
+
+
         {/* Login Form - เหมือนเดิมทุกอย่าง */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Username Field */}
@@ -159,8 +204,21 @@ const LoginPage = () => {
               type="text"
               id="username"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+              onChange={(e) => {
+                setUsername(e.target.value);
+                // เคลียร์ error เมื่อผู้ใช้เริ่มพิมพ์ใหม่
+                if (error || localError) {
+                  setLocalError(''); // ✅ เคลียร์ local error
+                  try {
+                    dispatch(clearError());
+                  } catch (err) {
+                    console.warn('clearError action not available:', err);
+                  }
+                }
+              }}
+              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white ${
+                (error || localError) ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-gray-300'
+              }`}
               placeholder="กรอกชื่อผู้ใช้"
               style={{ fontFamily: "'Poppins', sans-serif" }}
               required
@@ -181,8 +239,21 @@ const LoginPage = () => {
                 type={showPassword ? "text" : "password"}
                 id="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  // เคลียร์ error เมื่อผู้ใช้เริ่มพิมพ์ใหม่
+                  if (error || localError) {
+                    setLocalError(''); // ✅ เคลียร์ local error
+                    try {
+                      dispatch(clearError());
+                    } catch (err) {
+                      console.warn('clearError action not available:', err);
+                    }
+                  }
+                }}
+                className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white ${
+                  (error || localError) ? 'border-red-300 focus:border-red-500 focus:ring-red-200' : 'border-gray-300'
+                }`}
                 placeholder="กรอกรหัสผ่าน"
                 style={{ fontFamily: "'Poppins', sans-serif" }}
                 required

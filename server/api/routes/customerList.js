@@ -33,6 +33,9 @@ function toIntString(n) {
  * GET /api/customers/  — รายชื่อลูกค้าหลัก
  * ========================================================================= */
 router.get('/', verifyToken, async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const offset = (page - 1) * limit;
   console.log('📞 API: GET /api/customers/ - Main customer list');
   console.log('🔐 Authenticated user:', req.user?.name);
 
@@ -47,15 +50,34 @@ router.get('/', verifyToken, async (req, res) => {
     FROM cust 
     WHERE SUBSTRING(codeSale, 1, 2) = 'RE'
     ORDER BY Name ASC
+    OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY
+  `;
+   const countSql = `
+    SELECT COUNT(*) as total 
+    FROM cust 
+    WHERE SUBSTRING(codeSale, 1, 2) = 'RE'
   `;
 
   try {
-    const result = await db.queryDB('SigmaOffice', sql);
+    const [result, countResult] = await Promise.all([
+      db.queryDB('SigmaOffice', sql, { offset, limit }),
+      db.queryDB('SigmaOffice', countSql)
+    ]);
+
+    const total = countResult.recordset[0].total;
+    const totalPages = Math.ceil(total / limit);
+    
     res.json({
       result: { recordset: result.recordset || [] },
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      },
       success: true,
-      authenticatedUser: req.user?.name,
-      timestamp: new Date().toISOString(),
     });
     console.log(`✅ Returned ${result.recordset?.length || 0} customers to user: ${req.user?.name}`);
   } catch (err) {
@@ -181,7 +203,7 @@ router.get('/custReg', verifyToken, async (req, res) => {
   console.log('📞 API: GET /api/customers/custReg');
   console.log('🔐 Authenticated user:', req.user?.name);
 
-  const sql = 'SELECT * FROM custREG ORDER BY DocDate DESC';
+  const sql = 'SELECT * FROM custREG ';
 
   try {
     const result = await db.queryDB('SigmaOffice', sql);

@@ -6,7 +6,27 @@ import { useSelector, useDispatch } from 'react-redux';
 import { user } from '../../../../Store'
 import { userList } from '../../../../Store/userList'
 
-const CustomerTable = (data) => {
+const CustomerTable = ({ data = [], pagination = {}, onPageChange }) => {
+
+    const { page = 1, totalPages = 1, total = 0, hasPrev = false, hasNext = false, limit = 20 } = pagination;
+
+    console.log('CustomerTable received data:', data);
+    console.log('data.data:', data.data);
+    console.log('data.data length:', data.data?.length);
+    
+    const customerData = useMemo(() => {
+        if (Array.isArray(data.data)) {
+            console.log('Using data.data - length:', data.data.length);
+            return data.data;
+        } else if (Array.isArray(data)) {
+            console.log('Using data directly - length:', data.length);
+            return data;
+        } else {
+            console.log('No valid data found, using empty array');
+            return [];
+        }
+    }, [data]);
+
     let dataTable = "";
     const [modalOn, setModalOn] = useState(false);
     const [item, setItem] = useState();
@@ -18,7 +38,6 @@ const CustomerTable = (data) => {
     const custDataByCustCode = useSelector((state) => state.user.CustRegDataByCustCode);
     const dispatch = useDispatch();
     
-  
     const jsonToken = useMemo(() => {
         try {
             const token = sessionStorage.getItem('token');
@@ -27,9 +46,8 @@ const CustomerTable = (data) => {
             console.error('Token parse error:', error);
             return null;
         }
-    }, []); // ✅ Empty dependency = parse once only
+    }, []);
     
-    console.log('CustomerTable data:', data);
     console.log('custDataByCustCode:', custDataByCustCode);
     console.log('custDataByCustCode length:', custDataByCustCode?.length || 0);
 
@@ -56,15 +74,12 @@ const CustomerTable = (data) => {
         return [day, month, year].join('/');
     }
 
-    // ✅ แก้ไข: เพิ่ม key prop และ error handling
-    if (data.data && Array.isArray(data.data)) {
-        dataTable = data.data.map((e, index) => {
-            // ✅ สร้าง unique key ที่ปลอดภัย
+    if (customerData && Array.isArray(customerData)) {
+        dataTable = customerData.map((e, index) => {
             const uniqueKey = e.Code ? `customer-${e.Code}-${index}` : `customer-index-${index}`;
-            
             return (
                 <tr 
-                    key={uniqueKey} // ✅ เพิ่ม unique key
+                    key={uniqueKey}
                     className="group bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 border-b border-gray-100 hover:shadow-md"
                 >
                     <td className="px-6 py-4">
@@ -99,6 +114,7 @@ const CustomerTable = (data) => {
                             <span className="text-gray-700">{e.Phone || 'ไม่ระบุ'}</span>
                         </div>
                     </td>
+                    {/* ✅ แก้ไข: ลด z-index ของ sticky column ให้ต่ำกว่า navbar */}
                     <td className="px-6 py-4 sticky left-0 bg-white group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50 z-10">
                         <div className="flex items-center space-x-2 max-w-xs">
                             <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,14 +142,62 @@ const CustomerTable = (data) => {
                 </tr>
             )
         })
+    } else {
+        console.log('No currentItems to render - currentItems:', data);
     }
+
+    const handlePrev = useCallback(() => onPageChange?.(Math.max(1, page - 1)), [onPageChange, page]);
+    const handleNext = useCallback(() => onPageChange?.(Math.min(totalPages, page + 1)), [onPageChange, page, totalPages]);
+    const handleGoTo = useCallback((p) => onPageChange?.(p), [onPageChange]);
+
+    const renderPageButtons = () => {
+        if (totalPages <= 1) return null;
+        const windowSize = 5;
+        const half = Math.floor(windowSize / 2);
+        let start = Math.max(1, page - half);
+        let end = Math.min(totalPages, start + windowSize - 1);
+        if (end - start + 1 < windowSize) start = Math.max(1, end - windowSize + 1);
+
+        const buttons = [];
+        for (let i = start; i <= end; i++) {
+            buttons.push(
+                <button
+                    key={`page-${i}`}
+                    onClick={() => handleGoTo(i)}
+                    className={`px-3 py-2 text-sm rounded-lg ${
+                        i === page ? 'bg-blue-600 text-white' : 'bg-white border hover:bg-gray-50'
+                    }`}
+                >
+                    {i}
+                </button>
+            );
+        }
+        return (
+            <>
+                {start > 1 && (
+                    <>
+                        <button onClick={() => handleGoTo(1)} className="px-3 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50">1</button>
+                        {start > 2 && <span className="text-gray-500">…</span>}
+                    </>
+                )}
+                {buttons}
+                {end < totalPages && (
+                    <>
+                        {end < totalPages - 1 && <span className="text-gray-500">…</span>}
+                        <button onClick={() => handleGoTo(totalPages)} className="px-3 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50">{totalPages}</button>
+                    </>
+                )}
+            </>
+        );
+    };
 
     return (
         <Fragment>
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            {/* ✅ แก้ไข: ลด z-index ของ table container */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 relative z-10">
                 <Table>
-                    {/* Enhanced Header */}
-                    <thead className="bg-gradient-to-r from-purple-600 to-pink-600 text-white sticky top-0 z-50">
+                    {/* ✅ แก้ไข: ลด z-index ของ table header */}
+                    <thead className="bg-gradient-to-r from-purple-600 to-pink-600 text-white sticky top-0 z-30">
                         <tr>
                             <th scope="col" className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">
                                 <div className="flex items-center space-x-2">
@@ -159,7 +223,8 @@ const CustomerTable = (data) => {
                                     <span>เบอร์โทร</span>
                                 </div>
                             </th>
-                            <th scope="col" className="sticky left-0 bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider z-50">
+                            {/* ✅ แก้ไข: ลด z-index ของ sticky header column */}
+                            <th scope="col" className="sticky left-0 bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider z-40">
                                 <div className="flex items-center space-x-2">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -180,7 +245,7 @@ const CustomerTable = (data) => {
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {dataTable || (
-                            <tr key="no-customer-data"> {/* ✅ เพิ่ม key */}
+                            <tr key="no-customer-data">
                                 <td colSpan="5" className="px-6 py-12 text-center">
                                     <div className="flex flex-col items-center space-y-4">
                                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
@@ -203,13 +268,43 @@ const CustomerTable = (data) => {
                         )}
                     </tbody>
                 </Table>
+
+                <div className="px-6 py-4 bg-gray-50 border-t flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                        <span className="text-sm text-gray-600">
+                            หน้า {page} จาก {totalPages} (ทั้งหมด {total} รายการ)
+                        </span>
+                        <span className="text-xs text-gray-400">
+                            แสดง {(total === 0) ? 0 : (page - 1) * limit + 1}-{Math.min(page * limit, total)}
+                        </span>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <button
+                            onClick={handlePrev}
+                            disabled={!hasPrev}
+                            className="px-3 py-2 text-sm bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                        >
+                            ก่อนหน้า
+                        </button>
+
+                        {renderPageButtons()}
+
+                        <button
+                            onClick={handleNext}
+                            disabled={!hasNext}
+                            className="px-3 py-2 text-sm bg-white border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                        >
+                            ถัดไป
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            {/* Enhanced Modal */}
+            {/* Modal - ไม่เปลี่ยนแปลง */}
             {modalOn && (
                 <Modal item={item} setModalOn={setModalOn}>
                     <div className="p-6">
-                        {/* Modal Header */}
                         <div className="flex items-center space-x-4 mb-6 pb-4 border-b border-gray-200">
                             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
                                 {item?.Name ? item.Name.charAt(0).toUpperCase() : '?'}
@@ -220,7 +315,6 @@ const CustomerTable = (data) => {
                             </div>
                         </div>
 
-                        {/* Modal Content */}
                         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                             <div className="max-h-96 overflow-y-auto">
                                 <table className="w-full text-sm">
@@ -276,7 +370,7 @@ const CustomerTable = (data) => {
 
                                     <tbody className="divide-y divide-gray-100">
                                         {(!custDataByCustCode || custDataByCustCode.length === 0) ? (
-                                            <tr key="no-registration-data"> {/* ✅ เพิ่ม key */}
+                                            <tr key="no-registration-data">
                                                 <td className="px-6 py-12">
                                                     <div className="flex flex-col items-center justify-center space-y-4 text-center">
                                                         <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center">
@@ -295,7 +389,6 @@ const CustomerTable = (data) => {
                                             </tr>
                                         ) : (
                                             custDataByCustCode.map((e, index) => {
-                                                // ✅ สร้าง unique key ที่ปลอดภัย
                                                 const uniqueKey = e.RegNo ? `registration-${e.RegNo}-${index}` : `registration-index-${index}`;
                                                 const isExpired = new Date(e.DateExp) < new Date();
                                                 

@@ -11,9 +11,23 @@ const userAction = createSlice({
     custFilterUserData:[],
     CustRegData:[],
     CustRegDataByCustCode:[],
-    filterData:[]
+    filterData:[],
+    pagination: { page: 1, limit: 20, total: 0, totalPages: 1, hasNext: false, hasPrev: false }
   },
   reducers: {
+      setPagedCustomers(state, action) {
+        const { userData, pagination } = action.payload || {};
+        state.userData = Array.isArray(userData) ? userData : [];
+        state.filterData = Array.isArray(userData) ? userData : [];
+        state.pagination = {
+          page: pagination?.page ?? 1,
+          limit: pagination?.limit ?? 20,
+          total: pagination?.total ?? (Array.isArray(userData) ? userData.length : 0),
+          totalPages: pagination?.totalPages ?? 1,
+          hasNext: !!pagination?.hasNext,
+          hasPrev: !!pagination?.hasPrev,
+        };
+      },
       fetchUserInfo(state,action){
         state.userData = action.payload.userData;
         state.filterData = action.payload.userData;
@@ -124,11 +138,14 @@ const userAction = createSlice({
       getCustRegByCustCode(state,action){
         const item = action.payload;
         let CustRegData = state.CustRegData;
+        console.log('🔍 Filtering for custCode:', item);
+        console.log('🔍 Available custCodes:', CustRegData?.map(e => e.CustCode).slice(0, 10));
         let result  = CustRegData.filter((e)=>{
           if(e.CustCode == item){
             return {...e}
           }
         })
+        console.log('🔍 Filter result:', result.length, 'items found');
         state.CustRegDataByCustCode = result;
       }
   }

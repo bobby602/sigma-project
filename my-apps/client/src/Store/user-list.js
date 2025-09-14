@@ -124,6 +124,7 @@ export const searchCustomer = (searchTerm = '') => {
 
     try {
       const searchData = await getSearchData();
+      console.log('Dispatching searchCustomer with data:', searchData);
       dispatch(
         userList.getCustReg({ searchData })
       );
@@ -287,6 +288,57 @@ export const fetchCustomerRegistration = (customerCode) => {
       
     } catch (error) {
       console.error('❌ Error fetching customer registration:', error);
+    }
+  };
+};
+
+export const fetchCustomersPage = (page = 1, limit = 20) => {
+  return async (dispatch) => {
+    try {
+      console.log('🔄 Fetching customers (server-side paging):', { page, limit });
+
+      const res = await API.get('/api/customers', { params: { page, limit } });
+      // เซิร์ฟเวอร์ของคุณคืนรูปแบบนี้อยู่แล้ว
+      // {
+      //   result: { recordset: [...] },
+      //   pagination: { page, limit, total, totalPages, hasNext, hasPrev }
+      // }
+      const list =
+        res?.data?.result?.recordset ??
+        res?.data?.data ??
+        [];
+
+      const p = res?.data?.pagination ?? {};
+      const total = p.total ?? list.length;
+      const totalPages = p.totalPages ?? Math.max(1, Math.ceil(total / limit));
+
+      const pagination = {
+        page: p.page ?? page,
+        limit: p.limit ?? limit,
+        total,
+        totalPages,
+        hasNext: p.hasNext ?? (page < totalPages),
+        hasPrev: p.hasPrev ?? (page > 1),
+      };
+
+      // เก็บหน้า + ข้อมูลหน้าปัจจุบันไว้ที่ Redux
+      dispatch(userList.setPagedCustomers({ userData: list, pagination }));
+
+      return { list, pagination };
+    } catch (error) {
+      console.error('❌ Error fetching customers (paged):', {
+        message: error?.message,
+        status: error?.response?.status,
+        data: error?.response?.data,
+      });
+
+      // 404 ก็ให้ลิสต์ว่าง แต่อย่าพัง
+      if (error?.response?.status === 404) {
+        const pagination = { page, limit, total: 0, totalPages: 1, hasNext: false, hasPrev: false };
+        dispatch(userList.setPagedCustomers({ userData: [], pagination }));
+        return { list: [], pagination };
+      }
+      throw error;
     }
   };
 };
