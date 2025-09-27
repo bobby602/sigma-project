@@ -5,6 +5,9 @@ const userAction = createSlice({
   initialState: {
     userData:[],
     otherUserData:[],
+    summaryItems: [],
+    summaryPagination: { page: 1, limit: 20, total: 0, totalPages: 1, hasNext: false, hasPrev: false },
+    summaryTotalRow: null,
     summaryuserData:[],
     summaryFilterData:[],
     custUserData:[],
@@ -28,6 +31,20 @@ const userAction = createSlice({
           hasPrev: !!pagination?.hasPrev,
         };
       },
+      setSummaryServerPage(state, action) {
+        // action.payload = { items, page, limit, total, totalPages, hasPrev, hasNext, totalRow }
+        const p = action.payload || {};
+        state.summaryItems = Array.isArray(p.items) ? p.items : [];
+        state.summaryPagination = {
+          page: Number(p.page || 1),
+          limit: Number(p.limit || 20),
+          total: Number(p.total || 0),
+          totalPages: Number(p.totalPages || 1),
+          hasPrev: !!p.hasPrev,
+          hasNext: !!p.hasNext
+        };
+        state.summaryTotalRow = p.totalRow || null;
+      },
       fetchUserInfo(state,action){
         state.userData = action.payload.userData;
         state.filterData = action.payload.userData;
@@ -36,30 +53,36 @@ const userAction = createSlice({
         state.summaryuserData = action.payload.userMonthlyData;
       },
       fetchSummaryUserByDate(state,action){
-        state.summaryuserData = action.payload.userSummaryData;
+         const raw = action.payload?.userSummaryData || action.payload || [];
+        const arr = Array.isArray(raw) ? raw : Object.values(raw || {});
+        state.summaryItems = arr.filter(r => r?.CustCode !== 'รวม');
+        state.summaryTotalRow = arr.find?.(r => r?.CustCode === 'รวม') || null;
+        state.summaryPagination = {
+          page: 1, limit: arr.length, total: arr.length, totalPages: 1, hasPrev: false, hasNext: false
+        };
       },
-      SearchSummaryUser(state,action){
-        let searchVal = action.payload;
-        let UserData = state.summaryuserData;
-        const myArray = Object.values(UserData).map((e) => {return {...e}});
-        console.log(searchVal);
-        console.log(current(UserData))
-        const result = myArray.filter((e)=>{
-            if(e.CustName ==undefined){
-              e.CustName  = '';
-            }
-          if(e.CustName.includes(searchVal)){
-            return {...e};
-          }else if(e.CustCode.includes(searchVal)){
-            return {...e};
-          }
-        })  
-        if(searchVal == ""){
-          state.summaryuserData = UserData;
-        }else{
-          state.summaryuserData = result;
-        }
-      },
+      // SearchSummaryUser(state,action){
+      //   let searchVal = action.payload;
+      //   let UserData = state.summaryuserData;
+      //   const myArray = Object.values(UserData).map((e) => {return {...e}});
+      //   console.log(searchVal);
+      //   console.log(current(UserData))
+      //   const result = myArray.filter((e)=>{
+      //       if(e.CustName ==undefined){
+      //         e.CustName  = '';
+      //       }
+      //     if(e.CustName.includes(searchVal)){
+      //       return {...e};
+      //     }else if(e.CustCode.includes(searchVal)){
+      //       return {...e};
+      //     }
+      //   })  
+      //   if(searchVal == ""){
+      //     state.summaryuserData = UserData;
+      //   }else{
+      //     state.summaryuserData = result;
+      //   }
+      // },
       fetchCustomer(state,action){
         state.custUserData = action.payload.customerData;
         state.custFilterUserData = action.payload.customerData;

@@ -1,6 +1,7 @@
 // src/Store/user-list.js - แก้ไข API functions
 import axios from 'axios';
 import { userList } from './userList';
+import { createAsyncThunk } from '@reduxjs/toolkit';
 import axiosPrivate from '../Util/useAxiosAPI'; // ← เปลี่ยนเป็น import ธรรมดา
 
 const API = axiosPrivate;
@@ -52,38 +53,38 @@ export const fetchData = () => {
   };
 };
 
-export const fetchSummaryUserbyDate = (input, saleCode) => {
-  return async (dispatch) => {
-    const getSummaryUserbyDate = async () => {
-      try {
-        console.log('🔄 Fetching summary user data...', { input, saleCode });
+// export const fetchSummaryUserbyDate = (input, saleCode) => {
+//   return async (dispatch) => {
+//     const getSummaryUserbyDate = async () => {
+//       try {
+//         console.log('🔄 Fetching summary user data...', { input, saleCode });
         
-        const res = await API.post(`/customerList/selectSummaryUser`, { input, saleCode });
-        console.log('✅ Summary user data:', res.data);
-        return res.data.finalResult;
+//         const res = await API.post(`/api/customers/selectSummaryUser`, { input, saleCode });
+//         console.log('✅ Summary user data:', res.data);
+//         return res.data.finalResult;
         
-      } catch (error) {
-        console.error('❌ Error fetching summary:', error);
+//       } catch (error) {
+//         console.error('❌ Error fetching summary:', error);
         
-        if (error.response?.status === 404) {
-          console.log('📍 Summary API endpoint not found');
-          return [];
-        }
+//         if (error.response?.status === 404) {
+//           console.log('📍 Summary API endpoint not found');
+//           return [];
+//         }
         
-        throw error;
-      }
-    };
+//         throw error;
+//       }
+//     };
 
-    try {
-      const userSummaryData = await getSummaryUserbyDate();
-      dispatch(
-        userList.fetchSummaryUserByDate({ userSummaryData })
-      );
-    } catch (error) {
-      console.error('Error in fetchSummaryUserbyDate dispatch:', error);
-    }
-  };
-};
+//     try {
+//       const userSummaryData = await getSummaryUserbyDate();
+//       dispatch(
+//         userList.fetchSummaryUserByDate({ userSummaryData })
+//       );
+//     } catch (error) {
+//       console.error('Error in fetchSummaryUserbyDate dispatch:', error);
+//     }
+//   };
+// };
 
 export const searchCustomer = (searchTerm = '') => {
   return async (dispatch) => {
@@ -342,3 +343,48 @@ export const fetchCustomersPage = (page = 1, limit = 20) => {
     }
   };
 };
+export const fetchSummaryUserbyDate = createAsyncThunk(
+  'user/fetchSummaryUserbyDate',
+  async (
+    { date1Val, date2Val, saleCode, page = 1, limit = 20, search = '' },
+    { dispatch, rejectWithValue }
+  ) => {
+    try {
+      const { data } = await API.post('/api/customers/selectSummaryUser', {
+        input: { date1Val, date2Val },
+        saleCode,
+        page,
+        limit,
+        search
+      });
+
+      const payload = {
+        items: data?.items ?? [],
+        page: data?.page ?? page,
+        limit: data?.limit ?? limit,
+        total: data?.total ?? 0,
+        totalPages: data?.totalPages ?? 1,
+        hasPrev: !!data?.hasPrev,
+        hasNext: !!data?.hasNext,
+        totalRow: data?.totalRow ?? null
+      };
+
+      dispatch(userList.setSummaryServerPage(payload));
+      return payload;
+    } catch (err) {
+      // กันเคส 404/500 ให้ state อยู่ในสภาพนิ่ง
+      const payload = {
+        items: [],
+        page,
+        limit,
+        total: 0,
+        totalPages: 1,
+        hasPrev: false,
+        hasNext: false,
+        totalRow: null
+      };
+      dispatch(userList.setSummaryServerPage(payload));
+      return rejectWithValue(err?.response?.data || { message: err?.message });
+    }
+  }
+);

@@ -99,97 +99,166 @@ router.post('/selectSummaryUser', verifyToken, async (req, res) => {
   console.log('📞 API: POST /api/customers/selectSummaryUser', req.body);
   console.log('🔐 Authenticated user:', req.user?.name);
 
-  const sql = `
-    SELECT  
-      CustCode,
-      CustName,
-      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(NetAmt), 0.00) AS MONEY), 1) AS VARCHAR) AS NetAmt,  
-      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Amt), 0.00) AS MONEY), 1) AS VARCHAR) AS Amt,  
-      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Cost), 0.00) AS MONEY), 1) AS VARCHAR) AS Cost, 
-      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(amtdiff), 0.00) AS MONEY), 1) AS VARCHAR) AS amtdiff, 
-      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Coltd), 0.00) AS MONEY), 1) AS VARCHAR) AS Coltd, 
-      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(CUMSSP), 0.00) AS MONEY), 1) AS VARCHAR) AS CUMSSP, 
-      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(MS), 0.00) AS MONEY), 1) AS VARCHAR) AS MS,
-      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Comsale), 0.00) AS MONEY), 1) AS VARCHAR) AS Comsale,
-      CAST(CONVERT(VARCHAR, CAST(ISNULL(SUM(Target), 0) AS INT), 1) AS VARCHAR) AS Target 
-    FROM RptAR1G 
-    WHERE DocDate BETWEEN @date1 AND @date2 AND saleCode = @salecode 
-    GROUP BY CustCode, CustName
-    ORDER BY CustName ASC
-  `;
-
   try {
     const date1 = parseDDMMYYYY(req.body?.input?.date1Val);
     const date2 = parseDDMMYYYY(req.body?.input?.date2Val);
     const saleCode = String(req.body?.saleCode || '').trim();
 
+    // ✅ server-side paging params
+    const page   = Math.max(1, parseInt(req.body?.page)  || 1);
+    const limit  = Math.max(1, parseInt(req.body?.limit) || 20);
+    const offset = (page - 1) * limit;
+    const search = String(req.body?.search || '').trim();
+
     if (!date1 || !date2 || !saleCode) {
-      // ยึดพฤติกรรมเดิม: ถ้าไม่ครบ ให้คืนว่าง (หรือจะ 400 ก็ได้)
       return res.json({
-        finalResult: [],
         success: true,
+        items: [],
+        total: 0,
+        page, limit, totalPages: 1,
+        totalRow: null,
         authenticatedUser: req.user?.name,
         timestamp: new Date().toISOString(),
       });
     }
 
-    const result = await db.queryDB('SigmaOffice', sql, {
-      date1,
-      date2,
-      salecode: saleCode,
-    });
+    // 1) รวมยอดตามลูกค้า แล้วค่อย filter/search
+    const baseAggSql = `
+      WITH agg AS (
+        SELECT
+          CustCode,
+          CustName,
+          SUM(NetAmt)   AS NetAmt,
+          SUM(Amt)      AS Amt,
+          SUM(Cost)     AS Cost,
+          SUM(amtdiff)  AS amtdiff,
+          SUM(Coltd)    AS Coltd,
+          SUM(CUMSSP)   AS CUMSSP,
+          SUM(MS)       AS MS,
+          SUM(Comsale)  AS Comsale,
+          SUM(Target)   AS Target
+        FROM RptAR1G
+        WHERE DocDate BETWEEN @date1 AND @date2
+          AND saleCode = @salecode
+        GROUP BY CustCode, CustName
+      ),
+      filtered AS (
+        SELECT *
+        FROM agg
+        WHERE (@search = '')
+           OR (CustName LIKE '%' + @search + '%' OR CustCode LIKE '%' + @search + '%')
+      ),
+      numbered AS (
+        SELECT
+          *,
+          COUNT(*) OVER() AS totalCount
+        FROM filtered
+      )
+      SELECT *
+      FROM numbered
+      ORDER BY CustName ASC
+      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY
+    `;
 
-    // รวมยอดจากผลลัพธ์ (แปลง string เงินกลับเป็น number)
-    const totals = {
-      sumNetAmt: 0, sumAmt: 0, sumCost: 0, sumamtdiff: 0,
-      sumColtd: 0, sumCUMSSP: 0, sumMS: 0, sumComsale: 0, sumTarget: 0,
-    };
+    const totalsSql = `
+      WITH agg AS (
+        SELECT
+          CustCode,
+          CustName,
+          SUM(NetAmt)   AS NetAmt,
+          SUM(Amt)      AS Amt,
+          SUM(Cost)     AS Cost,
+          SUM(amtdiff)  AS amtdiff,
+          SUM(Coltd)    AS Coltd,
+          SUM(CUMSSP)   AS CUMSSP,
+          SUM(MS)       AS MS,
+          SUM(Comsale)  AS Comsale,
+          SUM(Target)   AS Target
+        FROM RptAR1G
+        WHERE DocDate BETWEEN @date1 AND @date2
+          AND saleCode = @salecode
+        GROUP BY CustCode, CustName
+      ),
+      filtered AS (
+        SELECT *
+        FROM agg
+        WHERE (@search = '')
+           OR (CustName LIKE '%' + @search + '%' OR CustCode LIKE '%' + @search + '%')
+      )
+      SELECT
+        SUM(NetAmt)   AS sumNetAmt,
+        SUM(Amt)      AS sumAmt,
+        SUM(Cost)     AS sumCost,
+        SUM(amtdiff)  AS sumAmtdiff,
+        SUM(Coltd)    AS sumColtd,
+        SUM(CUMSSP)   AS sumCUMSSP,
+        SUM(MS)       AS sumMS,
+        SUM(Comsale)  AS sumComsale,
+        SUM(Target)   AS sumTarget
+      FROM filtered
+    `;
 
-    const rows = result.recordset || [];
-    const parseNum = (v) => (v ? parseFloat(String(v).replaceAll(',', '')) : 0);
+    const [pageResult, totalsResult] = await Promise.all([
+      db.queryDB('SigmaOffice', baseAggSql, { date1, date2, salecode: saleCode, search, offset, limit }),
+      db.queryDB('SigmaOffice', totalsSql,   { date1, date2, salecode: saleCode, search })
+    ]);
 
-    rows.forEach((r) => {
-      totals.sumNetAmt  += parseNum(r.NetAmt);
-      totals.sumAmt     += parseNum(r.Amt);
-      totals.sumCost    += parseNum(r.Cost);
-      totals.sumamtdiff += parseNum(r.amtdiff);
-      totals.sumColtd   += parseNum(r.Coltd);
-      totals.sumCUMSSP  += parseNum(r.CUMSSP);
-      totals.sumMS      += parseNum(r.MS);
-      totals.sumComsale += parseNum(r.Comsale);
-      totals.sumTarget  += parseNum(r.Target);
-    });
+    const rows = pageResult.recordset || [];
+    const total = rows[0]?.totalCount ? Number(rows[0].totalCount) : 0;
+    const totalPages = Math.max(1, Math.ceil(total / Math.max(1, limit)));
 
-    // จัดรูปผลลัพธ์ให้มีรายการ "รวม" ต่อท้าย (key '110' ตามโค้ดเดิมของคุณ)
-    const finalResult = {
-      ...rows,
-      '110': {
-        CustCode: 'รวม',
-        NetAmt:  toMoney(totals.sumNetAmt),
-        Amt:     toMoney(totals.sumAmt),
-        Cost:    toMoney(totals.sumCost),
-        amtdiff: toMoney(totals.sumamtdiff),
-        Coltd:   toMoney(totals.sumColtd),
-        CUMSSP:  toMoney(totals.sumCUMSSP),
-        MS:      toMoney(totals.sumMS),
-        Comsale: toMoney(totals.sumComsale),
-        Target:  toIntString(totals.sumTarget),
-      },
+    const sumRow = (totalsResult.recordset?.[0]) || {};
+    const toNum = (v) => (v ? Number(v) : 0);
+
+    // ✅ format แถวรายการของ "หน้านี้"
+    const items = rows.map(r => ({
+      CustCode: r.CustCode,
+      CustName: r.CustName,
+      NetAmt:   toMoney(r.NetAmt),
+      Amt:      toMoney(r.Amt),
+      Cost:     toMoney(r.Cost),
+      amtdiff:  toMoney(r.amtdiff),
+      Coltd:    toMoney(r.Coltd),
+      CUMSSP:   toMoney(r.CUMSSP),
+      MS:       toMoney(r.MS),
+      Comsale:  toMoney(r.Comsale),
+      Target:   toIntString(r.Target),
+    }));
+
+    // ✅ แถวผลรวมของ “ข้อมูลทั้งหมด” (ไม่ใช่เฉพาะหน้า)
+    const totalRow = {
+      CustCode: 'รวม',
+      NetAmt:   toMoney(toNum(sumRow.sumNetAmt)),
+      Amt:      toMoney(toNum(sumRow.sumAmt)),
+      Cost:     toMoney(toNum(sumRow.sumCost)),
+      amtdiff:  toMoney(toNum(sumRow.sumAmtdiff)),
+      Coltd:    toMoney(toNum(sumRow.sumColtd)),
+      CUMSSP:   toMoney(toNum(sumRow.sumCUMSSP)),
+      MS:       toMoney(toNum(sumRow.sumMS)),
+      Comsale:  toMoney(toNum(sumRow.sumComsale)),
+      Target:   toIntString(toNum(sumRow.sumTarget)),
     };
 
     res.json({
-      finalResult,
       success: true,
+      items,
+      page, limit, total, totalPages,
+      hasPrev: page > 1,
+      hasNext: page < totalPages,
+      totalRow,
       authenticatedUser: req.user?.name,
       timestamp: new Date().toISOString(),
     });
 
-    console.log(`✅ Summary returned for sale code: ${saleCode}, user: ${req.user?.name}`);
+    console.log(`✅ Summary (page ${page}/${totalPages}) for ${saleCode} -> ${items.length} rows, total=${total}`);
   } catch (err) {
     console.error('❌ Summary error:', err);
     res.status(500).json({
-      finalResult: [],
       success: false,
+      items: [],
+      total: 0,
+      page: 1, limit: 20, totalPages: 1,
+      totalRow: null,
       error: err.message,
       timestamp: new Date().toISOString(),
     });
