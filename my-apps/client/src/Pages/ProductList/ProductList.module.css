@@ -1,18 +1,30 @@
 .font{
-    font-family: "Poppins", sans-serif;
-  }
-  .search{
-    margin-top:30px;
-    margin-bottom: 30px;
-  }
- .borderTable{ 
+  font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+}
+
+.search{ margin: 20px 0; }
+
+.borderTable{
   position: static;
-  margin: 20px;
-	padding-left: 30px !important;
-	padding-right: 30px !important;
-	padding-bottom: 5px !important;
-	padding-top: 5px !important;
-	background: #ffffff;
-	box-shadow: 0 2px 10px rgb(0 0 0 / 15%);
-	border-radius: 25px;
-}  
+  margin: 16px;
+  padding: 16px 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(2, 6, 23, .06);
+}
+
+/* ปรับ input ให้ดูสะอาดสบายตา */
+input[type="text"],
+input[type="number"],
+select{
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  outline: none;
+}
+input:focus, select:focus{
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}

@@ -19,6 +19,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { tokenLoader ,checkAuthLoader} from './Util/auth';
 import  {LogoutApi}  from './Store/logoutApi';
 import { Link , Navigate ,Redirect  } from 'react-router-dom'
+import './styles/animations.css';
 
 
 function App() {
@@ -34,7 +35,7 @@ function App() {
         sessionStorage.removeItem('refreshToken');
         sessionStorage.clear();
         setcheckTokenExpire(true);
-        location.reload();
+        window.location.reload();
       }
     },10000);
 

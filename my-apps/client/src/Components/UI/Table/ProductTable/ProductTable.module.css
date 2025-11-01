@@ -1,67 +1,355 @@
-.font{
-    /* font-family: "Poppins", sans-serif; */
-    font-family: 'Kanit', sans-serif ;
+:root{
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+
+  --text: #0f172a;
+  --muted: #64748b;
+
+  --head-bg: #fafbfc;
+  --head-fg: #475569;
+
+  --row-border: #f1f5f9;
+  --row-hover: #f8fafc;
+
+  --chip-bg: #f3f4f6;
+  --chip-fg: #374151;
+
+  --emph-bg: #f8fafc;
+  --emph-border: #e5e7eb;
+
+  --shadow: 0 4px 16px rgba(2, 6, 23, .06);
+  --shadow-lg: 0 10px 40px rgba(2, 6, 23, .1);
+}
+
+/* ---------- โครงกล่อง ---------- */
+.container{
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.glass{
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.glass:hover{
+  box-shadow: var(--shadow-lg);
+}
+
+/* ---------- ตาราง ---------- */
+.table{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  transition: all 0.2s ease;
+}
+
+.thead{
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: linear-gradient(to bottom, var(--head-bg) 0%, #ffffff 100%);
+  color: var(--head-fg);
+  border-bottom: 2px solid var(--card-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.th{
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: none;
+  font-size: .875rem;
+  padding: 14px 16px;
+  white-space: nowrap;
+  text-align: left;
+  background: var(--head-bg);
+  position: relative;
+}
+
+.th::after{
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #3b82f6, transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.th:hover::after{
+  opacity: 0.5;
+}
+
+.row{
+  background: transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.row::after{
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--row-border);
+  transition: all 0.2s ease;
+}
+
+.row:hover{
+  background: linear-gradient(to right, #f8fafc, #ffffff, #f8fafc);
+  transform: scale(1.002);
+}
+
+.row:hover::after{
+  background: linear-gradient(to right, transparent, #3b82f6, transparent);
+  height: 2px;
+}
+
+.td{
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--row-border);
+  font-size: .9375rem;
+  color: var(--text);
+  vertical-align: middle;
+  transition: all 0.2s ease;
+}
+
+.muted{
+  color: var(--muted);
+  font-size: .875rem;
+  font-weight: 500;
+}
+
+.num{
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* รหัสสินค้า - Enhanced */
+.code{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-weight: 700;
+  color: #1f2937;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  padding: 8px 12px;
+  border-radius: 10px;
+  display: inline-block;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.code:hover{
+  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* คอลัมน์ชื่อสินค้าติดซ้าย - Enhanced */
+.stickyLeft{
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: linear-gradient(to right, var(--card-bg) 90%, transparent);
+  border-right: 1px solid transparent;
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.row:hover .stickyLeft{
+  background: linear-gradient(to right, #f8fafc 90%, transparent);
+  box-shadow: 6px 0 12px rgba(0, 0, 0, 0.04);
+}
+
+/* ป้ายประเภทสินค้า - Enhanced */
+.pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: .75rem;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: #0b1020;
+  background: #e2e8f0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.pill:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.pillDot{ 
+  width: 9px; 
+  height: 9px; 
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .7; }
+}
+
+.pillBlue{ 
+  background: linear-gradient(135deg, rgba(59,130,246,.18) 0%, rgba(29,78,216,.18) 100%);
+  color: #1e40af;
+  border-color: rgba(59,130,246,.3);
+}
+.pillBlue .pillDot{ 
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 0 8px rgba(59,130,246,.5);
+}
+
+.pillPurple{ 
+  background: linear-gradient(135deg, rgba(147,51,234,.18) 0%, rgba(126,34,206,.18) 100%);
+  color: #6b21a8;
+  border-color: rgba(147,51,234,.3);
+}
+.pillPurple .pillDot{ 
+  background: linear-gradient(135deg, #a855f7, #9333ea);
+  box-shadow: 0 0 8px rgba(168,85,247,.5);
+}
+
+.pillSlate{ 
+  background: linear-gradient(135deg, rgba(100,116,139,.2) 0%, rgba(71,85,105,.2) 100%);
+  color: #1e293b;
+  border-color: rgba(100,116,139,.3);
+}
+.pillSlate .pillDot{ 
+  background: linear-gradient(135deg, #64748b, #475569);
+  box-shadow: 0 0 8px rgba(100,116,139,.4);
+}
+
+/* ไฮไลท์คอลัมน์ราคา - Enhanced */
+.rightRail{
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 12px 16px;
+  font-weight: 800;
+  border-radius: 10px;
+  border: 2px solid var(--emph-border);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.row:hover .rightRail{
+  background: linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%);
+  border-color: #93c5fd;
+  box-shadow: inset 0 2px 4px rgba(59, 130, 246, 0.1), 0 0 0 3px rgba(59, 130, 246, 0.05);
+  transform: scale(1.02);
+}
+
+/* Footer/Pagination - Enhanced */
+.footer{
+  background: linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%);
+  border-top: 2px solid var(--card-border);
+  padding: 16px 24px;
+}
+
+/* ---------- ตัวบังคับโทนสว่าง ---------- */
+.lightTable{
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --text: #0f172a;
+  --muted: #64748b;
+  --head-bg: #fafbfc;
+  --head-fg: #475569;
+  --row-border: #f1f5f9;
+  --row-hover: #f8fafc;
+  --chip-bg: #f3f4f6;
+  --chip-fg: #374151;
+  --emph-bg: #f8fafc;
+  --emph-border: #e5e7eb;
+}
+
+.lightTable .thead{
+  background: linear-gradient(to bottom, var(--head-bg) 0%, #ffffff 100%) !important;
+  color: var(--head-fg) !important;
+  border-bottom: 2px solid var(--card-border);
+}
+
+.lightTable .td{
+  border-bottom: 1px solid var(--row-border);
+}
+
+.lightTable .row:hover{
+  background: linear-gradient(to right, #f8fafc, #ffffff, #f8fafc);
+}
+
+.lightTable .code{
+  background: linear-gradient(135deg, var(--chip-bg) 0%, #e5e7eb 100%);
+  color: var(--chip-fg);
+}
+
+.lightTable .stickyLeft{
+  background: linear-gradient(to right, var(--card-bg) 90%, transparent);
+}
+
+/* ---------- Animations ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.row{
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px){
+  .th, .td{ 
+    padding: 12px 10px; 
+    font-size: .875rem; 
   }
-  .font2{
-    font-family: 'Kanit', sans-serif ;
+  
+  .code{ 
+    padding: 6px 10px;
+    font-size: .75rem;
   }
-.fontUser {
-  font-family: 'Kanit', sans-serif ;
-} 
-  .textCustom{
-    color:white;
-    text-shadow: 0px 2px 3px rgba(0,0,0,0.4),
-         0px 4px 10px rgba(0,0,0,0.7),
-         0px 10px 20px rgba(0,0,0,0.4);
-        
-}
-.font td:nth-of-type(1) , .font td:nth-of-type(8) {
-  display: none;
-}
-.font th:nth-of-type(1) , .font th:nth-of-type(8){
-  display: none;
-}
-.font td:nth-of-type(3) {
-  color:coral;
-}
-.font td:nth-of-type(4) {
-  color:green;
-}
-.font td:nth-of-type(5) {
-  color:purple;
-}
-.font td:nth-of-type(6) {
-  color:red;
-}
-.font td:nth-of-type(11) {
-  color:rgb(255, 0, 242);
-}
-.col1{
-  width:270px;
-}
-.costInput{
-  width:200px;
-}
-.text{
-  justify-content: center;
-}
-.textCustomAll{
-  color:red;
-  text-shadow: 0px 2px 3px rgba(0,0,0,0.4),
-       0px 4px 10px rgba(0,0,0,0.7),
-       0px 10px 20px rgba(0,0,0,0.4);
-      
-}
-@media (max-width:375px){
-  .textCustom th:nth-of-type(2){
-    left:auto;
+  
+  .pill{
+    padding: 4px 10px;
+    font-size: .65rem;
+    gap: 5px;
   }
-  .font td:nth-of-type(2){
-    left:auto;
+  
+  .pillDot{
+    width: 7px;
+    height: 7px;
+  }
+  
+  .rightRail{
+    padding: 10px 12px;
   }
 }
-.img{
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+
+/* ---------- Print Styles ---------- */
+@media print {
+  .glass{
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  
+  .row:hover{
+    background: transparent;
+  }
+  
+  .pill, .code{
+    box-shadow: none;
+  }
 }

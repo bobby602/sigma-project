@@ -1,154 +1,186 @@
-// client/src/components/UI/Table/VirtualTable.jsx
-import React, { useRef, useState, useCallback, memo } from 'react';
-import { FixedSizeList as List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
-import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
+// my-apps/client/src/Components/UI/Table/VirtualTable.jsx
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import './VirtualTable.css';
 
-const VirtualTable = memo(({ 
-  data = [], 
-  columns = [], 
-  height = 600,
+const VirtualTable = ({
+  data = [],
+  columns = [],
+  height = 400,
   rowHeight = 50,
+  headerHeight = 40,
   onRowClick,
+  onSort,
+  sortBy,
+  sortOrder,
   highlightChanges = {},
-  loading = false
+  loading = false,
+  className = '',
+  showHeader = true,
+  stickyHeader = true
 }) => {
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
-  const parentRef = useRef();
+  const [visibleStartIndex, setVisibleStartIndex] = useState(0);
+  const [visibleEndIndex, setVisibleEndIndex] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
 
-  // Sort data
-  const sortedData = React.useMemo(() => {
-    if (!sortConfig.key) return data;
-    
-    return [...data].sort((a, b) => {
-      const aValue = a[sortConfig.key];
-      const bValue = b[sortConfig.key];
-      
-      if (aValue === null || aValue === undefined) return 1;
-      if (bValue === null || bValue === undefined) return -1;
-      
-      if (sortConfig.direction === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      }
-      return aValue < bValue ? 1 : -1;
-    });
-  }, [data, sortConfig]);
+  // Calculate how many rows can be visible
+  const visibleRowCount = Math.ceil((height - headerHeight) / rowHeight);
 
-  // Handle sort
-  const handleSort = useCallback((key) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
+  // Calculate visible rows based on scroll position
+  useEffect(() => {
+    const startIndex = Math.floor(scrollTop / rowHeight);
+    const endIndex = Math.min(startIndex + visibleRowCount + 1, data.length);
+    setVisibleStartIndex(startIndex);
+    setVisibleEndIndex(endIndex);
+  }, [scrollTop, rowHeight, visibleRowCount, data.length]);
+
+  // Handle scroll
+  const handleScroll = useCallback((e) => {
+    setScrollTop(e.target.scrollTop);
   }, []);
 
-  // Row renderer
-  const Row = ({ index, style }) => {
-    const row = sortedData[index];
-    const hasChanges = highlightChanges[row.ItemCode];
+  // Handle sort click
+  const handleSort = useCallback((columnKey) => {
+    if (onSort) {
+      onSort(columnKey);
+    }
+  }, [onSort]);
 
+  // Calculate total height
+  const totalHeight = data.length * rowHeight;
+
+  // Get visible rows
+  const visibleRows = useMemo(() => {
+    return data.slice(visibleStartIndex, visibleEndIndex);
+  }, [data, visibleStartIndex, visibleEndIndex]);
+
+  // Header component
+  const TableHeader = () => (
+    <div 
+      className={`virtual-table-header ${stickyHeader ? 'sticky' : ''}`}
+      style={{ height: headerHeight }}
+    >
+      {columns.map((column) => (
+        <div
+          key={column.key}
+          className={`header-cell ${column.sortable ? 'sortable' : ''} ${column.align || 'left'}`}
+          style={{ 
+            width: column.width || 120,
+            minWidth: column.width || 120
+          }}
+          onClick={() => column.sortable && handleSort(column.key)}
+        >
+          <span className="header-text">{column.title}</span>
+          {column.sortable && sortBy === column.key && (
+            <span className="sort-indicator">
+              {sortOrder === 'ASC' ? '↑' : '↓'}
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
+  // Row component
+  const VirtualRow = ({ item, index, style }) => {
+    const actualIndex = visibleStartIndex + index;
+    const isEven = actualIndex % 2 === 0;
+    
     return (
-      <div 
-        style={style} 
-        className={`
-          flex items-center border-b hover:bg-gray-50 transition-colors cursor-pointer
-          ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
-          ${hasChanges ? 'bg-yellow-50' : ''}
-        `}
-        onClick={() => onRowClick?.(row)}
+      <div
+        style={{
+          ...style,
+          top: visibleStartIndex * rowHeight + (style?.top || 0)
+        }}
+        className={`virtual-table-row ${isEven ? 'even' : 'odd'}`}
+        onClick={() => onRowClick && onRowClick(item)}
       >
-        {columns.map((column) => (
-          <div
-            key={column.key}
-            className="px-4 py-2 text-sm text-gray-900 truncate"
-            style={{ 
-              width: column.width || 'auto',
-              minWidth: column.width || 100
-            }}
-          >
-            {column.render ? column.render(row[column.key], row) : row[column.key]}
-          </div>
-        ))}
+        {columns.map((column) => {
+          const value = item[column.key];
+          const cellKey = `${item[columns[0]?.key] || actualIndex}_${column.key}`;
+          const hasChanges = highlightChanges[cellKey];
+
+          return (
+            <div
+              key={column.key}
+              className={`table-cell ${column.align || 'left'} ${hasChanges ? 'has-changes' : ''}`}
+              style={{ 
+                width: column.width || 120,
+                minWidth: column.width || 120
+              }}
+            >
+              {column.render ? 
+                column.render(value, item, actualIndex) : 
+                (value !== null && value !== undefined ? String(value) : '')
+              }
+            </div>
+          );
+        })}
       </div>
     );
   };
 
-  if (loading) {
-    return <TableSkeleton columns={columns.length} rows={10} />;
-  }
-
-  return (
-    <div className="bg-white rounded-lg overflow-hidden">
-      {/* Header */}
-      <div className="flex bg-gray-100 border-b sticky top-0 z-10">
-        {columns.map((column) => (
-          <div
-            key={column.key}
-            className={`
-              px-4 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider
-              ${column.sortable ? 'cursor-pointer hover:bg-gray-200' : ''}
-            `}
-            style={{ width: column.width || 'auto', minWidth: column.width || 100 }}
-            onClick={() => column.sortable && handleSort(column.key)}
-          >
-            <div className="flex items-center justify-between">
-              {column.label}
-              {column.sortable && sortConfig.key === column.key && (
-                <span className="ml-2">
-                  {sortConfig.direction === 'asc' ? (
-                    <ChevronUpIcon className="w-4 h-4" />
-                  ) : (
-                    <ChevronDownIcon className="w-4 h-4" />
-                  )}
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Body with virtual scrolling */}
-      <div ref={parentRef} style={{ height }}>
-        <AutoSizer>
-          {({ height, width }) => (
-            <List
-              height={height}
-              itemCount={sortedData.length}
-              itemSize={rowHeight}
-              width={width}
-            >
-              {Row}
-            </List>
-          )}
-        </AutoSizer>
+  // Loading overlay
+  const LoadingOverlay = () => (
+    <div className="virtual-table-loading">
+      <div className="loading-content">
+        <div className="spinner"></div>
+        <span>กำลังโหลด...</span>
       </div>
     </div>
   );
-});
 
-// Table Skeleton
-const TableSkeleton = ({ columns = 5, rows = 10 }) => {
-  return (
-    <div className="bg-white rounded-lg">
-      <div className="border-b bg-gray-50 p-4">
-        <div className="flex space-x-4">
-          {Array.from({ length: columns }).map((_, i) => (
-            <div key={i} className="h-4 bg-gray-200 rounded animate-pulse flex-1" />
-          ))}
-        </div>
+  // Empty state
+  const EmptyState = () => (
+    <div className="virtual-table-empty">
+      <div className="empty-content">
+        <div className="empty-icon">📋</div>
+        <p>ไม่พบข้อมูล</p>
+        <small>ลองเปลี่ยนเงื่อนไขการค้นหา</small>
       </div>
-      <div className="p-4">
-        {Array.from({ length: rows }).map((_, rowIndex) => (
-          <div key={rowIndex} className="flex space-x-4 mb-4">
-            {Array.from({ length: columns }).map((_, colIndex) => (
-              <div
-                key={colIndex}
-                className="h-8 bg-gray-100 rounded animate-pulse flex-1"
-                style={{ animationDelay: `${(rowIndex + colIndex) * 100}ms` }}
-              />
-            ))}
-          </div>
-        ))}
+    </div>
+  );
+
+  return (
+    <div className={`virtual-table-container ${className}`}>
+      <div 
+        className="virtual-table"
+        style={{ height }}
+      >
+        {/* Header */}
+        {showHeader && <TableHeader />}
+        
+        {/* Table Body */}
+        <div 
+          className="virtual-table-body"
+          style={{ 
+            height: showHeader ? height - headerHeight : height,
+            overflowY: 'auto'
+          }}
+          onScroll={handleScroll}
+        >
+          {loading ? (
+            <LoadingOverlay />
+          ) : data.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <div style={{ height: totalHeight, position: 'relative' }}>
+              {visibleRows.map((item, index) => (
+                <VirtualRow
+                  key={visibleStartIndex + index}
+                  item={item}
+                  index={index}
+                  style={{
+                    position: 'absolute',
+                    top: (visibleStartIndex + index) * rowHeight,
+                    left: 0,
+                    right: 0,
+                    height: rowHeight
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

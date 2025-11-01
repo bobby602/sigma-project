@@ -13,6 +13,7 @@ import {faCheck}from '@fortawesome/free-solid-svg-icons';
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorPage from './ErorrHandle/ErrorPage';
 import ErrorComponent from './ErrorBoundary/ErrorComponent'
+import './styles/animations.css';
 
 
 library.add(faCheck)
@@ -22,7 +23,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 
 
 root.render(
-  <ErrorBoundary FallbackComponent={ErrorPage} onReset={() => (location.href = '/')}>
+  <ErrorBoundary FallbackComponent={ErrorPage} onReset={() => (window.location.href = '/')}>
     <Provider store={store}>
       <AuthContextProvider>
           <App />

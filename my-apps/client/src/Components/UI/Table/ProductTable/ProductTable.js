@@ -1,462 +1,342 @@
-import { Fragment ,useRef,useEffect,useState,useCallback,useContext} from 'react'
-import axios from "axios";
-import Modal from '../../../Input/Modal/Modal'
-import Styles from './ProductTable.module.css'
-import { Link , useNavigate  } from 'react-router-dom';
-import { productActions } from '../../../../Store/product-slice';
-import { useSelector, useDispatch } from 'react-redux';
-import { updateData } from '../../../../Store/product-list';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {faCheck, faTimes,faBox}from '@fortawesome/free-solid-svg-icons'
-import useOutsideClick from '../../../../CustomHook/useOutsideClick';
+import React, { Fragment, useMemo, useCallback } from 'react';
+import Styles from './ProductTable.module.css';
 
+/* ---------- Helpers ---------- */
+const pick = (obj, keys) => {
+  if (!obj) return undefined;
+  for (const k of keys) if (obj[k] !== undefined && obj[k] !== null) return obj[k];
+  return undefined;
+};
+const toNum = (v, def = 0) => (Number.isFinite(Number(v)) ? Number(v) : def);
+const fmtNum = (v) =>
+  v === undefined || v === null || v === ''
+    ? '-'
+    : Number.isFinite(Number(v))
+    ? Number(v).toLocaleString()
+    : String(v);
+const fmtDate = (v) => {
+  if (!v) return '-';
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return String(v);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+const typeLabel = (t) => ({ '1':'RM', '2':'TE', '3':'SI', '4':'SF' }[String(t)] || String(t || '-'));
+const typeClass = (t) => (t==='1' ? Styles.pillBlue : t==='2' ? Styles.pillPurple : Styles.pillSlate);
 
-const ProductTable = (data)=>{
-    const [modalOn,setModalOn] = useState(false);
-    const [item,setItem] = useState();
-    const [itemRow,setItemRow] = useState('');
-    const [itemRowAll,setItemRowAll] = useState();
-    const [columnInput,setColumnInput] = useState('');
-    const [openInput,setOpenInput] = useState(false);
-    const [inputValue,setInputValue] = useState();
-    const dispatch = useDispatch();
-    const product = useSelector((state) => state.product);
-    const department = useSelector((state)=> state.product.DepartName);
-    const navigate = useNavigate();
-    let token = sessionStorage.getItem('token');
-    let jsonToken = JSON.parse(token);
-    let i = 0 ;
-    const ref = useOutsideClick(() => {
-        setOpenInput(false)
-      });
+/** map row to unified keys */
+const mapRow = (item) => ({
+  ItemCode: pick(item, ['ItemCode','itemcode','Code','code']),
+  Name: pick(item, ['Name','name','ItemName','ItemNameTH','ItemNameEN']),
+  Pack: pick(item, ['Pack','pack']),
+  TyItemDm: pick(item, ['TyItemDm','TyItemDM','type']),
+  CostN: pick(item, ['CostN','costNew','costN']),
+  Price: pick(item, ['Price','price']),
+  PriceRE: pick(item, ['PriceRE','priceRe','PriceRe']),
+  PriceOffer: pick(item, ['PriceOffer','priceOffer']),
+  QBal: pick(item, ['QBal','qBal','QtyBalance']),
+  BAL: pick(item, ['BAL','bal']),
+  minPrice: pick(item, ['minPrice','MinPrice']),
+  maxPrice: pick(item, ['maxPrice','MaxPrice']),
+  DepartCode: pick(item, ['DepartCode','departCode']),
+  DepartName: pick(item, ['DepartName','departName']),
+  DateCN: pick(item, ['DateCN','DateCn','dateCN','dateCn']),
+  DatePrice: pick(item, ['DatePrice','datePrice']),
+  DatePriceRE: pick(item, ['DatePriceRE','datePriceRe']),
+  RowNum: toNum(pick(item, ['RowNum','rowNum']), 0),
+  Reserve: pick(item, ['Reserve','reserve']),
+});
 
-    const handleOnClick = (e) =>{
-        const items = e.ItemCode;
-        const Name = e.Name;
-        setItem(e);
-        setModalOn(true);
+const ProductTable = ({ data = [], pagination = {}, onPageChange, handleOnClick }) => {
+  const { page = 1, totalPages = 1, total = 0, hasPrev = false, hasNext = false, limit = 20 } = pagination;
+
+  console.log('🔍 ProductTable Debug:', {
+    dataLength: data?.length,
+    page,
+    totalPages,
+    total,
+    limit,
+    firstItem: data?.[0]
+  });
+
+  const jsonToken = useMemo(() => {
+    try { const token = sessionStorage.getItem('token'); return token ? JSON.parse(token) : null; }
+    catch { return null; }
+  }, []);
+
+  // ✅ ใช้ data โดยตรง เพราะ backend pagination ทำให้แล้ว
+  const displayData = useMemo(() => {
+    return Array.isArray(data) ? data : [];
+  }, [data]);
+
+  const handlePrev = useCallback(() => { 
+    if (onPageChange && hasPrev) {
+      const newPage = Math.max(1, page - 1);
+      console.log('⬅️ Previous page:', newPage);
+      onPageChange(newPage);
     }
-    const inputChangeHandel = (e,a)=>{
-        console.log((e.TyItemDm =='1' || e.TyItemDm =='2') && a == 'cost')
-        if((e.TyItemDm =='1' || e.TyItemDm =='2') && a == 'cost' ){
-            setOpenInput(true);
-            setItemRow(e.ItemCode)
-            setItemRowAll(e)
-            setColumnInput(a);
-        }
-        else if(a == 'price'){
-            setColumnInput(a);
-            setOpenInput(true);
-            setItemRow(e.ItemCode)
-            setItemRowAll(e)
-        }else if (a == 'priceRe'){
-            setColumnInput(a);
-            setOpenInput(true);
-            setItemRow(e.ItemCode)
-            setItemRowAll(e)
-        }else if (a == 'priceList'){
-            setColumnInput(a);
-            setOpenInput(true);
-            setItemRow(e.ItemCode)
-            setItemRowAll(e)
-        }
+  }, [onPageChange, page, hasPrev]);
+
+  const handleNext = useCallback(() => { 
+    if (onPageChange && hasNext) {
+      const newPage = Math.min(totalPages, page + 1);
+      console.log('➡️ Next page:', newPage);
+      onPageChange(newPage);
     }
-      const confirmHandle = (e)=>{
-        if(window.confirm("Press a ok button to confirm for update!")){
-            dispatch(updateData(e))
-            setOpenInput(false)
-        }
+  }, [onPageChange, page, totalPages, hasNext]);
+
+  const handleGoTo = useCallback((targetPage) => { 
+    if (onPageChange && targetPage >= 1 && targetPage <= totalPages) {
+      console.log('🎯 Go to page:', targetPage);
+      onPageChange(targetPage);
+    }
+  }, [onPageChange, totalPages]);
+
+  const renderPageButtons = () => {
+    if (totalPages <= 1) return null;
+    const windowSize = 5; 
+    const half = Math.floor(windowSize / 2);
+    let start = Math.max(1, page - half); 
+    let end = Math.min(totalPages, start + windowSize - 1);
+    if (end - start + 1 < windowSize) start = Math.max(1, end - windowSize + 1);
+    
+    const btns = [];
+    
+    // First page
+    if (start > 1) {
+      btns.push(
+        <button
+          key="page-1"
+          onClick={() => handleGoTo(1)}
+          className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+        >
+          1
+        </button>
+      );
+      if (start > 2) {
+        btns.push(<span key="dots-1" className="px-2 text-gray-400">...</span>);
       }
-      const cancelHandle = ()=>{
-        setOpenInput(false)
+    }
+    
+    // Page range
+    for (let i = start; i <= end; i++) {
+      btns.push(
+        <button
+          key={`page-${i}`}
+          onClick={() => handleGoTo(i)}
+          className={`px-3 py-2 text-sm rounded-lg ${
+            i === page 
+              ? 'bg-blue-600 text-white font-semibold' 
+              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+    
+    // Last page
+    if (end < totalPages) {
+      if (end < totalPages - 1) {
+        btns.push(<span key="dots-2" className="px-2 text-gray-400">...</span>);
       }
-      const onChangeHandle = (e) =>{
-        setInputValue(e.target.value);
+      btns.push(
+        <button
+          key={`page-${totalPages}`}
+          onClick={() => handleGoTo(totalPages)}
+          className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+        >
+          {totalPages}
+        </button>
+      );
+    }
+    
+    return btns;
+  };
+
+  const renderTableRows = () => {
+    if (!displayData || displayData.length === 0) {
+      return (
+        <tr>
+          <td colSpan={jsonToken?.StAdmin === '1' ? 17 : 8} className={Styles.td} style={{padding:'3rem 1rem'}}>
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-20 h-20 mb-3 rounded-full flex items-center justify-center" style={{background:'#f1f5f9'}}>
+                <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+              </div>
+              <p className="text-base font-medium text-gray-500">ไม่มีข้อมูล</p>
+              <p className="text-sm text-gray-400">ลองค้นหาหรือเลือก Material Type</p>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    return displayData.map((item, idx) => {
+      const r = mapRow(item);
+      const key = `product-${r.ItemCode ?? idx}-${idx}`;
+
+      if (jsonToken?.StAdmin === '1') {
+        return (
+          <tr key={key} className={Styles.row}>
+            <td className={Styles.td}><span className={Styles.code}>{r.ItemCode || '-'}</span></td>
+
+            <td className={`${Styles.td} ${Styles.stickyLeft}`}>
+              {r.RowNum !== 0 ? (
+                <button onClick={() => handleOnClick(item)} className="text-blue-600 hover:underline font-medium">
+                  {r.Name || '-'}
+                </button>
+              ) : (<span className="font-semibold">{r.Name || '-'}</span>)}
+              <div className={`${Styles.muted}`} style={{marginTop: 2, fontSize: 11}}>{r.DepartName || ''}</div>
+            </td>
+
+            <td className={Styles.td}>{r.Pack || '-'}</td>
+            <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.QBal)}</td>
+            <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.BAL)}</td>
+            <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.minPrice)}</td>
+            <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.maxPrice)}</td>
+
+            <td className={Styles.td}>
+              <span className={`${Styles.pill} ${typeClass(String(r.TyItemDm))}`}>
+                <span className={Styles.pillDot} />
+                {typeLabel(r.TyItemDm)}
+              </span>
+            </td>
+
+            <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.CostN)}</td>
+            <td className={`${Styles.td} ${Styles.num} ${Styles.muted}`}>0.00</td>
+            <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.PriceOffer)}</td>
+            <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.CostN)}</td>
+            <td className={`${Styles.td} ${Styles.muted}`}>{fmtDate(r.DateCN)}</td>
+            <td className={`${Styles.td} ${Styles.num} ${Styles.rightRail}`}>{fmtNum(r.Price)}</td>
+            <td className={`${Styles.td} ${Styles.muted}`}>{fmtDate(r.DatePrice)}</td>
+            <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.PriceRE)}</td>
+            <td className={`${Styles.td} ${Styles.muted}`}>{fmtDate(r.DatePriceRE)}</td>
+          </tr>
+        );
       }
-      console.log(data.data)
-      let dataTable ='';
-      let arrDepart = new Array(department.length); 
-        dataTable = data.data.map((e,index)=>{
-            if(jsonToken.StAdmin == '1' ){
-                return <tr key={e.i} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 ">  
-                    <td   className="px-6 py-4">
-                        {e.ItemCode}
-                    </td> 
-                    {e.rowNum == 0 ?  <td  className="bg-[#fbbf24] text-white px-6 py-4">
-                                        {e.Name}
-                                      </td>  : 
-                        <td  className="sticky left-0 z-30 bg-white px-6 py-4">
-                            <div className = "flex">
-                                <a onClick={()=>handleOnClick(e)} className ={`${Styles.col1} grow font-medium  text-blue-600 dark:text-blue-500 hover:underline`}>{e.Name}</a>
-                            </div>    
-                        </td>
-                    }
-                    <td  className="px-6 py-4">
-                        {e.Pack}
-                    </td>
-                    <td  className="px-6 py-4">
-                        {e.QBal}
-                    </td>
-                    <td  className="px-6 py-4">
-                        {e.BAL}
-                    </td>
-                    <td  className="px-6 py-4">
-                        {e.minPrice}
-                    </td>
-                    <td  className="px-6 py-4 ">
-                        {e.maxPrice}
-                    </td>
-                    <td  className="px-6 py-4">
-                        {e.TyItemDm}
-                    </td>
-                    <td  className="px-6 py-4">
-                        {e.costNew}
-                    </td>
-                    <td  className="px-6 py-4">
-                        0.00
-                    </td>
-                    <td  className="px-6 py-4">
-                        {e.PriceOffer}
-                    </td>
-                    <td className={`px-6 py-4`}>
-                    {
-                            (openInput ===true && itemRow == e.ItemCode && columnInput == 'cost')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
-                                <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.CostN} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
-                                <div className = "flex flex-col pl-2">
-                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
-                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
-                                </div>    
-                            </div>
-                            :
-                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,'cost')}>{e.CostN}</div>
-                        }
-                    </td>
-                    <td  key = {e.i} className="px-6 py-4">
-                        {e.DateCn}
-                    </td>
-                    <td  className="px-6 py-4">
-                    {
-                            (openInput ===true && itemRow == e.ItemCode && columnInput == 'price')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
-                                <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.price} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
-                                <div className = "flex flex-col pl-2">
-                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
-                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
-                                </div>    
-                            </div>
-                            :
-                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,'price')}>{e.price}</div>
-                        }
-                    </td>
-                    <td  className="px-6 py-4">
-                        {e.datePrice}
-                    </td>
-                    <td  className="px-6 py-4">
-                    {
-                            (openInput ===true && itemRow == e.ItemCode && columnInput == 'priceRe')?<div ref = {ref} className = {`${Styles.costInput} flex `}>
-                                <input  type="number" name="floating_company" onChange = {onChangeHandle} id="floating_company" placeholder={e.PriceRE} className="  block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"  required />
-                                <div className = "flex flex-col pl-2">
-                                    <FontAwesomeIcon  onClick = {()=>confirmHandle({inputValue,itemRowAll,columnInput})} className = "pb-2 " icon={faCheck} size="xl" color="green"/>
-                                    <FontAwesomeIcon  onClick = {cancelHandle}  icon={faTimes} size="xl"  color="red" />
-                                </div>    
-                            </div>
-                            :
-                            <div className = {`${Styles.cost}`} onClick = {()=>inputChangeHandel(e,'priceRe')}>{e.PriceRE}</div>
-                        }
-                    </td>
-                    <td  className="px-6 py-4">
-                        {e.datePriceRe}
-                    </td>
-                </tr>
-            }else if (jsonToken.StAdmin == '2'){
-                return (
-                        <tr key={e.i} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 ">  
-                            <td   className="px-6 py-4">
-                                {e.ItemCode}
-                            </td>       
-                            {e.rowNum == 0 ?  <td  className="bg-[#fbbf24] text-white px-6 py-4">
-                                                {e.Name}
-                                             </td>  : 
-                                <td  className="bg-white px-6 py-4">
-                                    <div className = "flex">
-                                        <a onClick={()=>handleOnClick(e)} className ={`${Styles.col1} grow font-medium  text-blue-600 dark:text-blue-500 hover:underline`}>{e.Name}</a>
-                                    </div>    
-                                </td>
-                            }
-                            
-                            <td  className="px-6 py-4">
-                                {e.QBal}
-                            </td>
-                            <td  className="px-6 py-4">
-                                <a onClick={()=>data.handleOnClick(e)} className ={`${Styles.col1} grow font-medium text-blue-600 dark:text-blue-500 hover:underline`}>{e.Reserve}</a>
-                            </td>
-                            <td  className="px-6 py-4">
-                                {e.BAL}
-                            </td>
-                            <td  className="px-6 py-4">
-                                {e.price}
-                            </td>
-                            <td  className="px-6 py-4">
-                                {e.Pack}
-                            </td>
-                            <td  className="px-6 py-4">
-                                {e.datePrice}
-                            </td>
-                        </tr>
-                    )
-            }        
-        })
-        
-      
-     let dataTable2 ="";
-      if(item){
-        dataTable2 = item.NewArr.map((e)=>{    
-            return <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">  
-                    <td class="px-6 py-4">
-                        {e.ItemCode}
-                    </td>       
-                    <td className="px-6 py-4">
-                        {e.ItemName}
-                    </td>
-                    <td className="px-6 py-4">
-                        {e.Qty}
-                    </td>
-                    <td className="px-6 py-4">
-                        {e.Pack}
-                    </td>
-                    <td className="px-6 py-4">
-                        0.00
-                    </td>
-                </tr>;
-        })
-    } 
-  
-    return (
-        <Fragment>
-            {
-            jsonToken.StAdmin =='1'?
-                <div className={`${Styles.font} relative z-50 overflow-auto shadow-md rounded-lg`}>
-                    <div className= "overflow-scroll  max-h-[1000px]">
-                        <table id="dtHorizontalExample" className=" w-full text-base text-left text-gray-500 dark:text-gray-400">
-                            <thead className={`${Styles.textCustom} text-base bg-[#10b981] uppercase whitespace-nowrap sticky top-0 z-[100] `}>
-                                {
-                                data.data.length==0?
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3">
-                                        ตารางทะเบียนผลิตภัณฑ์
-                                        </th>
-                                        <th scope="col" className="text-center px-6 py-3">
-                                        ตารางทะเบียนผลิตภัณฑ์
-                                        </th>
-                                    </tr>
-                                    :
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3">
-                                            ItemCode
-                                        </th>
-                                        <th scope="col" className={`sticky left-0 bg-[#10b981] px-6 py-3 z-[100]`}>
-                                            ชื่อผลิตภัณฑ์
-                                        </th>
-                                        <th scope="col" className={`px-6 py-3`}>
-                                            หน่วย
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            คงเหลือ
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            หักสถานะค้างต่างๆ
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            ทุน MIN
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 ">
-                                            ทุน Max
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            Type
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                        ทุนล่าสุด
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                        ราคา PO
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                        ราคา Offer
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                        ทุนปรับแต่ง
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                        วันที่ปรับแต่ง
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                        ราคาขาย
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                        วันที่ปรับราคา
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                        ราคาขาย RE
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                        วันที่ปรับ
-                                        </th>
-                                    </tr>    
-                                }
-                            </thead>
-                            {
-                                data.data.length==0?
-                                <tbody>
-                                    <tr>
-                                        <td></td>
-                                        <td>
-                                            <div className="p-6 w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
-                                                <img className = {`${Styles.img}`}src = {process.env.PUBLIC_URL + "/icons/folder.png"} alt="My Happy SVG"  width="200" height="300" />
-                                                <p className = "text-xl">No Data </p>
-                                            </div> 
-                                        </td> 
-                                    </tr> 
-                                </tbody>     
-                                :
-                            <tbody>
-                                {dataTable}
-                            </tbody>
-                            }
-                        </table>
-                    </div>  
+
+      // User view
+      return (
+        <tr key={key} className={Styles.row}>
+          <td className={Styles.td}><span className={Styles.code}>{r.ItemCode || '-'}</span></td>
+
+          <td className={`${Styles.td} ${Styles.stickyLeft}`}>
+            {r.RowNum !== 0 ? (
+              <button onClick={() => handleOnClick(item)} className="text-blue-600 hover:underline font-medium">
+                {r.Name || '-'}
+              </button>
+            ) : (<span className="font-semibold">{r.Name || '-'}</span>)}
+            <div className={Styles.muted} style={{marginTop: 2, fontSize: 11}}>{r.DepartName || ''}</div>
+          </td>
+
+          <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.QBal)}</td>
+          <td className={Styles.td}>
+            <button onClick={() => handleOnClick(item)} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200">
+              {fmtNum(r.Reserve) || '0'}
+            </button>
+          </td>
+          <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.BAL)}</td>
+          <td className={`${Styles.td} ${Styles.num} ${Styles.rightRail}`}>{fmtNum(r.Price)}</td>
+          <td className={Styles.td}>{r.Pack || '-'}</td>
+          <td className={`${Styles.td} ${Styles.muted}`}>{fmtDate(r.DatePrice)}</td>
+        </tr>
+      );
+    });
+  };
+
+  return (
+    <Fragment>
+      <div className={`${Styles.container} ${Styles.lightTable}`}>
+        <div className={Styles.glass}>
+          <div className="overflow-x-auto">
+            <table className={`${Styles.table} text-left`}>
+              <thead className={Styles.thead}>
+                {jsonToken?.StAdmin === '1' ? (
+                  <tr>
+                    <th className={Styles.th}>ItemCode</th>
+                    <th className={Styles.th}>ชื่อผลิตภัณฑ์</th>
+                    <th className={Styles.th}>หน่วย</th>
+                    <th className={Styles.th}>คงเหลือ</th>
+                    <th className={Styles.th}>หักสถานะค้าง</th>
+                    <th className={Styles.th}>ทุน MIN</th>
+                    <th className={Styles.th}>ทุน Max</th>
+                    <th className={Styles.th}>Type</th>
+                    <th className={Styles.th}>ทุนล่าสุด</th>
+                    <th className={Styles.th}>ราคา PO</th>
+                    <th className={Styles.th}>ราคา Offer</th>
+                    <th className={Styles.th}>ทุนปรับแต่ง</th>
+                    <th className={Styles.th}>วันที่ปรับแต่ง</th>
+                    <th className={Styles.th}>ราคาขาย</th>
+                    <th className={Styles.th}>วันที่ปรับราคา</th>
+                    <th className={Styles.th}>ราคาขาย RE</th>
+                    <th className={Styles.th}>วันที่ปรับ</th>
+                  </tr>
+                ) : (
+                  <tr>
+                    <th className={Styles.th}>ItemCode</th>
+                    <th className={Styles.th}>ชื่อผลิตภัณฑ์</th>
+                    <th className={Styles.th}>คงเหลือ</th>
+                    <th className={Styles.th}>จอง</th>
+                    <th className={Styles.th}>หักสถานะค้าง</th>
+                    <th className={Styles.th}>ราคาขาย</th>
+                    <th className={Styles.th}>Pack</th>
+                    <th className={Styles.th}>วันที่ปรับราคา</th>
+                  </tr>
+                )}
+              </thead>
+              <tbody>{renderTableRows()}</tbody>
+            </table>
+          </div>
+
+          {/* Footer / Pagination */}
+          {totalPages > 0 && (
+            <div className={`${Styles.footer} px-6 py-4`}>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">
+                    แสดง <span className="text-blue-600 font-bold">{total === 0 ? 0 : (page - 1) * limit + 1}</span>
+                    {' '}–{' '}
+                    <span className="text-blue-600 font-bold">{Math.min(page * limit, total)}</span>
+                  </span>{' '}
+                  จาก <span className="text-gray-900 font-bold">{total.toLocaleString()}</span> รายการ
                 </div>
-                
-                :<div className={`${Styles.fontUser} relative z-50 overflow-auto shadow-md rounded-lg`}>
-                    <div className= "overflow-scroll  max-h-[1000px]">
-                        <table id="dtHorizontalExample" className=" w-full text-base text-left text-gray-500 dark:text-gray-400">
-                            <thead className={`${Styles.textCustom} text-base bg-[#10b981]  uppercase whitespace-nowrap sticky top-0 z-[100] `}>
-                                {
-                                data.data.length==0?
-                                    <tr>
-                                        <th scope="col" className="text-center px-6 py-3">
-                                        ตารางทะเบียนผลิตภัณฑ์
-                                        </th>
-                                    </tr>
-                                    :
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3">
-                                            ItemCode
-                                        </th>
-                                        <th scope="col" className={`sticky left-0 bg-[#10b981] px-6 py-3 z-[100]`}>
-                                            ชื่อผลิตภัณฑ์
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            คงเหลือ
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            จอง
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            หักสถานะค้างต่างๆ
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            ราคาขาย
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            Pack
-                                        </th>
-                                        <th scope="col" className="px-6 py-3">
-                                            วันที่ปรับราคา
-                                        </th>
-                                    </tr>    
-                                }
-                            </thead>
-                            {
-                                data.data.length==0?
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <div className="p-6 w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
-                                                <img className = {`${Styles.img}`}src = {process.env.PUBLIC_URL + "/icons/folder.png"} alt="My Happy SVG"  width="200" height="300" />
-                                                <p className = "text-xl">No Data </p>
-                                            </div> 
-                                        </td> 
-                                    </tr> 
-                                </tbody>     
-                                :
-                            <tbody>
-                                {dataTable}
-                            </tbody>
-                            }
-                        </table>
-                    </div>  
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handlePrev}
+                    disabled={!hasPrev}
+                    className="px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    <span>ก่อนหน้า</span>
+                  </button>
+
+                  <div className="hidden sm:flex items-center space-x-1">
+                    {renderPageButtons()}
+                  </div>
+
+                  <div className="sm:hidden px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-lg">
+                    {page} / {totalPages}
+                  </div>
+
+                  <button
+                    onClick={handleNext}
+                    disabled={!hasNext}
+                    className="px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    <span>ถัดไป</span>
+                  </button>
                 </div>
-            }    
-            {
-                modalOn&&
-                    <Modal item = {item} setModalOn={setModalOn}>
-                        <h3 className="mb-4 text-2xl font-medium text-gray-900 dark:text-white">{item.Name}</h3>
-                            <div className={`${Styles.font2} relative overflow-x-auto shadow-md rounded-lg`}>
-                                <div className= "overflow-scroll  max-h-[300px]">
-                                    <table id="dtHorizontalExample" className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                                        <thead className={`${Styles.textCustom} text-base bg-[#FF9E0A]  uppercase whitespace-nowrap sticky top-0 z-[100]`}>
-                                            <tr>
-                                                <th scope="col" className="px-6 py-3">
-                                                    รหัส
-                                                </th>
-                                                <th scope="col" className="px-6 py-3">
-                                                    ชื่อ
-                                                </th>
-                                                <th scope="col" className="px-6 py-3">
-                                                    Qty
-                                                </th>
-                                                <th scope="col" className="px-6 py-3">
-                                                    หน่วย
-                                                </th>
-                                                <th scope="col" className="px-6 py-3">
-                                                    ทุน:หน่วย
-                                                </th>
-                                                <th scope="col" className="px-6 py-3">
-                                                    มูลค่า
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        {
-                                            dataTable2 = item.NewArr.map((e)=>{    
-                                                return <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">  
-                                                            <td className="px-6 py-4">
-                                                                {e.ItemCode}
-                                                            </td>       
-                                                            <td className="px-6 py-4">
-                                                                {e.ItemName}
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                {e.Qty}
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                {e.Pack}
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                {e.Cost}
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                {e.CostN}
-                                                            </td>
-                                                        </tr>;     
-                                            })
-                                        }            
-                                        </tbody>
-                                    </table>
-                                </div>    
-                            </div>
-                            {item.SumArr?
-                                <div className="p-6  w-full bg-[#FFCE77] rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
-                                </div>    
-                                :
-                                <div className="p-6 w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
-                                    <img className = {`${Styles.img}`}src = {process.env.PUBLIC_URL + "/icons/folder.png"} alt="My Happy SVG"  width="200" height="300" />
-                                    <p className = "text-xl">No Data </p>
-                                </div>
-                        }
-                    </Modal>
-            }
-        </Fragment>
-    )
-}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </Fragment>
+  );
+};
+
 export default ProductTable;

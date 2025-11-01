@@ -1,130 +1,176 @@
 import { productActions } from './product-slice';
-import axios from 'axios';
-import { useAxiosPrivate } from '../Util/useAxiosAPI';
+import axiosPrivate from '../Util/useAxiosAPI';
 
-const API = useAxiosPrivate();
+const API = axiosPrivate;
 
-export const fetchCartData = (e) => {
+/** ดึง rows จาก response */
+function pickRows(res) {
+  if (!res || !res.data) return [];
+  const d = res.data;
+  if (Array.isArray(d.data)) return d.data;
+  if (Array.isArray(d?.result?.recordset)) return d.result.recordset;
+  if (Array.isArray(d.result)) return d.result;
+  return [];
+}
+
+export const fetchCartData = (params) => {
   return async (dispatch) => {
-    const fetchData = async () => {
-      // ✅ ใช้ legacy endpoint
-      const res = await API.post(`/productList/table`, { e });
-      const actualData = await res.data.result;
-      const actualData2 = await res.data.Data4;
-      return { actualData, actualData2 };
-    };
+    // ✅ 1. เริ่มต้น - Set loading ก่อนเสมอ
+    dispatch(productActions.setLoading(true));
+    console.log('🔄 Starting fetch...');
 
-    try {
-      const productData = await fetchData();
-      dispatch(
-        productActions.replaceproduct({ productData, e })
-      );
-    } catch (error) {
-      console.error('Error fetching cart data:', error);
-    }
-  };
-};
-
-export const fetchSubData = (e) => {
-  return async (dispatch) => {
     const fetchData = async () => {
-      // ✅ ใช้ legacy endpoint
-      const res = await API.get(`/productList/subTable?itemCode=${encodeURIComponent(e)}`);
+      const normalized = Array.isArray(params?.e)
+        ? params.e
+        : String(params?.e ?? '').split(',').map(s=>s.trim()).filter(Boolean);
+
+      const payload = {
+        e: normalized,
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 20,
+        search: params?.search ?? '',
+        sortBy: params?.sortBy ?? 'ItemCode',
+        sortOrder: params?.sortOrder ?? 'ASC',
+      };
+
+      console.log('📡 Fetching products:', payload);
       
-      if (res.status !== 200) {
-        throw new Error('Could not fetch sub data!');
-      }
-
-      return res.data.result.recordset;
+      // ✅ เพิ่ม delay เล็กน้อยเพื่อให้เห็น loading (optional)
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const res = await API.post('/api/auth/table', payload);
+      
+      return {
+        rows: pickRows(res),
+        pagination: res?.data?.pagination ?? null,
+        Data4: res?.data?.Data4 ?? []
+      };
     };
 
     try {
-      const productData = await fetchData();
-      dispatch(
-        productActions.subTable({ productData })
-      );
+      const { rows, pagination, Data4 } = await fetchData();
+      const rowsArr = Array.isArray(rows) ? rows : [];
+
+      console.log('✅ Received data:', {
+        rowsCount: rowsArr.length,
+        pagination,
+        firstItem: rowsArr[0]
+      });
+
+      // ✅ 2. Update data
+      dispatch(productActions.replaceproduct({
+        rows: rowsArr,
+        pagination,
+        Data4,
+        actualData: rowsArr,
+        result: { recordset: rowsArr },
+        data: rowsArr,
+        e: params?.e,
+      }));
+      
+      // ✅ 3. เสร็จแล้ว - ปิด loading
+      dispatch(productActions.setLoading(false));
+      console.log('✅ Fetch complete!');
+      
     } catch (error) {
-      console.error('Error fetching sub data:', error);
+      console.error('❌ Error fetching cart data:', error);
+      
+      // ✅ 4. เกิด error - แสดง error และปิด loading
+      dispatch(productActions.setError(error.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล'));
+      dispatch(productActions.replaceproduct({
+        rows: [],
+        pagination: null,
+        Data4: [],
+        actualData: [],
+        result: { recordset: [] },
+        data: [],
+        e: params?.e,
+      }));
+      
+      // ✅ ปิด loading แม้เกิด error
+      dispatch(productActions.setLoading(false));
     }
   };
 };
 
-export const updateData = (e) => {
+export const fetchSubData = (itemCode) => {
   return async (dispatch) => {
     const fetchData = async () => {
-      // ✅ ใช้ legacy endpoint
-      const res = await API.put('/productList', e);
+      const res = await API.get(`/productList/subTable?itemCode=${encodeURIComponent(itemCode)}`);
+      if (res.status !== 200) throw new Error('Could not fetch sub data!');
+      return pickRows(res);
+    };
+    try {
+      const productData = await fetchData();
+      dispatch(productActions.subTable({ productData }));
+    } catch (error) {
+      console.error('❌ Error fetching sub data:', error);
+    }
+  };
+};
+
+export const updateData = (data) => {
+  return async (dispatch) => {
+    const fetchData = async () => {
+      const res = await API.put('/productList', data);
       return res.data;
     };
-
     try {
-      console.log('Updating data:', e);
-      const productData = await fetchData();
-      dispatch(
-        productActions.updateTable({ e })
-      );
+      console.log('📝 Updating product:', data);
+      await fetchData();
+      dispatch(productActions.updateTable({ e: data }));
+      console.log('✅ Product updated successfully');
     } catch (error) {
-      console.error('Error updating data:', error);
+      console.error('❌ Error updating data:', error);
     }
   };
 };
 
-export const fetchPriceList = (e) => {
+export const fetchPriceList = () => {
   return async (dispatch) => {
     const fetchData = async () => {
-      // ✅ ใช้ legacy endpoint
       const res = await API.get('/priceList');
-      const actualData = await res.data.result.recordset;
-      console.log('Price list data:', actualData);
-      return actualData;
+      return pickRows(res);
     };
-
     try {
       const priceData = await fetchData();
-      dispatch(
-        productActions.PriceTable({ priceData })
-      );
+      dispatch(productActions.PriceTable({ priceData }));
     } catch (error) {
-      console.error('Error fetching price list:', error);
+      console.error('❌ Error fetching price list:', error);
     }
   };
 };
 
-export const updatePriceData = (e) => {
+export const updatePriceData = (data) => {
   return async (dispatch) => {
     const fetchData = async () => {
-      // ✅ ใช้ legacy endpoint
-      const res = await API.put('/priceList', e);
+      const res = await API.put('/priceList', data);
       return res.data;
     };
-
     try {
-      const productData = await fetchData();
-      dispatch(
-        productActions.updatePriceTable({ e })
-      );
+      await fetchData();
+      dispatch(productActions.updatePriceTable({ e: data }));
     } catch (error) {
-      console.error('Error updating price data:', error);
+      console.error('❌ Error updating price data:', error);
     }
   };
 };
 
-export const updatePriceList = (e) => {
+export const updatePriceList = (data) => {
   return async (dispatch) => {
     const fetchData = async () => {
-      // ✅ ใช้ legacy endpoint
-      const res = await API.post(`/priceList/updatePriceList`, e);
-      return res.data.departData.recordset;
+      const res = await API.post('/priceList/updatePriceList', data);
+      const rows =
+        Array.isArray(res?.data?.departData?.recordset)
+          ? res.data.departData.recordset
+          : pickRows(res);
+      return rows;
     };
-
     try {
       const productData = await fetchData();
-      console.log('Updated price list:', productData);
-      dispatch(
-        productActions.updatePriceList({ e, productData })
-      );
+      dispatch(productActions.updatePriceList({ e: data, productData }));
     } catch (error) {
-      console.error('Error updating price list:', error);
+      console.error('❌ Error updating price list:', error);
     }
   };
 };

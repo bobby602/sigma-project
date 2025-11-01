@@ -10,6 +10,8 @@ require('dotenv').config();
 
 const app = express();
 
+// app.set('etag', false);
+
 /* ------------------------ Security ------------------------ */
 app.use(helmet());
 
@@ -67,9 +69,13 @@ try {
 
 try {
   const productListRouter = require('./routes/productList');
-  app.use('/api/products', productListRouter);
+  console.log('✅ productList router loaded');
+   app.use('/productList', (req,res,next)=>{
+    console.log('➡️ hit /productList mount', req.method, req.url);
+    next();
+  }, productListRouter);
 } catch (error) {
-  console.log('⚠️ Product routes not found, skipping...');
+  console.log('⚠️ Product routes not found, skipping...', error.message);
 }
 
 try {
