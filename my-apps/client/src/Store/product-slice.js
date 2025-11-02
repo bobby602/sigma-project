@@ -1,4 +1,5 @@
-import { createSlice, current } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
+import { fetchCartData } from './product-list';
 
 /* ===== Helpers ===== */
 const asArray = (v) => (Array.isArray(v) ? v : []);
@@ -7,18 +8,13 @@ const toLower = (v) => String(v ?? '').toLowerCase();
 const productSlice = createSlice({
   name: 'product',
   initialState: {
-    // ✅ เพิ่ม fields ใหม่สำหรับ server-side pagination
-    rows: [],              // ข้อมูลที่ได้จาก API (หน้าปัจจุบัน)
-    pagination: null,      // metadata จาก backend
-    Data4: [],            // Department list
-    
-    // ✅ เก็บ fields เดิมไว้เพื่อความ backward compatible
+    rows: [],
+    pagination: null,
+    Data4: [],
     data: [],
     filter: [],
     actualData: [],
     result: { recordset: [] },
-    
-    // ✅ Fields อื่นๆ เดิม
     isLoading: false,
     error: null,
     subTable: [],
@@ -28,34 +24,29 @@ const productSlice = createSlice({
     DepartName: [],
     e: [],
   },
+  
   reducers: {
-    // ✅ แก้ไข replaceproduct ให้รับ payload ใหม่
     replaceproduct(state, action) {
       console.log('🔄 Redux replaceproduct:', action.payload);
       
       const { rows, pagination, Data4, actualData, result, data, e } = action.payload;
       const rowsArr = asArray(rows);
+      console.log('📦 Rows to update:', rowsArr.length);
       
-      // ✅ Update state ใหม่
       state.rows = rowsArr;
       state.pagination = pagination;
       state.Data4 = Data4 || [];
       state.e = e || [];
-      
-      // ✅ Update fields เดิมเพื่อ backward compatible
       state.data = rowsArr;
       state.filter = rowsArr;
       state.actualData = actualData || rowsArr;
       state.result = result || { recordset: rowsArr };
-      
-      // ✅ Reset loading state
       state.isLoading = false;
       state.error = null;
       
       console.log('✅ Redux updated, rows length:', state.rows.length);
     },
 
-    // ✅ เพิ่ม loading actions
     setLoading(state, action) {
       state.isLoading = action.payload;
     },
@@ -72,22 +63,18 @@ const productSlice = createSlice({
       state.pagination = null;
     },
 
-    // ✅ แก้ filterProduct ให้ทำงานกับ rows
     filterProduct(state, action) {
       const searchTerm = action.payload;
       
       if (Array.isArray(searchTerm)) {
-        // do nothing (รักษาพฤติกรรมเดิม)
         return;
       }
       
       const search = toLower(searchTerm);
       
       if (!search || search.trim() === '') {
-        // ไม่มีการค้นหา - ใช้ rows ทั้งหมด
         state.filter = state.rows;
       } else {
-        // กรองจาก rows
         state.filter = state.rows.filter((e) => {
           const name = toLower(e?.Name || '');
           const itemCode = toLower(e?.ItemCode || '');
@@ -106,12 +93,10 @@ const productSlice = createSlice({
       console.log('🔍 Filtered results:', state.filter.length);
     },
 
-    // ✅ SubTable - เก็บไว้เดิม
     subTable(state, action) {
       state.subTable = asArray(action.payload?.productData);
     },
 
-    // ✅ UpdateTable - แก้ให้ทำงานกับ rows
     updateTable(state, action) {
       let value = action.payload.e.inputValue;
       const item = action.payload.e.itemRowAll;
@@ -132,7 +117,6 @@ const productSlice = createSlice({
         value = '0.00';
       }
       
-      // Update rows
       state.rows = state.rows.map((e) => {
         if (e.ItemCode == item.ItemCode || e.itemcode == item.itemcode) {
           let returnValue = { ...e };
@@ -153,12 +137,10 @@ const productSlice = createSlice({
         return e;
       });
       
-      // Update filter และ data ด้วย
       state.filter = state.rows;
       state.data = state.rows;
     },
 
-    // ============= Price List Functions (เก็บไว้เดิม) =============
     filterPriceList(state, action) {
       const Item = action.payload;
       state.priceList = state.data.filter((e) => {
@@ -365,6 +347,52 @@ const productSlice = createSlice({
         return e;
       });
     },
+  }, // ← ปิด reducers ตรงนี้
+
+  // ✅ extraReducers ต้องอยู่นอก reducers!
+  extraReducers: (builder) => {
+    console.log('🔧 extraReducers is being configured');
+    
+    builder
+      .addCase(fetchCartData.pending, (state) => {
+        console.log('⏳ fetchCartData.pending - START');
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchCartData.fulfilled, (state, action) => {
+        console.log('✅ fetchCartData.fulfilled - START');
+        console.log('📦 Payload received:', action.payload);
+        
+        const { result, pagination, Data4 } = action.payload;
+        const rowsArr = Array.isArray(result) ? result : [];
+        
+        console.log('📊 Processing:', {
+          resultLength: rowsArr.length,
+          pagination: pagination,
+          Data4Length: Data4?.length
+        });
+        
+        state.rows = rowsArr;
+        state.data = rowsArr;
+        state.filter = rowsArr;
+        state.actualData = rowsArr;
+        state.result = { recordset: rowsArr };
+        state.pagination = pagination || null;
+        state.Data4 = Data4 || [];
+        state.isLoading = false;
+        state.error = null;
+        
+        console.log('✅ Redux state updated:', {
+          rowsLength: state.rows.length,
+          pagination: state.pagination
+        });
+      })
+      .addCase(fetchCartData.rejected, (state, action) => {
+        console.error('❌ fetchCartData.rejected');
+        console.error('Error:', action.payload);
+        state.isLoading = false;
+        state.error = action.payload?.message || 'Failed to fetch data';
+      });
   },
 });
 

@@ -1,6 +1,8 @@
 import { productActions } from './product-slice';
 import axiosPrivate from '../Util/useAxiosAPI';
 
+import { createAsyncThunk } from '@reduxjs/toolkit';
+
 const API = axiosPrivate;
 
 /** ดึง rows จาก response */
@@ -13,85 +15,101 @@ function pickRows(res) {
   return [];
 }
 
-export const fetchCartData = (params) => {
-  return async (dispatch) => {
-    // ✅ 1. เริ่มต้น - Set loading ก่อนเสมอ
-    dispatch(productActions.setLoading(true));
-    console.log('🔄 Starting fetch...');
-
-    const fetchData = async () => {
-      const normalized = Array.isArray(params?.e)
-        ? params.e
-        : String(params?.e ?? '').split(',').map(s=>s.trim()).filter(Boolean);
-
-      const payload = {
-        e: normalized,
-        page: params?.page ?? 1,
-        limit: params?.limit ?? 20,
-        search: params?.search ?? '',
-        sortBy: params?.sortBy ?? 'ItemCode',
-        sortOrder: params?.sortOrder ?? 'ASC',
-      };
-
-      console.log('📡 Fetching products:', payload);
-      
-      // ✅ เพิ่ม delay เล็กน้อยเพื่อให้เห็น loading (optional)
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const res = await API.post('/api/auth/table', payload);
-      
-      return {
-        rows: pickRows(res),
-        pagination: res?.data?.pagination ?? null,
-        Data4: res?.data?.Data4 ?? []
-      };
-    };
-
-    try {
-      const { rows, pagination, Data4 } = await fetchData();
-      const rowsArr = Array.isArray(rows) ? rows : [];
-
-      console.log('✅ Received data:', {
-        rowsCount: rowsArr.length,
-        pagination,
-        firstItem: rowsArr[0]
+const groupItemsByDepartment = (items) => {
+  if (!items || items.length === 0) return [];
+  
+  const grouped = [];
+  const departments = {};
+  
+  // Group items by department
+  items.forEach(item => {
+    const dept = item.DePartName || item.DepartName || 'Unknown';
+    if (!departments[dept]) {
+      departments[dept] = [];
+    }
+    departments[dept].push(item);
+  });
+  
+  // Create output with headers
+  const sortedDepts = Object.keys(departments).sort();
+  
+  sortedDepts.forEach(deptName => {
+    // Add header row
+    grouped.push({
+      rowNum: 0,
+      Name: deptName,
+      DepartName: deptName,
+      ItemCode: '',
+      isHeader: true, // ← flag สำหรับ UI
+      // ฟิลด์อื่นๆ ว่างๆ ตามโครงสร้างเดิม
+      codem: '',
+      PriceOffer: '',
+      Barcode: '',
+      Pack: '',
+      minPrice: '',
+      maxPrice: '',
+      TyItemDm: '',
+      QBal: '',
+      BAL: '',
+      CostN: '',
+      DateCn: '',
+      costNew: '',
+      price: '',
+      PriceRE: '',
+      datePrice: '',
+      datePriceRe: '',
+      NewArr: [],
+      SumArr: [],
+      Reserve: ''
+    });
+    
+    // Add items under this department
+    departments[deptName].forEach(item => {
+      grouped.push({
+        ...item,
+        isHeader: false
       });
+    });
+  });
+  
+  return grouped;
+};
 
-      // ✅ 2. Update data
-      dispatch(productActions.replaceproduct({
-        rows: rowsArr,
-        pagination,
-        Data4,
-        actualData: rowsArr,
-        result: { recordset: rowsArr },
-        data: rowsArr,
-        e: params?.e,
-      }));
-      
-      // ✅ 3. เสร็จแล้ว - ปิด loading
-      dispatch(productActions.setLoading(false));
-      console.log('✅ Fetch complete!');
+export const fetchCartData = createAsyncThunk(
+  'product/fetchCartData',
+  async (params, { rejectWithValue }) => {
+    try {
+      const response = await API.post('/api/auth/table', params);
+
+      // ✅ ดู response ทั้งหมด
+      console.log('📡 Full API Response:', response.data);
+      console.log('📊 Pagination from API:', response.data?.pagination);
+
+      const items = pickRows(response);
+      console.log('🧪 First 3 raw rows:', items.slice(0, 3));
+      const groupedItems = groupItemsByDepartment(items)
+
+      console.log('🏷️ Grouped items:', groupedItems);
+      console.log('🏷️ First 3 items:', groupedItems.slice(0, 3));
+      console.log(`✅ Frontend grouped ${items.length} items into ${groupedItems.length} rows (with headers)`);
+
+      // ✅ ดู payload ก่อน return
+      const payload = {
+        ...response.data,
+        result: groupedItems
+      };
+      console.log('📦 Payload to Redux:', payload);
+
+      return payload;
       
     } catch (error) {
-      console.error('❌ Error fetching cart data:', error);
-      
-      // ✅ 4. เกิด error - แสดง error และปิด loading
-      dispatch(productActions.setError(error.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล'));
-      dispatch(productActions.replaceproduct({
-        rows: [],
-        pagination: null,
-        Data4: [],
-        actualData: [],
-        result: { recordset: [] },
-        data: [],
-        e: params?.e,
-      }));
-      
-      // ✅ ปิด loading แม้เกิด error
-      dispatch(productActions.setLoading(false));
+      console.error('❌ fetchCartData error:', error);
+      return rejectWithValue(
+        error.response?.data || { message: 'Failed to fetch data' }
+      );
     }
-  };
-};
+  }
+);
 
 export const fetchSubData = (itemCode) => {
   return async (dispatch) => {

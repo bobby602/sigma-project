@@ -80,13 +80,33 @@ const ProductList = () => {
       }));
       setCurrentPage(1);
     }
-  }, [materialType, itemsPerPage, dispatch]);
+  }, [materialType, itemsPerPage, dispatch]); // eslint-disable-line
+
+  useEffect(() => {
+    if (!Array.isArray(materialType) || materialType.length === 0) return;
+    const loadData = async () => {
+      try {
+        await dispatch(
+          fetchCartData({
+            e: materialType,
+            page: currentPage,
+            limit: itemsPerPage,
+            search: searchValue,
+            sortBy: 'ItemCode',
+            sortOrder: 'ASC',
+          })
+        );
+      } catch (error) {
+        console.error('Error loading products:', error);
+      }
+    };
+    loadData();
+  }, [dispatch, currentPage, itemsPerPage, materialType, searchValue]);
 
   // ============= Handlers =============
   const handleSearchChange = useCallback((value) => {
     setSearchValue(value);
     setCurrentPage(1);
-    
     if (Array.isArray(materialType) && materialType.length > 0) {
       dispatch(fetchCartData({
         e: materialType,
@@ -100,12 +120,10 @@ const ProductList = () => {
   }, [dispatch, materialType, itemsPerPage]);
 
   const handleMaterialTypeChange = useCallback((value) => {
-    const normalized = Array.isArray(value)
-      ? value
-      : String(value || '')
-          .split(',')
-          .map(s => s.trim())
-          .filter(Boolean);
+    const normalized = String(Array.isArray(value) ? value.join(',') : (value ?? ''))
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
 
     setMaterialType(normalized);
     setCurrentPage(1);
@@ -116,11 +134,17 @@ const ProductList = () => {
     setItem(product);
     setModalOn(true);
     setReserveSection(true);
-  }, []);
+    setReserveValue('');
+    setRadioValue('');
+    
+    // Fetch reserve data when opening modal
+    if (userToken) {
+      dispatch(fetchReserveData(product, userToken.Name, 'ProductPage'));
+    }
+  }, [userToken, dispatch]);
 
   const handlePageChange = useCallback((newPage) => {
     setCurrentPage(newPage);
-    
     dispatch(fetchCartData({
       e: materialType,
       page: newPage,
@@ -129,14 +153,12 @@ const ProductList = () => {
       sortBy: 'ItemCode',
       sortOrder: 'ASC',
     }));
-    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [dispatch, materialType, itemsPerPage, searchValue]);
 
   const handleItemsPerPageChange = useCallback((newLimit) => {
     setItemsPerPage(newLimit);
     setCurrentPage(1);
-    
     if (Array.isArray(materialType) && materialType.length > 0) {
       dispatch(fetchCartData({
         e: materialType,
@@ -150,23 +172,50 @@ const ProductList = () => {
   }, [dispatch, materialType, searchValue]);
 
   // ============= Modal Handlers =============
-  const handleReserveTabClick = useCallback(() => setReserveSection(true), []);
+  const handleReserveTabClick = useCallback(() => {
+    setReserveSection(true);
+    setReserveValue('');
+  }, []);
+
   const handleCancelReserveTabClick = useCallback(() => {
     if (item && userToken) {
       dispatch(fetchReserveData(item, userToken.Name, 'ProductPage'));
       setReserveSection(false);
+      setRadioValue('');
     }
   }, [item, userToken, dispatch]);
-  const handleReserveValueChange = useCallback((e) => setReserveValue(e.target.value), []);
-  const handleRadioChange = useCallback((value) => setRadioValue(value), []);
+
+  const handleReserveValueChange = useCallback((e) => {
+    setReserveValue(e.target.value);
+  }, []);
+
+  const handleRadioChange = useCallback((value) => {
+    setRadioValue(value);
+  }, []);
+
   const handleReserveSubmit = useCallback(() => {
-    if (item && userToken) {
+    if (item && userToken && reserveValue) {
       dispatch(insertReserveData(item, reserveValue, item, userToken.Name, 'ProductPage'));
+      setReserveValue('');
+      setModalOn(false);
     }
   }, [item, reserveValue, userToken, dispatch]);
+
   const handleReserveCancel = useCallback(() => {
-    dispatch(deleteReserveData(item, radioValue));
+    if (item && radioValue) {
+      dispatch(deleteReserveData(item, radioValue));
+      setRadioValue('');
+      setModalOn(false);
+    }
   }, [item, radioValue, dispatch]);
+
+  const handleCloseModal = useCallback(() => {
+    setModalOn(false);
+    setItem(null);
+    setReserveValue('');
+    setRadioValue('');
+    setReserveSection(true);
+  }, []);
 
   return (
     <Fragment>
@@ -327,6 +376,7 @@ const ProductList = () => {
                     pagination={pagination}
                     onPageChange={handlePageChange}
                     handleOnClick={handleProductClick}
+                    hasSearch={!!searchValue}
                   />
                 ) : (
                   <div className="px-6 py-16">
@@ -351,134 +401,173 @@ const ProductList = () => {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* ============= Modal ============= */}
       {modalOn && item && (
-        <Modal item={item} setModalOn={setModalOn}>
+        <Modal item={item} setModalOn={handleCloseModal}>
+          {/* Modal Header */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">{item.Name || 'สินค้า'}</h2>
+                <p className="text-sm text-slate-600 mt-1">
+                  <span className="font-semibold">รหัส:</span> {item.ItemCode || '-'} 
+                  <span className="mx-2">•</span>
+                  <span className="font-semibold">แผนก:</span> {item.DepartName || '-'}
+                </p>
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b border-slate-200 bg-slate-50">
+            <button
+              onClick={handleReserveTabClick}
+              className={`flex-1 px-6 py-3 font-semibold transition-all ${
+                reserveSection
+                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
+                  : 'text-slate-600 hover:bg-white/50'
+              }`}
+            >
+              📦 จองสินค้า
+            </button>
+            <button
+              onClick={handleCancelReserveTabClick}
+              className={`flex-1 px-6 py-3 font-semibold transition-all ${
+                !reserveSection
+                  ? 'bg-white text-red-600 border-b-2 border-red-600'
+                  : 'text-slate-600 hover:bg-white/50'
+              }`}
+            >
+              ❌ ยกเลิกการจอง
+            </button>
+          </div>
+
+          {/* Modal Body */}
           <div className="p-6">
-            <div className="mb-6 pb-4 border-b-2 border-slate-200">
-              <h3 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-                <span className="w-2 h-8 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full"></span>
-                {item.ItemCode}
-              </h3>
-              <p className="text-slate-600 ml-5 mt-1 font-medium">{item.Name}</p>
-            </div>
-
-            <div className="mb-6 grid grid-cols-2 rounded-xl border-2 border-slate-200 overflow-hidden shadow-sm">
-              <button
-                onClick={handleReserveTabClick}
-                className={`py-4 text-sm font-bold transition-all ${
-                  reserveSection
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                    : 'bg-white text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                📦 จอง
-              </button>
-              <button
-                onClick={handleCancelReserveTabClick}
-                className={`py-4 text-sm font-bold transition-all ${
-                  !reserveSection
-                    ? 'bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-lg'
-                    : 'bg-white text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                ❌ ยกเลิกการจอง
-              </button>
-            </div>
-
-            {reserveSection ? (
-              <Fragment>
-                <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-6 border-2 border-slate-200 mb-6">
-                  <table className="w-full text-sm">
-                    <tbody>
-                      <tr className="border-b border-slate-200">
-                        <td className="px-3 py-4 font-bold text-slate-700 w-40">👤 Sale Name</td>
-                        <td className="px-3 py-4 text-slate-900 font-semibold">{userToken?.Name}</td>
-                      </tr>
-                      <tr>
-                        <td className="px-3 py-4 font-bold text-slate-700">📊 จำนวน จอง</td>
-                        <td className="px-3 py-4">
-                          <input
-                            type="number"
-                            value={reserveValue}
-                            onChange={handleReserveValueChange}
-                            className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                            placeholder="กรอกจำนวนที่ต้องการจอง"
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+            {/* Product Info Summary */}
+            <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl p-4 mb-6 border border-slate-200">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-xs text-slate-600 font-medium">คงเหลือ</p>
+                  <p className="text-lg font-bold text-blue-600">{item.QBal || '0'}</p>
                 </div>
+                <div>
+                  <p className="text-xs text-slate-600 font-medium">จองแล้ว</p>
+                  <p className="text-lg font-bold text-orange-600">{item.Reserve || '0'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-600 font-medium">คงเหลือสุทธิ</p>
+                  <p className="text-lg font-bold text-green-600">{item.BAL || '0'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-600 font-medium">ราคา</p>
+                  <p className="text-lg font-bold text-slate-900">{item.price || '0'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Reserve Section */}
+            {reserveSection ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    จำนวนที่ต้องการจอง
+                  </label>
+                  <input
+                    type="number"
+                    value={reserveValue}
+                    onChange={handleReserveValueChange}
+                    placeholder="ใส่จำนวนที่ต้องการจอง"
+                    min="0"
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all font-medium text-slate-900"
+                  />
+                  <p className="text-xs text-slate-500 mt-2">
+                    💡 คงเหลือสุทธิที่สามารถจองได้: <span className="font-bold text-blue-600">{item.BAL || '0'}</span>
+                  </p>
+                </div>
+
                 <button
                   onClick={handleReserveSubmit}
-                  className="w-full py-4 text-sm font-bold text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02]"
+                  disabled={!reserveValue || Number(reserveValue) <= 0}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
                 >
                   ✅ ยืนยันการจอง
                 </button>
-              </Fragment>
+              </div>
             ) : (
-              <Fragment>
-                <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden mb-6 shadow-sm">
-                  <div className="overflow-x-auto max-h-96">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gradient-to-r from-slate-100 to-blue-50 text-slate-700 sticky top-0 z-10 border-b-2 border-slate-200">
-                        <tr>
-                          <th className="px-4 py-3 text-left font-bold">เลือก</th>
-                          <th className="px-4 py-3 text-left font-bold">ItemCode</th>
-                          <th className="px-4 py-3 text-left font-bold">ItemName</th>
-                          <th className="px-4 py-3 text-left font-bold">Qty</th>
-                          <th className="px-4 py-3 text-left font-bold">Pack</th>
-                          <th className="px-4 py-3 text-left font-bold">SaleCode</th>
-                          <th className="px-4 py-3 text-left font-bold">SaleName</th>
-                          <th className="px-4 py-3 text-left font-bold">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reserveList && reserveList.length > 0 ? (
-                          reserveList.map((reserve, index) => (
-                            <tr key={`reserve-${index}`} className="border-b border-slate-200 hover:bg-blue-50 transition-colors">
-                              <td className="px-4 py-3">
-                                <input
-                                  type="radio"
-                                  name="reserve-radio"
-                                  value={reserve}
-                                  onChange={() => handleRadioChange(reserve)}
-                                  className="w-5 h-5 text-blue-600 cursor-pointer"
-                                />
-                              </td>
-                              <td className="px-4 py-3 font-semibold text-blue-600">{reserve.itemCode}</td>
-                              <td className="px-4 py-3 font-medium">{reserve.itemName}</td>
-                              <td className="px-4 py-3 font-semibold">{reserve.Qty}</td>
-                              <td className="px-4 py-3">{reserve.pack}</td>
-                              <td className="px-4 py-3">{reserve.SaleCode}</td>
-                              <td className="px-4 py-3">{reserve.SaleName}</td>
-                              <td className="px-4 py-3 text-slate-600">{reserve.docdateT}</td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan="8" className="px-4 py-12 text-center text-slate-500">
-                              <div className="flex flex-col items-center gap-3">
-                                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
-                                  <span className="text-3xl">📭</span>
-                                </div>
-                                <span className="font-medium">ไม่มีรายการจอง</span>
+              /* Cancel Reserve Section */
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-3">
+                    เลือกรายการที่ต้องการยกเลิก
+                  </label>
+                  
+                  {reserveList && Array.isArray(reserveList) && reserveList.length > 0 ? (
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {reserveList
+                        .filter(r => r.ItemCode === item.ItemCode)
+                        .map((reserve, idx) => (
+                          <label
+                            key={idx}
+                            className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                              radioValue === String(reserve.ID || idx)
+                                ? 'border-red-500 bg-red-50'
+                                : 'border-slate-200 hover:border-red-300 hover:bg-red-50/30'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="radio"
+                                name="reserve"
+                                value={String(reserve.ID || idx)}
+                                checked={radioValue === String(reserve.ID || idx)}
+                                onChange={(e) => handleRadioChange(e.target.value)}
+                                className="w-5 h-5 text-red-600 focus:ring-red-500"
+                              />
+                              <div>
+                                <p className="font-semibold text-slate-900">
+                                  จำนวน: <span className="text-red-600">{reserve.QTY || reserve.Qty || '0'}</span>
+                                </p>
+                                <p className="text-xs text-slate-600">
+                                  โดย: {reserve.UserName || reserve.userName || '-'} 
+                                  {reserve.ReserveDate && (
+                                    <span className="ml-2">• {new Date(reserve.ReserveDate).toLocaleDateString('th-TH')}</span>
+                                  )}
+                                </p>
                               </div>
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                            </div>
+                          </label>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
+                      <svg className="w-12 h-12 text-slate-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      </svg>
+                      <p className="text-slate-600 font-medium">ไม่มีรายการจอง</p>
+                      <p className="text-sm text-slate-500 mt-1">สินค้านี้ยังไม่มีการจอง</p>
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={handleReserveCancel}
-                  className="w-full py-4 text-sm font-bold text-white bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02]"
-                >
-                  🗑️ ยืนยันยกเลิกการจอง
-                </button>
-              </Fragment>
+
+                {reserveList && Array.isArray(reserveList) && reserveList.length > 0 && (
+                  <button
+                    onClick={handleReserveCancel}
+                    disabled={!radioValue}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-xl hover:from-red-700 hover:to-red-800 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+                  >
+                    🗑️ ยกเลิกการจองที่เลือก
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </Modal>

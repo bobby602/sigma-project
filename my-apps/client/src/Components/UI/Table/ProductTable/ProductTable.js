@@ -41,57 +41,68 @@ const mapRow = (item) => ({
   minPrice: pick(item, ['minPrice','MinPrice']),
   maxPrice: pick(item, ['maxPrice','MaxPrice']),
   DepartCode: pick(item, ['DepartCode','departCode']),
-  DepartName: pick(item, ['DepartName','departName']),
+  DepartName: pick(item, ['DepartName','DePartName','departName','departname']),
   DateCN: pick(item, ['DateCN','DateCn','dateCN','dateCn']),
   DatePrice: pick(item, ['DatePrice','datePrice']),
   DatePriceRE: pick(item, ['DatePriceRE','datePriceRe']),
-  RowNum: toNum(pick(item, ['RowNum','rowNum']), 0),
+  RowNum: toNum(pick(item, ['RowNum','rowNum']), 1),
   Reserve: pick(item, ['Reserve','reserve']),
 });
 
-const ProductTable = ({ data = [], pagination = {}, onPageChange, handleOnClick }) => {
+const ProductTable = ({ data = [], pagination = {}, onPageChange, handleOnClick, hasSearch = false }) => {
   const { page = 1, totalPages = 1, total = 0, hasPrev = false, hasNext = false, limit = 20 } = pagination;
-
-  console.log('🔍 ProductTable Debug:', {
-    dataLength: data?.length,
-    page,
-    totalPages,
-    total,
-    limit,
-    firstItem: data?.[0]
-  });
 
   const jsonToken = useMemo(() => {
     try { const token = sessionStorage.getItem('token'); return token ? JSON.parse(token) : null; }
     catch { return null; }
   }, []);
 
-  // ✅ ใช้ data โดยตรง เพราะ backend pagination ทำให้แล้ว
+  // 1) ดึงข้อมูลที่ backend ส่งมา
+  const baseData = useMemo(() => (Array.isArray(data) ? data : []), [data]);
+
+  // 2) ถ้า backend ไม่ได้ส่ง header rows มา (RowNum=0) และไม่มีการค้นหา
+  //    ให้ FE เติม header rows ตาม DepartName เพื่อให้หน้าตาเหมือนเดิม
   const displayData = useMemo(() => {
-    return Array.isArray(data) ? data : [];
-  }, [data]);
+    if (!baseData.length) return [];
+    const alreadyHasHeaders = baseData.some(r => (r.RowNum ?? r.rowNum) === 0);
+    if (alreadyHasHeaders || hasSearch) return baseData;
+
+    // จัดกลุ่มตาม Department แล้วแทรก header
+      const sorted = [...baseData].sort((a, b) => {
+      const getDept = (x) => x?.DepartName ?? x?.DePartName ?? '';
+      const da = String(getDept(a)).localeCompare(String(getDept(b)));
+      if (da !== 0) return da;
+      return String(a.ItemCode || '').localeCompare(String(b.ItemCode || ''));
+    });
+
+    const out = [];
+    let lastDept = null;
+    for (const it of sorted) {
+      const dept = (it.DepartName ?? it.DePartName ?? '') || '';
+      if (dept !== lastDept) {
+        out.push({
+          RowNum: 0,
+          rowNum: 0,
+          Name: dept || '(ไม่ระบุแผนก)',
+          DepartName: dept
+        });
+        lastDept = dept;
+      }
+      out.push(it);
+    }
+    return out;
+  }, [baseData, hasSearch]);
 
   const handlePrev = useCallback(() => { 
-    if (onPageChange && hasPrev) {
-      const newPage = Math.max(1, page - 1);
-      console.log('⬅️ Previous page:', newPage);
-      onPageChange(newPage);
-    }
+    if (onPageChange && hasPrev) onPageChange(Math.max(1, page - 1));
   }, [onPageChange, page, hasPrev]);
 
   const handleNext = useCallback(() => { 
-    if (onPageChange && hasNext) {
-      const newPage = Math.min(totalPages, page + 1);
-      console.log('➡️ Next page:', newPage);
-      onPageChange(newPage);
-    }
+    if (onPageChange && hasNext) onPageChange(Math.min(totalPages, page + 1));
   }, [onPageChange, page, totalPages, hasNext]);
 
   const handleGoTo = useCallback((targetPage) => { 
-    if (onPageChange && targetPage >= 1 && targetPage <= totalPages) {
-      console.log('🎯 Go to page:', targetPage);
-      onPageChange(targetPage);
-    }
+    if (onPageChange && targetPage >= 1 && targetPage <= totalPages) onPageChange(targetPage);
   }, [onPageChange, totalPages]);
 
   const renderPageButtons = () => {
@@ -103,56 +114,31 @@ const ProductTable = ({ data = [], pagination = {}, onPageChange, handleOnClick 
     if (end - start + 1 < windowSize) start = Math.max(1, end - windowSize + 1);
     
     const btns = [];
-    
-    // First page
     if (start > 1) {
       btns.push(
-        <button
-          key="page-1"
-          onClick={() => handleGoTo(1)}
-          className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-        >
-          1
-        </button>
+        <button key="page-1" onClick={() => handleGoTo(1)} className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">1</button>
       );
-      if (start > 2) {
-        btns.push(<span key="dots-1" className="px-2 text-gray-400">...</span>);
-      }
+      if (start > 2) btns.push(<span key="dots-1" className="px-2 text-gray-400">...</span>);
     }
-    
-    // Page range
     for (let i = start; i <= end; i++) {
       btns.push(
         <button
           key={`page-${i}`}
           onClick={() => handleGoTo(i)}
-          className={`px-3 py-2 text-sm rounded-lg ${
-            i === page 
-              ? 'bg-blue-600 text-white font-semibold' 
-              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-          }`}
+          className={`px-3 py-2 text-sm rounded-lg ${i === page ? 'bg-blue-600 text-white font-semibold' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
         >
           {i}
         </button>
       );
     }
-    
-    // Last page
     if (end < totalPages) {
-      if (end < totalPages - 1) {
-        btns.push(<span key="dots-2" className="px-2 text-gray-400">...</span>);
-      }
+      if (end < totalPages - 1) btns.push(<span key="dots-2" className="px-2 text-gray-400">...</span>);
       btns.push(
-        <button
-          key={`page-${totalPages}`}
-          onClick={() => handleGoTo(totalPages)}
-          className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-        >
+        <button key={`page-${totalPages}`} onClick={() => handleGoTo(totalPages)} className="px-3 py-2 text-sm rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
           {totalPages}
         </button>
       );
     }
-    
     return btns;
   };
 
@@ -177,35 +163,44 @@ const ProductTable = ({ data = [], pagination = {}, onPageChange, handleOnClick 
 
     return displayData.map((item, idx) => {
       const r = mapRow(item);
-      const key = `product-${r.ItemCode ?? idx}-${idx}`;
+      const key = `product-${r.ItemCode ?? r.Name ?? idx}-${idx}`;
+
+      // Header Row (Department)
+      if (r.RowNum === 0) {
+        return (
+          <tr key={key} className={Styles.row}>
+            <td className={Styles.td}>
+              <span className="font-semibold">{r.DepartName || r.Name || '-'}</span>
+            </td>
+            {/* ช่องว่างอื่นให้เป็นขีด/ว่างเพื่อความเรียบร้อย */}
+            {(jsonToken?.StAdmin === '1' ? Array.from({length:16}) : Array.from({length:7})).map((_,i)=>(
+              <td key={`${key}-pad-${i}`} className={`${Styles.td} ${Styles.muted}`}>-</td>
+            ))}
+          </tr>
+        );
+      }
 
       if (jsonToken?.StAdmin === '1') {
         return (
           <tr key={key} className={Styles.row}>
             <td className={Styles.td}><span className={Styles.code}>{r.ItemCode || '-'}</span></td>
-
             <td className={`${Styles.td} ${Styles.stickyLeft}`}>
-              {r.RowNum !== 0 ? (
-                <button onClick={() => handleOnClick(item)} className="text-blue-600 hover:underline font-medium">
-                  {r.Name || '-'}
-                </button>
-              ) : (<span className="font-semibold">{r.Name || '-'}</span>)}
+              <button onClick={() => handleOnClick(item)} className="text-blue-600 hover:underline font-medium">
+                {r.Name || '-'}
+              </button>
               <div className={`${Styles.muted}`} style={{marginTop: 2, fontSize: 11}}>{r.DepartName || ''}</div>
             </td>
-
             <td className={Styles.td}>{r.Pack || '-'}</td>
             <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.QBal)}</td>
             <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.BAL)}</td>
             <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.minPrice)}</td>
             <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.maxPrice)}</td>
-
             <td className={Styles.td}>
               <span className={`${Styles.pill} ${typeClass(String(r.TyItemDm))}`}>
                 <span className={Styles.pillDot} />
                 {typeLabel(r.TyItemDm)}
               </span>
             </td>
-
             <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.CostN)}</td>
             <td className={`${Styles.td} ${Styles.num} ${Styles.muted}`}>0.00</td>
             <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.PriceOffer)}</td>
@@ -223,16 +218,12 @@ const ProductTable = ({ data = [], pagination = {}, onPageChange, handleOnClick 
       return (
         <tr key={key} className={Styles.row}>
           <td className={Styles.td}><span className={Styles.code}>{r.ItemCode || '-'}</span></td>
-
           <td className={`${Styles.td} ${Styles.stickyLeft}`}>
-            {r.RowNum !== 0 ? (
-              <button onClick={() => handleOnClick(item)} className="text-blue-600 hover:underline font-medium">
-                {r.Name || '-'}
-              </button>
-            ) : (<span className="font-semibold">{r.Name || '-'}</span>)}
+            <button onClick={() => handleOnClick(item)} className="text-blue-600 hover:underline font-medium">
+              {r.Name || '-'}
+            </button>
             <div className={Styles.muted} style={{marginTop: 2, fontSize: 11}}>{r.DepartName || ''}</div>
           </td>
-
           <td className={`${Styles.td} ${Styles.num}`}>{fmtNum(r.QBal)}</td>
           <td className={Styles.td}>
             <button onClick={() => handleOnClick(item)} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200">
