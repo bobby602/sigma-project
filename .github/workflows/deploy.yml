@@ -1,0 +1,138 @@
+name: Deploy to AWS Lightsail
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+# กัน job ซ้อน (push ใกล้ๆ กันให้คิวล่าสุดชนะ)
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # ── Frontend ──────────────────────────────────────────────────────────────
+      - name: 🏗️ Build Frontend
+        working-directory: ./my-apps/client
+        run: |
+          set -euxo pipefail
+          npm ci
+          # ปรับ base URL ตามต้องการ (ตอนนี้ชี้ไป /api)
+          REACT_APP_API_URL=/api npm run build
+
+      # ── Backend ───────────────────────────────────────────────────────────────
+      - name: 📦 Prepare Backend
+        working-directory: ./server/api
+        run: |
+          set -euxo pipefail
+          # npm v9+ แนะนำใช้ --omit=dev แทน --production
+          npm ci --omit=dev
+
+      # ── Package ───────────────────────────────────────────────────────────────
+      - name: 📦 Create packages
+        run: |
+          set -euxo pipefail
+          # backend: เก็บทั้งโฟลเดอร์ server/ (ต้องมี server/api อยู่ภายใน)
+          tar -czf backend.tar.gz server/
+          # frontend: เก็บผล build/ แล้วดึง zip ออกมาที่ราก
+          cd my-apps/client
+          tar -czf frontend.tar.gz build/
+          mv frontend.tar.gz ../../
+
+      # ── SSH Setup ─────────────────────────────────────────────────────────────
+      - name: 🔑 Setup SSH
+        env:
+          HOST: ${{ secrets.SERVER_HOST }}
+          PORT: ${{ secrets.SERVER_PORT }}
+        run: |
+          set -euxo pipefail
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # เพิ่ม known_hosts (ตามพอร์ตจริง)
+          ssh-keyscan -p "${PORT:-22}" -H "${HOST}" >> ~/.ssh/known_hosts
+
+      # ── Deploy ────────────────────────────────────────────────────────────────
+      - name: 🚀 Deploy to Server
+        env:
+          HOST: ${{ secrets.SERVER_HOST }}
+          USER: ${{ secrets.SERVER_USER }}
+          PORT: ${{ secrets.SERVER_PORT }}
+        run: |
+          set -euxo pipefail
+
+          # อัปโหลดแพ็กเกจ (ตามพอร์ตจริง)
+          scp -P "${PORT:-22}" -i ~/.ssh/deploy_key backend.tar.gz ${USER}@${HOST}:/tmp/
+          scp -P "${PORT:-22}" -i ~/.ssh/deploy_key frontend.tar.gz ${USER}@${HOST}:/tmp/
+
+          # ทำงานบนเซิร์ฟเวอร์
+          ssh -p "${PORT:-22}" -i ~/.ssh/deploy_key ${USER}@${HOST} << 'ENDSSH'
+            set -euo pipefail
+
+            # เตรียมไดเรกทอรี
+            sudo mkdir -p /opt/sigma
+            sudo mkdir -p /var/www/sigma
+
+            # Backup เดิม (ถ้ามี)
+            if [ -d /opt/sigma/server ]; then
+              sudo tar -czf /tmp/backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /opt/sigma server/
+            fi
+
+            # ── Deploy backend ──
+            sudo tar -xzf /tmp/backend.tar.gz -C /opt/sigma/
+            sudo chown -R sigma:sigma /opt/sigma/
+
+            # ตรวจ env (ถ้ามี)
+            if [ -f /etc/sigma/env ]; then
+              # shellcheck disable=SC1091
+              source /etc/sigma/env
+            else
+              echo "⚠️  /etc/sigma/env not found (proceed without sourcing)"
+            fi
+
+            cd /opt/sigma/server/api
+            # ติดตั้งด้วย user sigma
+            sudo -u sigma npm ci --omit=dev
+
+            # PM2 restart/start
+            if sudo -u sigma pm2 list | grep -q sigma-api; then
+              sudo -u sigma pm2 restart sigma-api
+            else
+              sudo -u sigma pm2 start app.js --name sigma-api --time
+              sudo -u sigma pm2 save
+            fi
+
+            # ── Deploy frontend ──
+            sudo tar -xzf /tmp/frontend.tar.gz -C /var/www/sigma/ --strip-components=1
+            sudo chown -R www-data:www-data /var/www/sigma/
+            sudo nginx -t && sudo systemctl reload nginx
+
+            # Cleanup
+            rm -f /tmp/*.tar.gz
+
+            echo "✅ Deployment complete!"
+            sudo -u sigma pm2 status
+ENDSSH
+
+      # ── Cleanup local ─────────────────────────────────────────────────────────
+      - name: 🧹 Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/deploy_key *.tar.gz
