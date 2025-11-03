@@ -5,15 +5,16 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   NODE_VERSION: "18"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    concurrency:
-      group: deploy-${{ github.ref }}
-      cancel-in-progress: true
 
     steps:
       - name: Checkout
@@ -25,20 +26,23 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Build Frontend
+      # Frontend
+      - name: Build frontend
         working-directory: my-apps/client
         run: |
           set -eux
           npm ci
           REACT_APP_API_URL=/api npm run build
 
-      - name: Prepare Backend
+      # Backend
+      - name: Prepare backend
         working-directory: server/api
         run: |
           set -eux
           npm ci --omit=dev
 
-      - name: Create Packages
+      # Package
+      - name: Create packages
         run: |
           set -eux
           tar -czf backend.tar.gz server/
@@ -46,62 +50,58 @@ jobs:
           tar -czf frontend.tar.gz build/
           mv frontend.tar.gz ../../
 
-      - name: Setup SSH
-        env:
-          HOST: ${{ secrets.SERVER_HOST }}
-          PORT: ${{ secrets.SERVER_PORT }}
-        run: |
-          set -eux
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p "${PORT:-22}" -H "${HOST}" >> ~/.ssh/known_hosts
+      # 🔐 SCP (ไม่ใช้ heredoc)
+      - name: Upload backend package
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "backend.tar.gz"
+          target: "/tmp/"
 
-      - name: Deploy to Server
-        env:
-          HOST: ${{ secrets.SERVER_HOST }}
-          USER: ${{ secrets.SERVER_USER }}
-          PORT: ${{ secrets.SERVER_PORT }}
-        run: |
-          set -eux
+      - name: Upload frontend package
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "frontend.tar.gz"
+          target: "/tmp/"
 
-          scp -P "${PORT:-22}" -i ~/.ssh/deploy_key backend.tar.gz "${USER}@${HOST}:/tmp/"
-          scp -P "${PORT:-22}" -i ~/.ssh/deploy_key frontend.tar.gz "${USER}@${HOST}:/tmp/"
+      # 🧰 SSH (สคริปต์อยู่ใน field เดียว ปลอดภัยจาก EOF/indent)
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            set -euo pipefail
+            sudo mkdir -p /opt/sigma /var/www/sigma
+            if [ -d /opt/sigma/server ]; then
+              sudo tar -czf "/tmp/backup-$(date +%Y%m%d-%H%M%S).tar.gz" -C /opt/sigma server/
+            fi
+            sudo tar -xzf /tmp/backend.tar.gz -C /opt/sigma/
+            sudo chown -R sigma:sigma /opt/sigma/
+            if [ -f /etc/sigma/env ]; then . /etc/sigma/env; fi
+            cd /opt/sigma/server/api
+            sudo -u sigma npm ci --omit=dev
+            if sudo -u sigma pm2 list | grep -q sigma-api; then
+              sudo -u sigma pm2 restart sigma-api
+            else
+              sudo -u sigma pm2 start app.js --name sigma-api --time
+              sudo -u sigma pm2 save
+            fi
+            sudo tar -xzf /tmp/frontend.tar.gz -C /var/www/sigma/ --strip-components=1
+            sudo chown -R www-data:www-data /var/www/sigma/
+            sudo nginx -t && sudo systemctl reload nginx
+            rm -f /tmp/backend.tar.gz /tmp/frontend.tar.gz
+            echo "✅ Deployment complete"
 
-          ssh -p "${PORT:-22}" -i ~/.ssh/deploy_key "${USER}@${HOST}" 'bash -s' <<'EOF'
-set -euo pipefail
-
-sudo mkdir -p /opt/sigma /var/www/sigma
-
-if [ -d /opt/sigma/server ]; then
-  sudo tar -czf "/tmp/backup-$(date +%Y%m%d-%H%M%S).tar.gz" -C /opt/sigma server/
-fi
-
-sudo tar -xzf /tmp/backend.tar.gz -C /opt/sigma/
-sudo chown -R sigma:sigma /opt/sigma/
-
-if [ -f /etc/sigma/env ]; then
-  . /etc/sigma/env
-fi
-
-cd /opt/sigma/server/api
-sudo -u sigma npm ci --omit=dev
-
-if sudo -u sigma pm2 list | grep -q sigma-api; then
-  sudo -u sigma pm2 restart sigma-api
-else
-  sudo -u sigma pm2 start app.js --name sigma-api --time
-  sudo -u sigma pm2 save
-fi
-
-sudo tar -xzf /tmp/frontend.tar.gz -C /var/www/sigma/ --strip-components=1
-sudo chown -R www-data:www-data /var/www/sigma/
-sudo nginx -t && sudo systemctl reload nginx
-
-rm -f /tmp/*.tar.gz
-echo "✅ Deployment complete"
-EOF
-
-      - name: Cleanup
+      - name: Cleanup local
         if: always()
-        run: rm -f ~/.ssh/deploy_key backend.tar.gz frontend.tar.gz
+        run: rm -f backend.tar.gz frontend.tar.gz
