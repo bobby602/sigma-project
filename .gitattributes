@@ -1,0 +1,9 @@
+# บังคับไฟล์ที่เสี่ยงให้เป็น LF เสมอ
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.sh   text eol=lf
+*.bash text eol=lf
+
+# (ถ้าต้องการ) บังคับไฟล์สคริปต์/คอนฟิกอื่น ๆ
+*.env   text eol=lf
+Dockerfile text eol=lf
