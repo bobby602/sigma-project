@@ -2,7 +2,7 @@ name: Deploy to AWS Lightsail
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, improve-app-migrate-aws-claude ]
   workflow_dispatch:
 
 concurrency:
@@ -50,7 +50,7 @@ jobs:
           tar -czf frontend.tar.gz build/
           mv frontend.tar.gz ../../
 
-      # 🔐 SCP (ไม่ใช้ heredoc)
+      # Upload files (no heredoc)
       - name: Upload backend package
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -71,7 +71,7 @@ jobs:
           source: "frontend.tar.gz"
           target: "/tmp/"
 
-      # 🧰 SSH (สคริปต์อยู่ใน field เดียว ปลอดภัยจาก EOF/indent)
+      # Remote commands
       - name: Deploy on server
         uses: appleboy/ssh-action@v1.0.3
         with:
