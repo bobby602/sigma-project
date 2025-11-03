@@ -2,7 +2,8 @@ name: Deploy to AWS Lightsail
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 env:
@@ -10,11 +11,9 @@ env:
 
 jobs:
   deploy:
+    name: Build and Deploy
     runs-on: ubuntu-latest
-    concurrency:
-      group: deploy-${{ github.ref }}
-      cancel-in-progress: true
-
+    
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -23,85 +22,68 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
 
       - name: 🏗️ Build Frontend
-        working-directory: my-apps/client
+        working-directory: ./my-apps/client
         run: |
-          set -eux
           npm ci
           REACT_APP_API_URL=/api npm run build
 
       - name: 📦 Prepare Backend
-        working-directory: server/api
+        working-directory: ./server/api
         run: |
-          set -eux
-          npm ci --omit=dev
+          npm ci --production
 
-      - name: 📦 Create Packages
+      - name: 📦 Create packages
         run: |
-          set -eux
           tar -czf backend.tar.gz server/
-          cd my-apps/client
-          tar -czf frontend.tar.gz build/
-          mv frontend.tar.gz ../../
+          cd my-apps/client && tar -czf frontend.tar.gz build/ && mv frontend.tar.gz ../../
 
       - name: 🔑 Setup SSH
-        env:
-          HOST: ${{ secrets.SERVER_HOST }}
-          PORT: ${{ secrets.SERVER_PORT }}
         run: |
-          set -eux
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p "${PORT:-22}" -H "${HOST}" >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: 🚀 Deploy to Server
-        env:
-          HOST: ${{ secrets.SERVER_HOST }}
-          USER: ${{ secrets.SERVER_USER }}
-          PORT: ${{ secrets.SERVER_PORT }}
         run: |
-          set -eux
-
-          scp -P "${PORT:-22}" -i ~/.ssh/deploy_key backend.tar.gz "${USER}@${HOST}:/tmp/"
-          scp -P "${PORT:-22}" -i ~/.ssh/deploy_key frontend.tar.gz "${USER}@${HOST}:/tmp/"
-
-          ssh -p "${PORT:-22}" -i ~/.ssh/deploy_key "${USER}@${HOST}" 'bash -s' <<'EOSH'
-          set -euo pipefail
-
-          sudo mkdir -p /opt/sigma /var/www/sigma
-
-          if [ -d /opt/sigma/server ]; then
-            sudo tar -czf "/tmp/backup-$(date +%Y%m%d-%H%M%S).tar.gz" -C /opt/sigma server/
-          fi
-
-          sudo tar -xzf /tmp/backend.tar.gz -C /opt/sigma/
-          sudo chown -R sigma:sigma /opt/sigma/
-
-          if [ -f /etc/sigma/env ]; then
-            . /etc/sigma/env
-          fi
-
-          cd /opt/sigma/server/api
-          sudo -u sigma npm ci --omit=dev
-
-          if sudo -u sigma pm2 list | grep -q sigma-api; then
-            sudo -u sigma pm2 restart sigma-api
-          else
-            sudo -u sigma pm2 start app.js --name sigma-api --time
-            sudo -u sigma pm2 save
-          fi
-
-          sudo tar -xzf /tmp/frontend.tar.gz -C /var/www/sigma/ --strip-components=1
-          sudo chown -R www-data:www-data /var/www/sigma/
-          sudo nginx -t && sudo systemctl reload nginx
-
-          rm -f /tmp/*.tar.gz
-          echo "✅ Deployment complete"
-EOSH
+          scp -i ~/.ssh/deploy_key backend.tar.gz deploy@${{ secrets.SERVER_HOST }}:/tmp/
+          scp -i ~/.ssh/deploy_key frontend.tar.gz deploy@${{ secrets.SERVER_HOST }}:/tmp/
+          
+          ssh -i ~/.ssh/deploy_key deploy@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            set -e
+            
+            # Backup
+            [ -d /opt/sigma/server ] && sudo tar -czf /tmp/backup-$(date +%Y%m%d-%H%M%S).tar.gz -C /opt/sigma server/ 2>/dev/null || true
+            
+            # Deploy backend
+            sudo tar -xzf /tmp/backend.tar.gz -C /opt/sigma/
+            sudo chown -R sigma:sigma /opt/sigma/
+            cd /opt/sigma/server/api
+            source /etc/sigma/env
+            sudo -u sigma npm install --production
+            
+            # Restart API
+            if sudo -u sigma pm2 list | grep -q sigma-api; then
+              sudo -u sigma pm2 restart sigma-api
+            else
+              sudo -u sigma pm2 start app.js --name sigma-api --time
+              sudo -u sigma pm2 save
+            fi
+            
+            # Deploy frontend
+            sudo tar -xzf /tmp/frontend.tar.gz -C /var/www/sigma/ --strip-components=1
+            sudo chown -R www-data:www-data /var/www/sigma/
+            sudo systemctl reload nginx
+            
+            # Cleanup
+            rm -f /tmp/*.tar.gz
+            
+            echo "✅ Deployment complete!"
+            sudo -u sigma pm2 status
+ENDSSH
 
       - name: 🧹 Cleanup
         if: always()
-        run: rm -f ~/.ssh/deploy_key backend.tar.gz frontend.tar.gz
+        run: rm -f ~/.ssh/deploy_key *.tar.gz
