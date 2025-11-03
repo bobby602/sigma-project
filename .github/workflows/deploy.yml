@@ -33,6 +33,12 @@ jobs:
         run: |
           set -eux
           npm ci
+          # ปิด postbuild ที่เรียก sw-precache (ถ้ามี)
+          npm pkg delete scripts.postbuild || true
+          # ถ้าบางโปรเจ็กต์ใช้ predeploy/deploy เก่าๆ ก็ลบทิ้งด้วย
+          npm pkg delete scripts.predeploy || true
+          npm pkg delete scripts.deploy || true
+          # build
           REACT_APP_API_URL=/api npm run build
 
       # Backend
