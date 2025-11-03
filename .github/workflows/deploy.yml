@@ -5,71 +5,65 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
-  NODE_VERSION: "18"
+  NODE_VERSION: '18'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
-      - name: Checkout
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: 📦 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      # ---- Frontend ----
-      - name: Build frontend
+      - name: 🏗️ Build Frontend
         working-directory: my-apps/client
         run: |
-          set -euxo pipefail
+          set -eux
           npm ci
           REACT_APP_API_URL=/api npm run build
 
-      # ---- Backend ----
-      - name: Prepare backend
+      - name: 📦 Prepare Backend
         working-directory: server/api
         run: |
-          set -euxo pipefail
+          set -eux
           npm ci --omit=dev
 
-      # ---- Package ----
-      - name: Create packages
+      - name: 📦 Create Packages
         run: |
-          set -euxo pipefail
+          set -eux
           tar -czf backend.tar.gz server/
           cd my-apps/client
           tar -czf frontend.tar.gz build/
           mv frontend.tar.gz ../../
 
-      # ---- SSH ----
-      - name: Setup SSH
+      - name: 🔑 Setup SSH
         env:
           HOST: ${{ secrets.SERVER_HOST }}
           PORT: ${{ secrets.SERVER_PORT }}
         run: |
-          set -euxo pipefail
+          set -eux
           mkdir -p ~/.ssh
-          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p "${PORT:-22}" -H "${HOST}" >> ~/.ssh/known_hosts
 
-      # ---- Deploy ----
-      - name: Deploy to server
+      - name: 🚀 Deploy to Server
         env:
           HOST: ${{ secrets.SERVER_HOST }}
           USER: ${{ secrets.SERVER_USER }}
           PORT: ${{ secrets.SERVER_PORT }}
         run: |
-          set -euxo pipefail
+          set -eux
 
           scp -P "${PORT:-22}" -i ~/.ssh/deploy_key backend.tar.gz "${USER}@${HOST}:/tmp/"
           scp -P "${PORT:-22}" -i ~/.ssh/deploy_key frontend.tar.gz "${USER}@${HOST}:/tmp/"
@@ -87,7 +81,6 @@ jobs:
           sudo chown -R sigma:sigma /opt/sigma/
 
           if [ -f /etc/sigma/env ]; then
-            # shellcheck disable=SC1091
             . /etc/sigma/env
           fi
 
@@ -105,10 +98,10 @@ jobs:
           sudo chown -R www-data:www-data /var/www/sigma/
           sudo nginx -t && sudo systemctl reload nginx
 
-          rm -f /tmp/backend.tar.gz /tmp/frontend.tar.gz
+          rm -f /tmp/*.tar.gz
           echo "✅ Deployment complete"
 EOSH
 
-      - name: Cleanup
+      - name: 🧹 Cleanup
         if: always()
         run: rm -f ~/.ssh/deploy_key backend.tar.gz frontend.tar.gz
