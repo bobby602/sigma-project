@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const cache = require('../config/cache');
-const verifyToken = require('../middleware/auth');
+const { verifyToken } = require('../middleware/globalAuth');
 
 // Get reservations
 router.get('/list', verifyToken, async (req, res) => {

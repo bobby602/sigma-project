@@ -2,7 +2,8 @@
 import axios from 'axios';
 import { sanitizeToken } from './auth'; // <-- ปรับ path ให้ตรง
 
-const BASE_URL = 'http://localhost:9001';
+// const BASE_URL = 'http://localhost:9001';
+const BASE_URL = '/api';
 
 /** กัน default ที่อาจถูกตั้งไว้ที่อื่น */
 axios.defaults.withCredentials = false;

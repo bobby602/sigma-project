@@ -24,7 +24,9 @@ const ProductList = () => {
   // ============= Redux =============
   const dispatch = useDispatch();
   const productState = useSelector((state) => state.product);
-  const reserveList = useSelector((state) => state.reserve.data);
+  const reserveState = useSelector((state) => state.reserve);
+  const reserveList = reserveState?.data || [];
+  const isReserveLoading = reserveState?.isLoading || false;
   const serverPagination = productState?.pagination;
   const isLoading = productState?.isLoading || false;
 
@@ -130,16 +132,28 @@ const ProductList = () => {
     setSearchValue('');
   }, []);
 
-  const handleProductClick = useCallback((product) => {
+  const handleProductClick = useCallback(async (product) => {
+    console.log('🔍 Opening modal for product:', product);
+    
     setItem(product);
     setModalOn(true);
     setReserveSection(true);
     setReserveValue('');
     setRadioValue('');
     
-    // Fetch reserve data when opening modal
-    if (userToken) {
-      dispatch(fetchReserveData(product, userToken.Name, 'ProductPage'));
+    // ส่งข้อมูลครบถ้วนไปที่ fetchReserveData
+    if (userToken && product) {
+      try {
+        await dispatch(fetchReserveData({
+          itemCode: product.ItemCode,
+          saleName: userToken.Name,
+          nameFGS: product.NameFGS || '',
+          code: product.Code || '',
+        }));
+        console.log('✅ Reserve data loaded successfully');
+      } catch (error) {
+        console.error('❌ Error loading reserve data:', error);
+      }
     }
   }, [userToken, dispatch]);
 
@@ -177,11 +191,21 @@ const ProductList = () => {
     setReserveValue('');
   }, []);
 
-  const handleCancelReserveTabClick = useCallback(() => {
+  const handleCancelReserveTabClick = useCallback(async () => {
     if (item && userToken) {
-      dispatch(fetchReserveData(item, userToken.Name, 'ProductPage'));
       setReserveSection(false);
       setRadioValue('');
+      // Refresh reserve data when switching to cancel tab
+      try {
+        await dispatch(fetchReserveData({
+          itemCode: item.ItemCode,
+          saleName: userToken.Name,
+          nameFGS: item.NameFGS || '',
+          code: item.Code || '',
+        }));
+      } catch (error) {
+        console.error('❌ Error refreshing reserve data:', error);
+      }
     }
   }, [item, userToken, dispatch]);
 
@@ -193,21 +217,39 @@ const ProductList = () => {
     setRadioValue(value);
   }, []);
 
-  const handleReserveSubmit = useCallback(() => {
+  const handleReserveSubmit = useCallback(async () => {
     if (item && userToken && reserveValue) {
-      dispatch(insertReserveData(item, reserveValue, item, userToken.Name, 'ProductPage'));
-      setReserveValue('');
-      setModalOn(false);
+      try {
+        await dispatch(insertReserveData(item, reserveValue, userToken.Name));
+        setReserveValue('');
+        setModalOn(false);
+      } catch (error) {
+        console.error('❌ Error submitting reservation:', error);
+      }
     }
   }, [item, reserveValue, userToken, dispatch]);
 
-  const handleReserveCancel = useCallback(() => {
+  const handleReserveCancel = useCallback(async () => {
     if (item && radioValue) {
-      dispatch(deleteReserveData(item, radioValue));
-      setRadioValue('');
-      setModalOn(false);
+      const confirmed = window.confirm('คุณแน่ใจหรือไม่ที่จะยกเลิกการจองนี้?');
+      if (!confirmed) return;
+
+      try {
+        await dispatch(deleteReserveData(item, radioValue));
+        setRadioValue('');
+        // Keep modal open to show updated list
+        // Refresh the list
+        await dispatch(fetchReserveData({
+          itemCode: item.ItemCode,
+          saleName: userToken.Name,
+          nameFGS: item.NameFGS || '',
+          code: item.Code || '',
+        }));
+      } catch (error) {
+        console.error('❌ Error canceling reservation:', error);
+      }
     }
-  }, [item, radioValue, dispatch]);
+  }, [item, radioValue, userToken, dispatch]);
 
   const handleCloseModal = useCallback(() => {
     setModalOn(false);
@@ -430,28 +472,40 @@ const ProductList = () => {
           <div className="flex border-b border-slate-200 bg-slate-50">
             <button
               onClick={handleReserveTabClick}
+              disabled={isReserveLoading}
               className={`flex-1 px-6 py-3 font-semibold transition-all ${
                 reserveSection
                   ? 'bg-white text-blue-600 border-b-2 border-blue-600'
                   : 'text-slate-600 hover:bg-white/50'
-              }`}
+              } ${isReserveLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               📦 จองสินค้า
             </button>
             <button
               onClick={handleCancelReserveTabClick}
+              disabled={isReserveLoading}
               className={`flex-1 px-6 py-3 font-semibold transition-all ${
                 !reserveSection
                   ? 'bg-white text-red-600 border-b-2 border-red-600'
                   : 'text-slate-600 hover:bg-white/50'
-              }`}
+              } ${isReserveLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               ❌ ยกเลิกการจอง
             </button>
           </div>
 
           {/* Modal Body */}
-          <div className="p-6">
+          <div className="p-6 relative">
+            {/* Loading Overlay for Reserve Section */}
+            {isReserveLoading && (
+              <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+                  <p className="text-sm font-medium text-slate-600 mt-3">กำลังโหลด...</p>
+                </div>
+              </div>
+            )}
+
             {/* Product Info Summary */}
             <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl p-4 mb-6 border border-slate-200">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -487,7 +541,8 @@ const ProductList = () => {
                     onChange={handleReserveValueChange}
                     placeholder="ใส่จำนวนที่ต้องการจอง"
                     min="0"
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all font-medium text-slate-900"
+                    disabled={isReserveLoading}
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all font-medium text-slate-900 disabled:bg-slate-50 disabled:cursor-not-allowed"
                   />
                   <p className="text-xs text-slate-500 mt-2">
                     💡 คงเหลือสุทธิที่สามารถจองได้: <span className="font-bold text-blue-600">{item.BAL || '0'}</span>
@@ -496,10 +551,10 @@ const ProductList = () => {
 
                 <button
                   onClick={handleReserveSubmit}
-                  disabled={!reserveValue || Number(reserveValue) <= 0}
+                  disabled={!reserveValue || Number(reserveValue) <= 0 || isReserveLoading}
                   className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
                 >
-                  ✅ ยืนยันการจอง
+                  {isReserveLoading ? '⏳ กำลังบันทึก...' : '✅ ยืนยันการจอง'}
                 </button>
               </div>
             ) : (
@@ -513,39 +568,54 @@ const ProductList = () => {
                   {reserveList && Array.isArray(reserveList) && reserveList.length > 0 ? (
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {reserveList
-                        .filter(r => r.ItemCode === item.ItemCode)
-                        .map((reserve, idx) => (
-                          <label
-                            key={idx}
-                            className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                              radioValue === String(reserve.ID || idx)
-                                ? 'border-red-500 bg-red-50'
-                                : 'border-slate-200 hover:border-red-300 hover:bg-red-50/30'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="radio"
-                                name="reserve"
-                                value={String(reserve.ID || idx)}
-                                checked={radioValue === String(reserve.ID || idx)}
-                                onChange={(e) => handleRadioChange(e.target.value)}
-                                className="w-5 h-5 text-red-600 focus:ring-red-500"
-                              />
-                              <div>
-                                <p className="font-semibold text-slate-900">
-                                  จำนวน: <span className="text-red-600">{reserve.QTY || reserve.Qty || '0'}</span>
-                                </p>
-                                <p className="text-xs text-slate-600">
-                                  โดย: {reserve.UserName || reserve.userName || '-'} 
-                                  {reserve.ReserveDate && (
-                                    <span className="ml-2">• {new Date(reserve.ReserveDate).toLocaleDateString('th-TH')}</span>
+                        .filter(r => r.itemCode === item.ItemCode || r.ItemCode === item.ItemCode)
+                        .map((reserve, idx) => {
+                          const reserveId = String(reserve.ID || reserve.id || idx);
+                          const qty = reserve.QTY || reserve.Qty || reserve.qty || '0';
+                          const userName = reserve.SaleName || reserve.UserName || reserve.userName || '-';
+                          const displayDate = reserve.docdateT || 
+                                            (reserve.docdate ? new Date(reserve.docdate).toLocaleDateString('th-TH') : '') ||
+                                            (reserve.ReserveDate ? new Date(reserve.ReserveDate).toLocaleDateString('th-TH') : '-');
+                          
+                          return (
+                            <label
+                              key={reserveId}
+                              className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                                radioValue === reserveId
+                                  ? 'border-red-500 bg-red-50'
+                                  : 'border-slate-200 hover:border-red-300 hover:bg-red-50/30'
+                              } ${isReserveLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="radio"
+                                  name="reserve"
+                                  value={reserveId}
+                                  checked={radioValue === reserveId}
+                                  onChange={(e) => handleRadioChange(e.target.value)}
+                                  disabled={isReserveLoading}
+                                  className="w-5 h-5 text-red-600 focus:ring-red-500"
+                                />
+                                <div>
+                                  <p className="font-semibold text-slate-900">
+                                    จำนวน: <span className="text-red-600">{qty}</span>
+                                  </p>
+                                  <p className="text-xs text-slate-600">
+                                    โดย: {userName}
+                                    {displayDate !== '-' && (
+                                      <span className="ml-2">• {displayDate}</span>
+                                    )}
+                                  </p>
+                                  {reserve.Note && (
+                                    <p className="text-xs text-slate-500 mt-1">
+                                      💬 {reserve.Note}
+                                    </p>
                                   )}
-                                </p>
+                                </div>
                               </div>
-                            </div>
-                          </label>
-                        ))}
+                            </label>
+                          );
+                        })}
                     </div>
                   ) : (
                     <div className="text-center py-8 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
@@ -561,10 +631,10 @@ const ProductList = () => {
                 {reserveList && Array.isArray(reserveList) && reserveList.length > 0 && (
                   <button
                     onClick={handleReserveCancel}
-                    disabled={!radioValue}
+                    disabled={!radioValue || isReserveLoading}
                     className="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-xl hover:from-red-700 hover:to-red-800 disabled:from-slate-300 disabled:to-slate-400 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
                   >
-                    🗑️ ยกเลิกการจองที่เลือก
+                    {isReserveLoading ? '⏳ กำลังยกเลิก...' : '🗑️ ยกเลิกการจองที่เลือก'}
                   </button>
                 )}
               </div>

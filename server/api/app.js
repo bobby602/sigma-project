@@ -50,7 +50,7 @@ app.use(express.static(path.join(__dirname, 'build')));
 /* ------------------------ ROUTES ------------------------ */
 try {
   const loginRouter = require('./routes/login');
-  app.use('/api/auth', loginRouter); // login limiter อยู่ภายในไฟล์ login แล้ว
+  app.use('/api/auth', loginRouter);
   console.log('✅ Login router loaded');
 } catch (error) {
   console.warn('❌ Failed to load login routes:', error.message);
@@ -58,40 +58,53 @@ try {
 
 try {
   const customerRouter = require('./routes/customerList');
-  console.log('✅ customerList router loaded');
-  app.use('/api/customers', (req, res, next) => {
-    console.log('➡️ hit /api/customers mount', req.method, req.url);
+  app.use('/api/customers', (req,res,next)=>{
+    console.log('➡️ hit /api/customers', req.method, req.url);
     next();
   }, customerRouter);
+  console.log('✅ customerList router loaded');
 } catch (error) {
   console.error('❌ Failed to load customer routes:', error.message);
 }
 
 try {
   const productListRouter = require('./routes/productList');
-  console.log('✅ productList router loaded');
-   app.use('/productList', (req,res,next)=>{
-    console.log('➡️ hit /productList mount', req.method, req.url);
+  // เส้นทางหลัก (ตามที่ประกาศใน /api)
+  app.use('/api/products', (req,res,next)=>{
+    console.log('➡️ hit /api/products', req.method, req.url);
     next();
   }, productListRouter);
+  // alias เดิมไว้กัน FE เก่า
+  app.use('/productList', productListRouter);
+  console.log('✅ productList router loaded');
 } catch (error) {
   console.log('⚠️ Product routes not found, skipping...', error.message);
 }
 
 try {
   const priceListRouter = require('./routes/priceList');
-  app.use('/api/prices', priceListRouter);
+  app.use('/api/prices', (req,res,next)=>{
+    console.log('➡️ hit /api/prices', req.method, req.url);
+    next();
+  }, priceListRouter);
+  console.log('✅ priceList router loaded');
 } catch (error) {
-  console.log('⚠️ Price routes not found, skipping...');
+  console.log('⚠️ Price routes not found, skipping...', error.message);
 }
 
 try {
   const reserveRouter = require('./routes/reserveList');
-  app.use('/api/reservations', reserveRouter);
+  // เส้นทางหลักที่ FE ใหม่ควรใช้
+  app.use('/api/reservations', (req,res,next)=>{
+    console.log('➡️ hit /api/reservations', req.method, req.url);
+    next();
+  }, reserveRouter);
+  // alias เดิมเพื่อให้ FE เก่ายิง /reserveList ยังเข้าได้
+  app.use('/reserveList', reserveRouter);
+  console.log('✅ reserveList router loaded');
 } catch (error) {
-  console.log('⚠️ Reservation routes not found, skipping...');
+  console.log('⚠️ Reservation routes not found, skipping...', error.message);
 }
-
 /* ------------------------ Utility Endpoints ------------------------ */
 app.get('/api/health', (req, res) => {
   res.json({

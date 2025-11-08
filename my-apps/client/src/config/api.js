@@ -1,6 +1,7 @@
 const RAW = (process.env.REACT_APP_API_URL || '/api').trim();
 // ตัดเครื่องหมาย / ซ้ำ แล้วคุมให้เป็น relative ได้เสมอ
 const BASE_URL = RAW.replace(/\/+$/,'') || '/api';
+console.log('API Base URL set to:', process.env.REACT_APP_API_URL);
 
 const API_CONFIG = {
   BASE_URL,

@@ -5,7 +5,7 @@ import { sanitizeToken } from './auth'; // << ใช้เฉพาะตัว�
 const BASE_URL =
   process.env.REACT_APP_API_BASE ||
   process.env.REACT_APP_API_URL ||
-  'http://localhost:9001/api';
+  '/api';
 
 axios.defaults.withCredentials = false;
 
