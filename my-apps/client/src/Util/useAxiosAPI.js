@@ -2,20 +2,20 @@
 import axios from 'axios';
 import { sanitizeToken } from './auth'; // <-- ปรับ path ให้ตรง
 
+/* `const BASE_URL = '/';` is setting the base URL for API requests to the root of the current domain. This means that all API requests made using this axios instance will be relative to the root of the current domain, rather than an absolute URL like `http://localhost:9001`. This can be useful when working with APIs that are hosted on the same domain as the frontend application. */
 // const BASE_URL = 'http://localhost:9001';
 const BASE_URL = '/';
 
 /** กัน default ที่อาจถูกตั้งไว้ที่อื่น */
 axios.defaults.withCredentials = false;
 
-/** สร้าง instance สำหรับเรียก API (ใช้ Bearer token อย่างเดียว) */
+
 const axiosPrivate = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  withCredentials: false, // สำคัญ: ไม่ใช้คุกกี้ → ตัดปัญหา CORS credential
+  withCredentials: false, 
 });
 
-/** Request Interceptor: แนบ Authorization ให้ทุก request (ยกเว้น auth endpoints) */
 axiosPrivate.interceptors.request.use(
   (config) => {
     const raw = sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken');

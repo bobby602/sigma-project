@@ -20,6 +20,8 @@ import { tokenLoader ,checkAuthLoader} from './Util/auth';
 import  {LogoutApi}  from './Store/logoutApi';
 import { Link , Navigate ,Redirect  } from 'react-router-dom'
 import './styles/animations.css';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 function App() {
